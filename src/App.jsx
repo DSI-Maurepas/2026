@@ -679,10 +679,6 @@ case "info-participation":
           {/* ── Boutons navigation INFO : Informations + Participation + actions ── */}
           <div className="info-profile-nav-row">
             <div className="info-profile-nav-btns">
-              <span className={`tour-indicator-badge tour-indicator-badge--${safeElectionState.tourActuel === 2 ? 2 : 1}`}>
-                <span className="tour-indicator-icon">{safeElectionState.tourActuel === 2 ? "🔵" : "🟢"}</span>
-                <span className="tour-indicator-text">{safeElectionState.tourActuel === 2 ? "TOUR 2" : "TOUR 1"}</span>
-              </span>
               <button
                 className={`nav-item nav-item--informations${currentPage === "informations" ? " active" : ""}`}
                 type="button"

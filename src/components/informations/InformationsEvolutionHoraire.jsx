@@ -204,11 +204,20 @@ export default function InformationsEvolutionHoraire({
           <svg className="info-evo-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <path className="info-evo-area" d={svgPaths.area} />
             <path className="info-evo-line" d={svgPaths.line} />
-            {svgPaths.pts.map((p, idx) => (
-              <circle key={idx} className="info-evo-point" cx={p.x} cy={p.y} r="1.8" />
-            ))}
           </svg>
         )}
+
+        {/* Points à taille fixe en pixels — ne s'agrandissent pas avec la hauteur du bloc */}
+        {hasAnyData && svgPaths.pts.map((p, idx) => (
+          <div
+            key={idx}
+            className="info-evo-dot"
+            style={{
+              left: `${p.x}%`,
+              top: `calc(${(p.y / 100).toFixed(5)} * (100% - 44px))`,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

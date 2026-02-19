@@ -426,10 +426,10 @@ async sleep(ms) {
         }));
 
       case 'Resultats_T1':
-      case 'Resultats_T2':
+      case 'Resultats_T2': {
         // Colonnes attendues (Google Sheets):
         // A BureauID | B Inscrits | C Votants | D Blancs | E Nuls | F Exprimes | G..L L1_Voix..L6_Voix | M SaisiPar | N ValidePar | O Timestamp
-        return rows.map(row => {
+        const mapped = rows.map(row => {
           const voix = {
             L1: parseInt(row[6]) || 0,
             L2: parseInt(row[7]) || 0,
@@ -452,6 +452,36 @@ async sleep(ms) {
             timestamp: row[14] || ''
           };
         });
+
+        // ── Déduplication par bureauId ────────────────────────────────────────
+        // En cas de double saisie (appendRow déclenché deux fois), on garde
+        // uniquement la ligne avec le plus grand nombre de suffrages exprimés.
+        // Si deux lignes ont le même exprimes, on prend la dernière (rowIndex max).
+        const byBureau = new Map();
+        mapped.forEach(r => {
+          const key = String(r.bureauId || '').trim().toUpperCase();
+          if (!key) return; // ignorer les lignes sans bureauId
+          const existing = byBureau.get(key);
+          if (!existing) {
+            byBureau.set(key, r);
+          } else {
+            const newExprimes = Number(r.exprimes) || 0;
+            const curExprimes = Number(existing.exprimes) || 0;
+            // Priorité : exprimes le plus grand ; à égalité, rowIndex le plus récent
+            if (newExprimes > curExprimes ||
+               (newExprimes === curExprimes && (r.rowIndex ?? 0) > (existing.rowIndex ?? 0))) {
+              byBureau.set(key, r);
+            }
+          }
+        });
+
+        const deduped = Array.from(byBureau.values());
+        if (deduped.length < mapped.length) {
+          console.warn(`[googleSheetsService] ${sheetName} : ${mapped.length - deduped.length} ligne(s) dupliquée(s) supprimée(s) par déduplication bureauId`);
+        }
+
+        return deduped;
+      }
 
       case 'Seats_Municipal':
         // Colonnes attendues :

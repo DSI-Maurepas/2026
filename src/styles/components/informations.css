@@ -133,14 +133,35 @@
 .info-col-b { grid-area: colb; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .info-col-c { grid-area: colc; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
-/* ─── Alignement rectangle : le dernier card de chaque colonne absorbe l'espace restant ─── */
+/* ─── T2 : grille étendue — col B span 2 rangées, sièges en bas ─── */
+.info-grid--t2 {
+  grid-template-areas:
+    "cola  colb  colc"
+    "sieg-muni  colb  sieg-comm";
+  align-items: stretch;
+}
+.info-col-sieg-muni { grid-area: sieg-muni; display: flex; flex-direction: column; min-width: 0; }
+.info-col-sieg-comm { grid-area: sieg-comm; display: flex; flex-direction: column; min-width: 0; }
+/* Les cartes sièges remplissent la hauteur de leur cellule */
+.info-col-sieg-muni > article,
+.info-col-sieg-comm > article { flex: 1; display: flex; flex-direction: column; }
+
+/* ─── Alignement rectangle : le dernier card de col-a et col-c absorbe l'espace restant ─── */
+/* col-b est exclu : l'évolution horaire (pas le dernier enfant) est ciblée directement */
 .info-col-a > article:last-child,
-.info-col-b > article:last-child,
 .info-col-c > article:last-child {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* Col B — dernier article (Verrouillage BV) : taille naturelle, contenu centré verticalement */
+.info-col-b > article:last-child {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Le contenu extensible dans chaque dernier card */
@@ -152,10 +173,9 @@
   min-height: 0;
 }
 
-/* Col B — Verrouillage : les tuiles remplissent la hauteur disponible */
+/* Col B — Verrouillage : les tuiles ne s'étirent pas (centrage géré par l'article) */
 .info-col-b > article:last-child .bv-tiles {
-  flex: 1;
-  align-content: flex-start;  /* les tuiles restent en haut, pas étirées verticalement */
+  align-content: flex-start;
   min-height: 0;
 }
 
@@ -166,6 +186,30 @@
   overflow-y: auto;
 }
 
+/* ─── Col B : évolution horaire s'étire toujours (T1 ET T2) ─── */
+
+/* L'évolution horaire absorbe tout l'espace restant dans col B — T1 ET T2 */
+.info-card-evolution {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.info-card-evolution .info-evolution {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* Le chart s'étire en desktop */
+@media (min-width: 1201px) {
+  .info-card-evolution .info-evo-chart-area {
+    flex: 1;
+    height: auto;
+    min-height: 200px;
+  }
+}
+
 /* ═══ CARTE GÉNÉRIQUE ══════════════════════════════════════════════ */
 .info-card {
   background: #fff; border-radius: 16px; padding: 16px 18px;
@@ -174,7 +218,6 @@
 }
 /* Les derniers cards s'étirent — overflow visible pour que flex interne fonctionne */
 .info-col-a > article:last-child,
-.info-col-b > article:last-child,
 .info-col-c > article:last-child { overflow: visible; }
 .info-card.info-card-evolution { padding: 0; }
 .info-card .card-title {
@@ -233,15 +276,24 @@
   position: absolute; left: 0; top: 0;
   width: 100%; height: calc(100% - 44px); pointer-events: none;
 }
-.info-evo-area  { fill: rgba(255,255,255,.10); }
+.info-evo-area  { fill: rgba(0,0,0,.06); }
 .info-evo-line  {
-  fill: none; stroke: rgba(255,255,255,.95); stroke-width: 2.2;
+  fill: none; stroke: #111827; stroke-width: 1.2;
   stroke-linecap: round; stroke-linejoin: round;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.18));
 }
-.info-evo-point {
-  fill: rgba(255,255,255,.95); stroke: rgba(0,0,0,.2); stroke-width: .8;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
+
+/* Points HTML — taille fixe 8px, indépendante de la hauteur du bloc */
+.info-evo-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #111827;
+  border: 1.5px solid rgba(255,255,255,.85);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
 }
 
 /* ═══ VERROUILLAGE BUREAUX ═════════════════════════════════════════ */
@@ -486,6 +538,110 @@
   margin-top: 4px;
 }
 
+/* ═══ SIÈGES MUNICIPAUX & COMMUNAUTAIRES (T2) ══════════════════════ */
+.info-card-sieges {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Badge total sièges */
+.sieges-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--info-accent-soft);
+  border: 1px solid var(--info-accent-mid);
+  border-radius: 10px;
+}
+.sieges-badge-nb {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--info-accent);
+  line-height: 1;
+}
+.sieges-badge-label {
+  font-size: 12px;
+  opacity: .7;
+}
+
+/* Liste des listes */
+.sieges-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.sieges-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.05);
+  background: #fafafa;
+}
+.sieges-row--first {
+  background: var(--info-accent-soft);
+  border-color: var(--info-accent-mid);
+}
+
+.sieges-rank {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--info-accent);
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sieges-row--first .sieges-rank {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+.sieges-main { min-width: 0; }
+.sieges-nom {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.sieges-bar-wrap {
+  height: 5px;
+  background: rgba(0,0,0,.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.sieges-bar {
+  height: 100%;
+  background: var(--info-accent);
+  border-radius: 4px;
+  transition: width 600ms ease;
+  min-width: 3px;
+}
+
+.sieges-count {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--info-accent);
+  text-align: right;
+  line-height: 1;
+}
+
 /* ═══ PIED DE PAGE ═════════════════════════════════════════════════ */
 .info-bottom   { margin-top: 14px; }
 .info-footnote { font-size: 12px; opacity: .6; font-style: italic; }
@@ -509,21 +665,35 @@
     flex: none; 
     width: 100%; 
     max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
+    align-self: stretch;   /* annule le align-self: flex-start du desktop */
+    /* NE PAS mettre overflow:hidden ici — ça clipe les border-radius des cartes de droite */
   }
+  /* Contenir le débordement DANS chaque carte, pas dans la grille */
+  .info-meta-item {
+    overflow: hidden;
+    min-width: 0;
+  }
+  /* Compte à rebours : police réduite pour tenir dans une demi-largeur */
+  .countdown-val { font-size: 16px; }
+  .countdown-sep { font-size: 14px; }
+  .countdown-unit { min-width: 20px; }
 
   /* Titre sur une ligne — réduire la taille si besoin */
   .info-title-h1 { font-size: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Grille 3 colonnes → colonne unique empilée */
   .info-grid { grid-template-columns: 1fr; grid-template-areas: "cola" "colb" "colc"; }
+  /* T2 : colonnes sièges empilées sous les colonnes principales */
+  .info-grid--t2 { grid-template-columns: 1fr; grid-template-areas: "cola" "colb" "colc" "sieg-muni" "sieg-comm"; }
 
   /* KPIs participation : 2 × 2 */
   .kpis { grid-template-columns: 1fr 1fr !important; }
 
   /* Évolution horaire : scroll horizontal pour ne pas écraser les valeurs */
   .info-card-evolution { overflow-x: auto; }
-  .info-evo-chart-area { min-width: 700px; }
+  .info-evo-chart-area { min-width: 700px; height: 260px !important; }
 
   /* Légende évolution : alignée à droite */
   .info-evolution-head { flex-wrap: wrap; }
@@ -534,4 +704,274 @@
   .info-title-h1 { font-size: 20px; }
   .info-meta     { grid-template-columns: 1fr 1fr; }
   .bv-tile       { width: 56px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   INFORMATIONS PARTICIPATION — Tableaux consolidation
+   Charte T1 (vert) / T2 (bleu) — colonnes sticky mobile
+═══════════════════════════════════════════════════════════════════ */
+
+/* Variables locales par tour — scoped sur chaque bloc article */
+.info-particip-block--t1 {
+  --pt-accent:      #166534;
+  --pt-accent-dark: #14532d;
+  --pt-accent-soft: rgba(22, 101, 52, 0.07);
+  --pt-accent-mid:  rgba(22, 101, 52, 0.18);
+  --pt-header-bg:   #166534;
+  --pt-header-bg2:  #14532d;
+  --pt-filled-bg:   rgba(22, 101, 52, 0.10);
+  --pt-filled-txt:  #14532d;
+  --pt-total-bg:    #166534;
+}
+.info-particip-block--t2 {
+  --pt-accent:      #0b3b86;
+  --pt-accent-dark: #1e3a8a;
+  --pt-accent-soft: rgba(11, 59, 134, 0.07);
+  --pt-accent-mid:  rgba(11, 59, 134, 0.18);
+  --pt-header-bg:   #0b3b86;
+  --pt-header-bg2:  #1e3a8a;
+  --pt-filled-bg:   rgba(11, 59, 134, 0.10);
+  --pt-filled-txt:  #1e3a8a;
+  --pt-total-bg:    #0b3b86;
+}
+
+/* ── PAGE ── */
+.info-particip-page {
+  position: relative;
+  left: 50%;
+  width: 100vw;
+  max-width: 1900px;
+  transform: translateX(-50%);
+  padding: 16px 24px 24px;
+  box-sizing: border-box;
+}
+.info-particip-page * { box-sizing: border-box; }
+
+/* ── HEADER PAGE ── */
+.info-particip-header {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.info-particip-header-left { display: flex; flex-direction: column; gap: 8px; }
+.info-particip-h1 {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.1;
+}
+
+/* ── CONTENU : empilé verticalement ── */
+.info-particip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── BLOC ARTICLE ── */
+.info-particip-block {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.07);
+  border: 1.5px solid var(--pt-accent-mid);
+  overflow: hidden;       /* arrondi respecté */
+}
+
+/* ── EN-TÊTE DU BLOC ── */
+.info-particip-block-header {
+  background: linear-gradient(135deg, var(--pt-header-bg) 0%, var(--pt-header-bg2) 100%);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.info-particip-block-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.info-particip-block-icon { font-size: 18px; }
+
+/* ── PILLS MÉTA : inscrits / votants / participation ── */
+.info-particip-block-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;           /* espace entre les pills */
+  flex-wrap: wrap;
+}
+.info-particip-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.30);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: #fff;
+  white-space: nowrap;
+}
+.info-particip-meta-pill strong { font-weight: 900; }
+.info-particip-meta-pill--accent {
+  background: rgba(255,255,255,.30);
+  border-color: rgba(255,255,255,.50);
+  font-weight: 700;
+}
+
+/* ── SCROLL WRAPPER : indépendant par bloc ── */
+.info-particip-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;  /* iOS momentum scroll */
+}
+
+/* ── TABLE ── */
+.info-particip-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 13px;
+}
+
+/* En-têtes : fond coloré + texte blanc sur toutes les colonnes */
+.info-particip-table thead tr {
+  background: var(--pt-accent);
+}
+.info-particip-table thead th {
+  padding: 10px 8px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #fff;
+  border-bottom: 2px solid var(--pt-accent-dark);
+  white-space: nowrap;
+}
+.info-particip-th-bureau   { text-align: left; min-width: 130px; }
+.info-particip-th-inscrits { min-width: 70px; }
+.info-particip-th-hour     { min-width: 72px; }
+
+/* Corps */
+.info-particip-row-even { background: #fff; }
+.info-particip-row-odd  { background: #f8fafc; }
+.info-particip-table tbody tr:hover { background: var(--pt-accent-soft); }
+
+.info-particip-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.info-particip-td-bureau {
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  padding-left: 14px;
+}
+.info-particip-td-inscrits {
+  font-weight: 700;
+  color: #475569;
+}
+
+/* Cellules heures — renseignées vs vides */
+.info-particip-td-hour.is-filled {
+  background: var(--pt-filled-bg);
+}
+.info-particip-td-hour.is-empty {
+  opacity: .35;
+}
+.info-particip-votants {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pt-filled-txt, #1e293b);
+  line-height: 1.2;
+}
+.info-particip-td-hour.is-empty .info-particip-votants { color: #94a3b8; }
+.info-particip-pct {
+  font-size: 10px;
+  opacity: .7;
+  margin-top: 1px;
+  line-height: 1;
+}
+
+/* Pied de tableau — ligne TOTAL */
+.info-particip-total-row {
+  background: var(--pt-total-bg) !important;
+}
+.info-particip-total-row td {
+  color: #fff !important;
+  border-bottom: none;
+  padding: 10px 8px;
+}
+.info-particip-total-row .info-particip-td-bureau {
+  font-size: 12px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.info-particip-total-row .info-particip-votants,
+.info-particip-total-row .info-particip-pct { color: #fff !important; opacity: 1; }
+.info-particip-total-row .info-particip-pct { opacity: .85; }
+
+/* ── STICKY PREMIÈRE COLONNE — desktop ET mobile ── */
+.info-particip-table thead th:first-child,
+.info-particip-table tbody td:first-child,
+.info-particip-table tfoot td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+/* Fond sticky : reprend le fond coloré du thead */
+.info-particip-table thead th:first-child {
+  background: var(--pt-accent);
+}
+.info-particip-row-even td:first-child { background: #fff; }
+.info-particip-row-odd  td:first-child { background: #f8fafc; }
+.info-particip-table tbody tr:hover td:first-child { background: var(--pt-accent-soft); }
+.info-particip-total-row td:first-child { background: var(--pt-total-bg); }
+/* Ombre droite sur la colonne sticky pour signaler le scroll */
+.info-particip-table thead th:first-child,
+.info-particip-table tbody td:first-child,
+.info-particip-table tfoot td:first-child {
+  box-shadow: 2px 0 6px rgba(0,0,0,.08);
+}
+
+/* ── RESPONSIVE ≤ 1200px ── */
+@media (max-width: 1200px) {
+  .info-particip-page {
+    position: static; left: auto; width: 100%; transform: none; padding: 12px;
+  }
+  .info-particip-h1 { font-size: 22px; }
+  .info-particip-block-title { font-size: 14px; white-space: normal; }
+  .info-particip-block-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* Chaque bloc est un conteneur de scroll indépendant */
+  .info-particip-block {
+    overflow: hidden;    /* arrondi + isole le scroll enfant */
+  }
+  .info-particip-table-wrap {
+    /* scroll indépendant par bloc — l'un ne fait pas bouger l'autre */
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .info-particip-meta-pill { font-size: 11px; padding: 4px 9px; }
+  .info-particip-table     { font-size: 12px; }
+  .info-particip-th-bureau,
+  .info-particip-td-bureau { min-width: 100px; font-size: 12px; }
 }

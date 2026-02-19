@@ -1022,3 +1022,24 @@
   margin-left: auto !important;
 }
 
+/* ── Nav INFO : boutons sur une seule ligne ── */
+.info-profile-nav-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.info-profile-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.info-profile-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;   /* pousse les boutons d'action à droite */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

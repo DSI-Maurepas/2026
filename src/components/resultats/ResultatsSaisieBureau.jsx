@@ -54,6 +54,13 @@ export default function ResultatsSaisieBureau({ electionState: electionStateProp
 
   const [inputsVoix, setInputsVoix] = useState({});
 
+  // ── Verrous anti-doublon ─────────────────────────────────────────────────────
+  // isSavingRef : empêche deux sauvegardes concurrentes (onBlur multiples rapides)
+  const isSavingRef = useRef(false);
+  // appendedRowIndexRef : après un premier appendRow réussi, mémorise le rowIndex
+  // pour que les sauvegardes suivantes utilisent updateRow même si row state est stale
+  const appendedRowIndexRef = useRef(null);
+
   useEffect(() => {
     if (forcedBureauId) setSelectedBureauId(forcedBureauId);
   }, [forcedBureauId]);
@@ -205,6 +212,10 @@ useEffect(() => {
   }, [bureaux]);
 
   useEffect(() => {
+    // Reset des verrous anti-doublon à chaque changement de bureau
+    isSavingRef.current = false;
+    appendedRowIndexRef.current = null;
+
     if (!selectedBureauId) {
       setRow(null);
       setInputsMain({ inscrits: '', votants: '', procurations: '', blancs: '', nuls: '', exprimes: '' });
@@ -280,26 +291,48 @@ useEffect(() => {
   const saveCurrentRow = useCallback(async (fieldLabelForAudit) => {
     if (!selectedBureauId) return;
 
-    const rowData = buildRowData();
-
-    if (row && (row.rowIndex !== undefined && row.rowIndex !== null)) {
-      await googleSheetsService.updateRow(resultatsSheet, row.rowIndex, rowData);
-    } else {
-      await googleSheetsService.appendRow(resultatsSheet, rowData);
+    // ── Verrou anti-doublon : si une sauvegarde est déjà en cours, on abandonne ──
+    if (isSavingRef.current) {
+      console.warn('[ResultatsSaisieBureau] saveCurrentRow ignorée : sauvegarde en cours');
+      return;
     }
+    isSavingRef.current = true;
 
     try {
-      await auditService.log?.('RESULTATS_SAISIE', {
-        tour: tourActuel,
-        bureauId: selectedBureauId,
-        champ: fieldLabelForAudit || 'SAVE',
-      });
-    } catch (_) {}
+      const rowData = buildRowData();
 
-    await reloadResultats();
+      // rowIndex source : état React (row) OU ref mémorisée après un premier appendRow
+      const effectiveRowIndex = row?.rowIndex ?? appendedRowIndexRef.current;
 
-    const refreshed = findRowForBureau(selectedBureauId);
-    setRow(refreshed);
+      if (effectiveRowIndex !== undefined && effectiveRowIndex !== null) {
+        await googleSheetsService.updateRow(resultatsSheet, effectiveRowIndex, rowData);
+      } else {
+        const appended = await googleSheetsService.appendRow(resultatsSheet, rowData);
+        // Mémoriser le rowIndex retourné pour éviter tout appendRow ultérieur sur ce bureau
+        if (appended?.rowIndex !== undefined && appended?.rowIndex !== null) {
+          appendedRowIndexRef.current = appended.rowIndex;
+        }
+      }
+
+      try {
+        await auditService.log?.('RESULTATS_SAISIE', {
+          tour: tourActuel,
+          bureauId: selectedBureauId,
+          champ: fieldLabelForAudit || 'SAVE',
+        });
+      } catch (_) {}
+
+      await reloadResultats();
+
+      const refreshed = findRowForBureau(selectedBureauId);
+      setRow(refreshed);
+      // Synchroniser la ref avec l'état frais
+      if (refreshed?.rowIndex !== undefined && refreshed?.rowIndex !== null) {
+        appendedRowIndexRef.current = refreshed.rowIndex;
+      }
+    } finally {
+      isSavingRef.current = false;
+    }
   }, [buildRowData, findRowForBureau, reloadResultats, resultatsSheet, row, selectedBureauId, tourActuel]);
 
   const onBlurMain = async (field) => {

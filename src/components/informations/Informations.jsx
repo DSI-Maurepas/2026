@@ -68,10 +68,10 @@ export default function Informations({ electionState }) {
   const { data: candidats,     load: loadCandidats,
           error: errorCandidats }                         = useGoogleSheets("Candidats");
   const { data: participation, load: loadParticipation } = useGoogleSheets(
-    tourActuel === 2 ? "Participation_T2" : "Participation_T1"
+    tourVisu === 2 ? "Participation_T2" : "Participation_T1"
   );
   const { data: resultats,     load: loadResultats }    = useGoogleSheets(
-    tourActuel === 2 ? "Resultats_T2" : "Resultats_T1"
+    tourVisu === 2 ? "Resultats_T2" : "Resultats_T1"
   );
   const { data: seatsMunicipal,  load: loadSeatsMunicipal }  = useGoogleSheets("Seats_Municipal");
   const { data: seatsCommunity,  load: loadSeatsCommunity }  = useGoogleSheets("Seats_Community");
@@ -91,7 +91,7 @@ export default function Informations({ electionState }) {
     loadAll(true);
     setLastRefresh(new Date());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tourActuel]);
+  }, [tourVisu]);
 
   const handleRefresh = useCallback(async () => {
     if (refreshing) return;
@@ -228,13 +228,12 @@ export default function Informations({ electionState }) {
         return {listeId:id,nomListe:getName(c,i),voix};
       })
       .sort((a,b)=>(b.voix||0)-(a.voix||0))
-      .slice(0,5)
       .map(x=>({...x,pctVoix:totalExp>0?(x.voix/totalExp)*100:0}));
-  }, [resultats,candidats,tourActuel,totauxResultats]);
+  }, [resultats,candidats,tourVisu,totauxResultats]);
 
   const seatsByListeId = useMemo(()=>{
     const map=new Map();
-    for(const r of (Array.isArray(seatsCommunity)?seatsCommunity:[])){const id=String(r?.listeId??r?.liste??"").trim();if(id)map.set(id,{...r,siegesTotal:coerceInt(r?.siegesTotal??r?.sieges??0)});}
+    for(const r of (Array.isArray(seatsCommunity)?seatsCommunity:[])){const id=String(r?.listeId??r?.liste??"").trim();if(id)map.set(id,{...r,siegesTotal:coerceInt(r?.siegesTotal??r?.siegesCommunautaires??r?.sieges??0)});}
     return map;
   },[seatsCommunity]);
 
@@ -329,6 +328,49 @@ export default function Informations({ electionState }) {
     const match=bl.find(b=>normalizeBureauId(b?.id)===rid);
     return {bureauLabel:match?.nom?`${match.id} — ${match.nom}`:(rid?`BV${rid}`:"—"),at:best};
   },[resultats,bureaux]);
+
+  // ── Sièges T2 : répartition municipaux et communautaires ────────
+  const siegesMuniDisplay = useMemo(() => {
+    const allEntries = Array.from(muniByListeId.values());
+    if (!allEntries.length) return { items: [], total: 0 };
+    // Filtrer uniquement les listes actives au T2
+    const cand = Array.isArray(candidats) ? candidats : [];
+    const activeT2Ids = new Set(
+      cand.filter(c => !!c.actifT2).map(c => String(c.listeId ?? c.id ?? '').trim()).filter(Boolean)
+    );
+    const entries = activeT2Ids.size > 0
+      ? allEntries.filter(e => activeT2Ids.has(String(e.listeId ?? e.liste ?? '').trim()))
+      : allEntries;
+    const total = entries.reduce((s, e) => s + coerceInt(e.siegesTotal), 0);
+    const items = entries.map(e => {
+      const id = String(e.listeId ?? e.liste ?? '').trim();
+      const tl = topListes.find(l => l.listeId === id);
+      const nom = (e.nomListe ?? e.nom ?? '').toString().trim() || tl?.nomListe || id;
+      return { listeId: id, nomListe: nom, sieges: coerceInt(e.siegesTotal) };
+    }).sort((a, b) => b.sieges - a.sieges || a.nomListe.localeCompare(b.nomListe, 'fr'));
+    return { items, total };
+  }, [muniByListeId, candidats, topListes]);
+
+  const siegesCommDisplay = useMemo(() => {
+    const allEntries = Array.from(seatsByListeId.values());
+    if (!allEntries.length) return { items: [], total: 0 };
+    // Filtrer uniquement les listes actives au T2
+    const cand = Array.isArray(candidats) ? candidats : [];
+    const activeT2Ids = new Set(
+      cand.filter(c => !!c.actifT2).map(c => String(c.listeId ?? c.id ?? '').trim()).filter(Boolean)
+    );
+    const entries = activeT2Ids.size > 0
+      ? allEntries.filter(e => activeT2Ids.has(String(e.listeId ?? e.liste ?? '').trim()))
+      : allEntries;
+    const total = entries.reduce((s, e) => s + coerceInt(e.siegesTotal), 0);
+    const items = entries.map(e => {
+      const id = String(e.listeId ?? e.liste ?? '').trim();
+      const tl = topListes.find(l => l.listeId === id);
+      const nom = (e.nomListe ?? e.nom ?? '').toString().trim() || tl?.nomListe || id;
+      return { listeId: id, nomListe: nom, sieges: coerceInt(e.siegesTotal) };
+    }).sort((a, b) => b.sieges - a.sieges || a.nomListe.localeCompare(b.nomListe, 'fr'));
+    return { items, total };
+  }, [seatsByListeId, candidats, topListes]);
 
   const tourLabel  = tourVisu===2?"Tour 2":"Tour 1";
   const themeClass = tourVisu===2?"t2":"t1";
@@ -438,7 +480,7 @@ export default function Informations({ electionState }) {
       {/* ══ GRILLE 3 COLONNES ═══════════════════════════════════════
           A (1fr) Résultats+Classement | B (2fr) Particip+Evo+BV | C (1fr) Candidats qualifiés
       ══════════════════════════════════════════════════════════════ */}
-      <section className="info-grid">
+      <section className={`info-grid${tourVisu === 2 ? " info-grid--t2" : ""}`}>
 
         {/* ── COL A : Résultats suffrages + Classement listes ── */}
         <div className="info-col-a">
@@ -524,7 +566,7 @@ export default function Informations({ electionState }) {
             <InformationsEvolutionHoraire
               participationData={participation}
               totalInscrits={totalInscrits}
-              tour={tourActuel}
+              tour={tourVisu}
             />
           </article>
 
@@ -555,7 +597,7 @@ export default function Informations({ electionState }) {
 
         </div>
 
-        {/* ── COL C : T1 = Listes admises / T2 = Listes Élues ── */}
+        {/* ── COL C : T1 = Listes admises / T2 = Liste Élue ── */}
         <div className="info-col-c">
           {tourVisu===1?(
             /* ─── T1 : Listes admises pour le 2nd tour ─── */
@@ -596,9 +638,9 @@ export default function Informations({ electionState }) {
               )}
             </article>
           ):(
-            /* ─── T2 : Listes Élues ─── */
+            /* ─── T2 : Liste Élue ─── */
             <article className="info-card info-card-qualifies">
-              <div className="card-title">🏆 Listes Élues</div>
+              <div className="card-title">🏆 Liste Élue</div>
               {topListes.length===0?(
                 <div className="qualif-empty">En attente des résultats du 2nd tour.</div>
               ):(
@@ -629,6 +671,72 @@ export default function Informations({ electionState }) {
             </article>
           )}
         </div>
+
+        {/* ══ BAS-GAUCHE : Sièges Municipaux — visible T2 uniquement ══ */}
+        {tourVisu === 2 && (
+          <div className="info-col-sieg-muni">
+            <article className="info-card info-card-sieges">
+              <div className="card-title">Répartition — Sièges Municipaux</div>
+              {siegesMuniDisplay.total > 0 && (
+                <div className="sieges-badge">
+                  <span className="sieges-badge-nb">{siegesMuniDisplay.total}</span>
+                  <span className="sieges-badge-label">sièges au total</span>
+                </div>
+              )}
+              <div className="sieges-list">
+                {siegesMuniDisplay.items.length === 0 ? (
+                  <div className="empty">Données en attente.</div>
+                ) : (
+                  siegesMuniDisplay.items.map((l, i) => (
+                    <div key={l.listeId || i} className={`sieges-row${i === 0 ? " sieges-row--first" : ""}`}>
+                      <div className="sieges-rank">{i + 1}</div>
+                      <div className="sieges-main">
+                        <div className="sieges-nom" title={l.nomListe}>{l.nomListe}</div>
+                        <div className="sieges-bar-wrap">
+                          <div className="sieges-bar" style={{ width: `${siegesMuniDisplay.total > 0 ? Math.min(100, (l.sieges / siegesMuniDisplay.total) * 100) : 0}%` }} />
+                        </div>
+                      </div>
+                      <div className="sieges-count">{l.sieges}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+          </div>
+        )}
+
+        {/* ══ BAS-DROITE : Sièges Communautaires — visible T2 uniquement ══ */}
+        {tourVisu === 2 && (
+          <div className="info-col-sieg-comm">
+            <article className="info-card info-card-sieges">
+              <div className="card-title">Répartition — Sièges Communautaires</div>
+              {siegesCommDisplay.total > 0 && (
+                <div className="sieges-badge">
+                  <span className="sieges-badge-nb">{siegesCommDisplay.total}</span>
+                  <span className="sieges-badge-label">sièges au total</span>
+                </div>
+              )}
+              <div className="sieges-list">
+                {siegesCommDisplay.items.length === 0 ? (
+                  <div className="empty">Données en attente.</div>
+                ) : (
+                  siegesCommDisplay.items.map((l, i) => (
+                    <div key={l.listeId || i} className={`sieges-row${i === 0 ? " sieges-row--first" : ""}`}>
+                      <div className="sieges-rank">{i + 1}</div>
+                      <div className="sieges-main">
+                        <div className="sieges-nom" title={l.nomListe}>{l.nomListe}</div>
+                        <div className="sieges-bar-wrap">
+                          <div className="sieges-bar" style={{ width: `${siegesCommDisplay.total > 0 ? Math.min(100, (l.sieges / siegesCommDisplay.total) * 100) : 0}%` }} />
+                        </div>
+                      </div>
+                      <div className="sieges-count">{l.sieges}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+          </div>
+        )}
 
       </section>
 

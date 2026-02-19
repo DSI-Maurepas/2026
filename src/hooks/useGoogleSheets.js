@@ -80,6 +80,10 @@ export const useGoogleSheets = (sheetName) => {
     if (prevSheetRef.current !== sheetName) {
       hasLoadedOnceRef.current = false;
       prevSheetRef.current = sheetName;
+      // Vider immédiatement les données de l'ancien onglet pour éviter
+      // qu'un changement T1↔T2 affiche des données périmées du mauvais tour
+      // pendant la durée du fetch suivant.
+      setData([]);
     }
   }, [sheetName]);
 
