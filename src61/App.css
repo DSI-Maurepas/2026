@@ -1,0 +1,3448 @@
+/* src/styles/App.css */
+@import './variables.css';
+@import './components/sieges.css';
+
+/* Reset et base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-50);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  background-color: var(--color-gray-50);
+}
+
+.page-container {
+  max-width: var(--max-width-xl);
+  margin: 0 auto;
+  padding: var(--spacing-6);
+}
+
+.page-container > * {
+  margin-bottom: var(--spacing-6);
+}
+
+/* Typographie */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-serif);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+h1 { font-size: var(--font-size-4xl); }
+h2 { font-size: 1.25rem; } /* Police uniforme */
+h3 { font-size: 1.25rem; } /* Police uniforme */
+h4 { font-size: var(--font-size-xl); }
+h5 { font-size: var(--font-size-lg); }
+h6 { font-size: var(--font-size-base); }
+
+p {
+  margin-bottom: var(--spacing-4);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Layout */
+.container {
+  width: 100%;
+  max-width: var(--max-width-xl);
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+}
+
+.container-sm { max-width: var(--max-width-sm); }
+.container-md { max-width: var(--max-width-md); }
+.container-lg { max-width: var(--max-width-lg); }
+
+.page {
+  flex: 1;
+  padding: var(--spacing-6) 0;
+}
+
+/* Header */
+.app-header {
+  background: linear-gradient(135deg, var(--color-bleu-rf) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-blanc-rf);
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4) 0;
+}
+
+.header-title {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-blanc-rf);
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* Navigation */
+.app-nav {
+  background: var(--color-blanc-rf);
+  border-bottom: var(--border-width-2) solid var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) 0;
+  overflow-x: auto;
+}
+
+.nav-item {
+  flex-shrink: 0;
+}
+
+.nav-link {
+  display: block;
+  padding: var(--spacing-3) var(--spacing-4);
+  color: var(--color-gray-700);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: var(--color-gray-100);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: var(--color-primary);
+  color: var(--color-blanc-rf);
+}
+
+/* Footer */
+.app-footer {
+  background: var(--color-gray-800);
+  color: var(--color-gray-300);
+  padding: var(--spacing-4) 0;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-blanc-rf);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-blanc-rf);
+}
+
+.btn-success {
+  background: var(--color-success);
+  color: var(--color-blanc-rf);
+}
+
+.btn-warning {
+  background: var(--color-warning);
+  color: var(--color-blanc-rf);
+}
+
+.btn-danger {
+  background: var(--color-error);
+  color: var(--color-blanc-rf);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-blanc-rf);
+}
+
+/* Cards */
+.card {
+  background: var(--color-blanc-rf);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-6);
+}
+
+.card-header {
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-3);
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}
+
+.card-title {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-2);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-blanc-rf);
+}
+
+thead {
+  background: var(--color-primary);
+  color: var(--color-blanc-rf);
+}
+
+th, td {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}
+
+th {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:hover {
+  background: var(--color-gray-50);
+}
+
+tr.total {
+  font-weight: var(--font-weight-bold);
+  background: var(--color-gray-100);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: var(--spacing-5);
+}
+
+label {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-2);
+  color: var(--color-gray-700);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: var(--spacing-3);
+  font-size: var(--font-size-base);
+  border: var(--border-width) solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
+}
+
+.input-error {
+  border-color: var(--color-error);
+}
+
+.error-message {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-2);
+}
+
+/* Messages */
+.alert {
+  padding: var(--spacing-4);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-4);
+  border-left: var(--border-width-3) solid;
+}
+
+.alert-info {
+  background: #EFF6FF;
+  border-color: var(--color-info);
+  color: #1E40AF;
+}
+
+.alert-success {
+  background: #F0FDF4;
+  border-color: var(--color-success);
+  color: #166534;
+}
+
+.alert-warning {
+  background: #FFFBEB;
+  border-color: var(--color-warning);
+  color: #92400E;
+}
+
+.alert-error {
+  background: #FEF2F2;
+  border-color: var(--color-error);
+  color: #991B1B;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-xl);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-primary { background: var(--color-primary); color: white; }
+.badge-success { background: var(--color-success); color: white; }
+.badge-warning { background: var(--color-warning); color: white; }
+.badge-error { background: var(--color-error); color: white; }
+
+/* Statuts élection */
+.statut-non-ouvert { color: var(--color-gray-500); }
+.statut-en-cours { color: var(--color-success); font-weight: var(--font-weight-semibold); }
+.statut-cloture { color: var(--color-error); }
+
+/* Participation */
+.participation-faible { color: var(--color-participation-faible); }
+.participation-moyenne { color: var(--color-participation-moyenne); }
+.participation-bonne { color: var(--color-participation-bonne); }
+.participation-forte { color: var(--color-participation-forte); }
+
+/* Loading */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-10);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-gray-200);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--color-gray-500); }
+.text-bold { font-weight: var(--font-weight-bold); }
+
+.mt-4 { margin-top: var(--spacing-4); }
+.mb-4 { margin-bottom: var(--spacing-4); }
+.my-4 { margin-top: var(--spacing-4); margin-bottom: var(--spacing-4); }
+
+.grid {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-list {
+    flex-direction: column;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print, .app-nav, .btn {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: var(--border-width) solid var(--color-gray-300);
+  }
+}
+
+/* =========================================================
+   RESTORE — Participation (styles historiques)
+   Source: components_RESTORE_v4.css + components_PARTICIPATION_MODERN_v3.css
+   ========================================================= */
+
+/* ============================================
+   STYLES GLOBAUX DES COMPOSANTS
+   ============================================ */
+
+/* Footer */
+.main-footer {
+  background: #2c3e50;
+  color: white;
+  padding: 2rem 0;
+  margin-top: 4rem;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footer-section h4 {
+  margin-top: 0;
+  color: #4CAF50;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Participation */
+.participation-saisie,
+.participation-tableau,
+.participation-stats {
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.votants-grid {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.votants-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.votants-row input {
+  padding: 0.6rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+}
+
+.votants-row .percentage {
+  text-align: right;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.btn-primary {
+  background: #4CAF50;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Tableau participation */
+.tableau-scroll {
+  overflow-x: auto;
+}
+
+.participation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.participation-table th,
+.participation-table td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.participation-table th {
+  background: #1e3c72;
+  color: white;
+  font-weight: bold;
+}
+
+.participation-table .number {
+  text-align: right;
+  font-family: monospace;
+}
+
+.participation-table .percentage {
+  text-align: right;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.participation-table .has-data {
+  background: #f8f9fa;
+}
+
+.participation-table .no-data {
+  opacity: 0.5;
+}
+
+.participation-table tfoot {
+  background: #e3f2fd;
+  font-weight: bold;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid #1e3c72;
+}
+
+.stat-card.highlight {
+  border-left-color: #4CAF50;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e9 100%);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e3c72;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.evolution-chart {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  height: 170px; /* plus compact, mais laisse la place aux libellés */
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 42px;
+}
+
+
+
+.bar-track {
+  width: 100%;
+  height: 105px;              /* zone de dessin (référence du %), garantit la progression */
+  display: flex;
+  align-items: flex-end;       /* barre posée en bas */
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 10px;
+  padding: 0.25rem;
+  box-sizing: border-box;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 8px 8px 6px 6px;
+  position: relative;
+  min-height: 6px;            /* visible même à très faible % */
+  transition: height 0.35s ease, opacity 0.3s;
+}
+
+.bar:hover {
+  opacity: 0.8;
+}
+
+.bar-value {
+  position: absolute;
+  top: -20px;
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: #0f172a;
+}
+
+.bar-label {
+  font-weight: 700;
+  color: #1e3c72;
+  font-size: 0.78rem;
+}
+
+.bar-votants {
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+/* Résultats */
+.resultats-saisie,
+.resultats-consolidation,
+.resultats-validation,
+.resultats-classement {
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bureau-info {
+  background: #e3f2fd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.resultats-grid,
+.voix-grid {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-row.highlight {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.form-row input.calculated {
+  background: #e9ecef;
+  font-weight: bold;
+}
+
+.control-panel {
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.control-check {
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.control-check.valid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.control-check.invalid {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.candidat-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+/* Consolidation */
+.totaux-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.total-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+.card-label {
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.candidats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.candidats-table th,
+.candidats-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.candidats-table th {
+  background: #1e3c72;
+  color: white;
+}
+
+.candidats-table .qualified {
+  background: #e8f5e9;
+}
+
+.rank-badge {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50%;
+  font-weight: bold;
+  color: white;
+}
+
+.rank-badge.rank-1 {
+  background: #FFD700;
+  color: #333;
+}
+
+.rank-badge.rank-2 {
+  background: #C0C0C0;
+  color: #333;
+}
+
+.rank-badge.rank-3 {
+  background: #CD7F32;
+}
+
+.progress-bar {
+  width: 100%;
+}
+
+.bar-container {
+  background: #f0f0f0;
+  border-radius: 10px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  transition: width 0.5s;
+}
+
+.bar-text {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Validation */
+.validation-status {
+  padding: 2rem;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.validation-status.valid {
+  background: #d4edda;
+  border: 2px solid #c3e6cb;
+}
+
+.validation-status.invalid {
+  background: #fff3cd;
+  border: 2px solid #ffeeba;
+}
+
+.status-icon {
+  font-size: 3rem;
+}
+
+.validation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.validation-table th,
+.validation-table td {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+}
+
+.validation-table th {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+.validation-table tr.success {
+  background: #d4edda;
+}
+
+.validation-table tr.warning {
+  background: #fff3cd;
+}
+
+.validation-table tr.error {
+  background: #f8d7da;
+}
+
+/* Classement */
+.classement-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.classement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.classement-card.qualified {
+  border-left: 6px solid #4CAF50;
+}
+
+.rank-number {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.candidat-info h3 {
+  margin: 0;
+  color: #1e3c72;
+}
+
+.voix-info {
+  flex: 1;
+  text-align: right;
+}
+
+.voix-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+/* Sièges */
+.sieges-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.sieges-table th,
+.sieges-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.sieges-table th {
+  background: #1e3c72;
+  color: white;
+}
+
+.sieges-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4CAF50;
+  text-align: center;
+}
+
+/* Admin */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+}
+
+.admin-table th {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+/* Exports */
+.export-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.export-buttons button {
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #1e3c72;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.export-buttons button:hover {
+  background: #2a5298;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-menu {
+    flex-direction: column;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .totaux-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* =========================
+   ParticipationStats - diagrammes (Max/Min + Analyse)
+   ========================= */
+
+.participation-stats .extremes-section h3,
+.participation-stats .analysis-section h3 {
+  margin: 1.2rem 0 0.8rem;
+}
+
+.extremes-table {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.extremes-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 140px;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+
+.extremes-row.max {
+  background: linear-gradient(90deg, rgba(34,197,94,0.10), rgba(255,255,255,0.85));
+}
+
+.extremes-row.min {
+  background: linear-gradient(90deg, rgba(239,68,68,0.10), rgba(255,255,255,0.85));
+}
+
+.extremes-type {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.extremes-bureau .bureau-name {
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.extremes-bureau .bureau-details {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.meter {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59,130,246,1), rgba(34,197,94,1));
+  width: 0%;
+  transition: width 180ms ease;
+}
+
+.extremes-row.min .meter-fill {
+  background: linear-gradient(90deg, rgba(239,68,68,1), rgba(251,191,36,1));
+}
+
+.meter-value {
+  margin-top: 0.35rem;
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.analysis-diagrams {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .analysis-diagrams {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metric-card {
+  padding: 0.95rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.metric-emoji {
+  font-size: 1.1rem;
+}
+
+.metric-title {
+  font-weight: 800;
+}
+
+.metric-value {
+  margin-bottom: 0.55rem;
+  color: #0f172a;
+}
+
+/* optionnel : rendre le texte moins "strict" */
+.participation-stats h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+/* =========================================================
+   ParticipationTableau (Consolidation) — Lisibilité (révision)
+   Objectif : esthétique uniquement (zéro impact fonctionnel)
+   ========================================================= */
+
+/* Cadre + scroll */
+.participation-tableau .tableau-scroll {
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Densification : plus de colonnes visibles */
+.participation-tableau .participation-table
+
+/* En-tête compact + sticky */
+.participation-tableau 
+
+/* Cellules compactes */
+.participation-tableau 
+
+/* Largeurs */
+.participation-tableau 
+
+/* Contraste pair/impair */
+.participation-tableau 
+
+/* Lignes en attente */
+.participation-tableau 
+
+/* Survol */
+.participation-tableau 
+
+/* Bureau : autoriser 2-3 lignes */
+.participation-tableau 
+
+/* Chiffres */
+.participation-tableau 
+
+/* Cellule heure */
+.participation-tableau 
+
+/* Votants */
+.participation-tableau 
+
+/* % : plus discret */
+.participation-tableau 
+
+/* Cellule vide vs renseignée (classes posées côté JSX) */
+.participation-tableau 
+
+/* Total communal */
+.participation-tableau 
+
+/* Légende : bloc explicite */
+
+/* =========================================================
+   Correctifs UI (non-fonctionnels) — Participation
+   - Restaure le rendu "Évolution horaire" (barres verticales + alignement)
+   - Restaure le tableau de consolidation (zébrage + légende + pas de régression)
+   - Champ "Bureau de vote" plus moderne
+   - Titres moins gras / moins imposants
+   ========================================================= */
+
+/* Titres (moins institutionnels, moins gras) */
+.participation-stats h2,
+.participation-stats h3,
+.participation-tableau h2,
+.participation-tableau h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.participation-stats h2 {
+  font-size: 1.55rem;
+}
+
+.participation-stats h3 {
+  font-size: 1.25rem;
+}
+
+/* Select "Bureau de vote" */
+.bureau-select {
+  width: 100%;
+  max-width: 520px;
+  padding: 0.72rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: #0f172a;
+  outline: none;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+
+.bureau-select:focus {
+  border-color: rgba(0, 85, 164, 0.55);
+  box-shadow: 0 0 0 4px rgba(0, 85, 164, 0.18), 0 12px 28px rgba(2, 6, 23, 0.10);
+  transform: translateY(-1px);
+}
+
+.bureau-select:hover {
+  border-color: rgba(0, 85, 164, 0.35);
+}
+
+/* Tableau de consolidation : carte ombrée + bords ronds */
+.participation-tableau .participation-table-container {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.10);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+/* Survol ligne : surlignage + léger lift (sans casser le sticky) */
+.participation-tableau .participation-table--compact tbody tr {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.participation-tableau .participation-table--compact tbody tr:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.10);
+}
+
+/* Forcer l'affichage des colonnes (limiter l'ascenseur horizontal par compacité) */
+.participation-tableau .participation-table--compact {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.participation-tableau .participation-table--compact .bureau-col { width: 125px; }
+.participation-tableau .participation-table--compact .inscrits-col { width: 86px; }
+.participation-tableau .participation-table--compact .hour-col { width: 58px; }
+
+/* Cellules non renseignées : rouge visible, renseignées : vert visible */
+.participation-tableau .participation-table--compact td.hour-cell.cell-empty {
+  background: rgba(239, 68, 68, 0.16) !important;
+}
+
+.participation-tableau .participation-table--compact td.hour-cell.cell-filled {
+  background: rgba(16, 185, 129, 0.10) !important;
+}
+
+.participation-table--compact {
+  margin: 0.85rem 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+/* En-tête compact + sticky */
+.participation-tableau .participation-table--compact thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1e3c72;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  padding: 0.42rem 0.45rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Cellules compactes */
+.participation-tableau .participation-table--compact td {
+  padding: 0.38rem 0.45rem;
+}
+
+/* Largeurs : réduire pour limiter l'ascenseur horizontal */
+.participation-tableau .participation-table--compact .bureau-col { width: 130px; }
+.participation-tableau .participation-table--compact .inscrits-col { width: 92px; }
+.participation-tableau .participation-table--compact .hour-col { width: 62px; }
+
+/* Contraste pair/impair plus marqué */
+.participation-tableau .participation-table--compact tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+.participation-tableau .participation-table--compact tbody tr:nth-child(even) {
+  background: #dbeafe; /* bleu clair plus contrasté */
+}
+
+/* Lignes en attente (sans effacer la lisibilité des zébrures) */
+.participation-tableau .participation-table--compact tbody tr.no-data {
+  opacity: 0.55;
+  filter: grayscale(0.10);
+}
+
+/* Survol : léger, ne doit pas masquer le zébrage */
+.participation-tableau .participation-table--compact tbody tr:hover {
+  background: rgba(0, 85, 164, 0.12);
+}
+
+/* Colonne bureau */
+.participation-tableau .participation-table--compact .bureau-name {
+  font-weight: 800;
+  color: #0f172a;
+  white-space: normal;           /* autorise 2-3 lignes */
+  word-break: break-word;
+  max-width: 140px;
+  line-height: 1.15;
+}
+
+/* Chiffres : monospace tabulaire */
+.participation-tableau .participation-table--compact .number {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Cellule heure */
+.participation-tableau .participation-table--compact td.hour-cell {
+  text-align: right;
+  vertical-align: middle;
+  padding-top: 0.34rem;
+  padding-bottom: 0.34rem;
+  border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Nombre votants (prioritaire) */
+.participation-tableau .participation-table--compact .hour-votants {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.05;
+}
+
+/* Badge % : sans emoji */
+.participation-tableau .participation-table--compact .hour-percent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.18rem;
+  padding: 0.06rem 0.34rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(0, 85, 164, 0.08);
+  color: rgba(11, 59, 115, 0.95);
+  font-weight: 650;              /* moins “violent” */
+  font-size: 0.70rem;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Différenciation VISIBLE : cellule vide vs renseignée */
+.participation-tableau .participation-table--compact td.hour-cell.is-empty {
+  background: rgba(239, 68, 68, 0.18);   /* rouge visible */
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.28);
+}
+.participation-tableau .participation-table--compact td.hour-cell.is-empty .hour-votants {
+  color: rgba(15, 23, 42, 0.55);
+  font-weight: 800;
+}
+.participation-tableau .participation-table--compact td.hour-cell.is-empty .hour-percent {
+  background: rgba(107, 114, 128, 0.10);
+  color: rgba(15, 23, 42, 0.60);
+  border-color: rgba(107, 114, 128, 0.18);
+}
+
+.participation-tableau .participation-table--compact td.hour-cell.is-filled {
+  background: rgba(16, 185, 129, 0.08);  /* vert très clair */
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.14);
+}
+
+/* Total communal */
+.participation-tableau .participation-table--compact tfoot tr.total-row {
+  background: linear-gradient(90deg, rgba(0,85,164,0.14), rgba(255,255,255,0.90));
+  border-top: 2px solid rgba(0,85,164,0.28);
+}
+.participation-tableau .participation-table--compact tfoot td {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+/* Légende : bloc intégré, plus simple et lisible */
+.participation-tableau .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.1rem;
+  align-items: center;
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(0, 85, 164, 0.06);
+  border: 1px solid rgba(0, 85, 164, 0.16);
+  border-left: 6px solid #0055A4;
+}
+
+.participation-tableau .legend p {
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #0f172a;
+  font-size: 0.92rem;
+  list-style: none;              /* au cas où */
+}
+
+.participation-tableau .legend-item {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.participation-tableau .legend-item.has-data { background: rgba(16, 185, 129, 0.85); }
+.participation-tableau .legend-item.no-data  { background: rgba(107, 114, 128, 0.65); }
+
+/* Ajouter une entrée "cellules vides" / "renseignées" sans toucher au JSX :
+   on réutilise les <p> existants (si tu ajoutes 2 lignes de légende côté JSX, ce sera encore mieux).
+*/
+
+/* Légende : carrés "cellule vide" / "cellule renseignée" */
+.participation-tableau .legend-item.cell-empty {
+  background: rgba(239, 68, 68, 0.70);
+}
+.participation-tableau .legend-item.cell-filled {
+  background: rgba(16, 185, 129, 0.75);
+}
+
+
+/* Chiffres clés : mini barres de lecture rapide */
+.participation-stats .analysis-section .mini-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.10);
+  margin-top: 0.55rem;
+  overflow: hidden;
+}
+
+.participation-stats .analysis-section .mini-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 85, 164, 0.85), rgba(16, 185, 129, 0.85));
+  transition: width 0.35s ease;
+}
+
+/* =========================================================
+   Correctifs responsive — Participation
+   - Colonne "Bureau" sticky aussi en responsive
+   - Évolution horaire : défilement horizontal contrôlé (ne coupe pas à 14h)
+   - Bureaux extrêmes : 1 ligne desktop, 2 lignes mobile
+   ========================================================= */
+
+/* 1) Tableau consolidation : première colonne sticky sur tous les formats */
+.participation-tableau .participation-table-wrapper {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Assure un contexte sticky stable */
+.participation-tableau table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Colonne bureau (th + td) */
+.participation-tableau th.bureau-col,
+.participation-tableau td.bureau-col,
+.participation-tableau .bureau-name,
+.participation-tableau .bureau-cell {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: inherit;
+}
+
+/* Bordure de séparation visible entre la colonne sticky et le reste */
+.participation-tableau th.bureau-col::after,
+.participation-tableau td.bureau-col::after,
+.participation-tableau .bureau-cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 2px;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+/* Pour éviter que la sticky prenne le style de hover du reste */
+.participation-tableau tr:hover td.bureau-col,
+.participation-tableau tr:hover .bureau-cell {
+  transform: none !important;
+}
+
+/* 2) Évolution horaire : sur mobile on autorise le scroll horizontal et on garantit la visibilité de 20h */
+.evolution-section .evolution-chart {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px; /* place pour la scrollbar sans cacher */
+}
+
+.evolution-section .evolution-chart::-webkit-scrollbar {
+  height: 10px;
+}
+
+.evolution-section .evolution-chart .chart-bar {
+  flex: 0 0 auto;
+  min-width: 62px; /* garantit la lisibilité des heures */
+}
+
+/* Desktop : on garde l'affichage sans scroll si possible */
+@media (min-width: 980px) {
+  .evolution-section .evolution-chart {
+    overflow-x: hidden;
+  }
+  .evolution-section .evolution-chart .chart-bar {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
+
+/* 3) Bureaux extrêmes : 1 ligne desktop, 2 lignes responsive */
+.extremes-section .extremes-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 180px;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .extremes-section .extremes-row {
+    grid-template-columns: 100px 1fr;
+    grid-template-areas:
+      "type bureau"
+      "type metric";
+  }
+  .extremes-section .extremes-type { grid-area: type; }
+  .extremes-section .extremes-bureau { grid-area: bureau; }
+  .extremes-section .extremes-metric { grid-area: metric; }
+}
+
+/* ============================================
+   STYLES GLOBAUX DES COMPOSANTS
+   ============================================ */
+
+/* Footer */
+.main-footer {
+  background: #2c3e50;
+  color: white;
+  padding: 2rem 0;
+  margin-top: 4rem;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footer-section h4 {
+  margin-top: 0;
+  color: #4CAF50;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Participation */
+.participation-saisie,
+.participation-tableau,
+.participation-stats {
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.votants-grid {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.votants-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.votants-row input {
+  padding: 0.6rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+}
+
+.votants-row .percentage {
+  text-align: right;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.btn-primary {
+  background: #4CAF50;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Tableau participation */
+.tableau-scroll {
+  overflow-x: auto;
+}
+
+.participation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.participation-table th,
+.participation-table td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.participation-table th {
+  background: #1e3c72;
+  color: white;
+  font-weight: bold;
+}
+
+.participation-table .number {
+  text-align: right;
+  font-family: monospace;
+}
+
+.participation-table .percentage {
+  text-align: right;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.participation-table .has-data {
+  background: #f8f9fa;
+}
+
+.participation-table .no-data {
+  opacity: 0.5;
+}
+
+.participation-table tfoot {
+  background: #e3f2fd;
+  font-weight: bold;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid #1e3c72;
+}
+
+.stat-card.highlight {
+  border-left-color: #4CAF50;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e9 100%);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e3c72;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.evolution-chart {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  height: 170px; /* plus compact, mais laisse la place aux libellés */
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 42px;
+}
+
+
+
+.bar-track {
+  width: 100%;
+  height: 105px;              /* zone de dessin (référence du %), garantit la progression */
+  display: flex;
+  align-items: flex-end;       /* barre posée en bas */
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 10px;
+  padding: 0.25rem;
+  box-sizing: border-box;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 8px 8px 6px 6px;
+  position: relative;
+  min-height: 6px;            /* visible même à très faible % */
+  transition: height 0.35s ease, opacity 0.3s;
+}
+
+.bar:hover {
+  opacity: 0.8;
+}
+
+.bar-value {
+  position: absolute;
+  top: -20px;
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: #0f172a;
+}
+
+.bar-label {
+  font-weight: 700;
+  color: #1e3c72;
+  font-size: 0.78rem;
+}
+
+.bar-votants {
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+/* Résultats */
+.resultats-saisie,
+.resultats-consolidation,
+.resultats-validation,
+.resultats-classement {
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bureau-info {
+  background: #e3f2fd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.resultats-grid,
+.voix-grid {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-row.highlight {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.form-row input.calculated {
+  background: #e9ecef;
+  font-weight: bold;
+}
+
+.control-panel {
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.control-check {
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.control-check.valid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.control-check.invalid {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.candidat-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+/* Consolidation */
+.totaux-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.total-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+.card-label {
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.candidats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.candidats-table th,
+.candidats-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.candidats-table th {
+  background: #1e3c72;
+  color: white;
+}
+
+.candidats-table .qualified {
+  background: #e8f5e9;
+}
+
+.rank-badge {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50%;
+  font-weight: bold;
+  color: white;
+}
+
+.rank-badge.rank-1 {
+  background: #FFD700;
+  color: #333;
+}
+
+.rank-badge.rank-2 {
+  background: #C0C0C0;
+  color: #333;
+}
+
+.rank-badge.rank-3 {
+  background: #CD7F32;
+}
+
+.progress-bar {
+  width: 100%;
+}
+
+.bar-container {
+  background: #f0f0f0;
+  border-radius: 10px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  transition: width 0.5s;
+}
+
+.bar-text {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Validation */
+.validation-status {
+  padding: 2rem;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.validation-status.valid {
+  background: #d4edda;
+  border: 2px solid #c3e6cb;
+}
+
+.validation-status.invalid {
+  background: #fff3cd;
+  border: 2px solid #ffeeba;
+}
+
+.status-icon {
+  font-size: 3rem;
+}
+
+.validation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.validation-table th,
+.validation-table td {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+}
+
+.validation-table th {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+.validation-table tr.success {
+  background: #d4edda;
+}
+
+.validation-table tr.warning {
+  background: #fff3cd;
+}
+
+.validation-table tr.error {
+  background: #f8d7da;
+}
+
+/* Classement */
+.classement-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.classement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.classement-card.qualified {
+  border-left: 6px solid #4CAF50;
+}
+
+.rank-number {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.candidat-info h3 {
+  margin: 0;
+  color: #1e3c72;
+}
+
+.voix-info {
+  flex: 1;
+  text-align: right;
+}
+
+.voix-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+/* Sièges */
+.sieges-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.sieges-table th,
+.sieges-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.sieges-table th {
+  background: #1e3c72;
+  color: white;
+}
+
+.sieges-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4CAF50;
+  text-align: center;
+}
+
+/* Admin */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+}
+
+.admin-table th {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+/* Exports */
+.export-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.export-buttons button {
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #1e3c72;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.export-buttons button:hover {
+  background: #2a5298;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-menu {
+    flex-direction: column;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .totaux-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* =========================
+   ParticipationStats - diagrammes (Max/Min + Analyse)
+   ========================= */
+
+.participation-stats .extremes-section h3,
+.participation-stats .analysis-section h3 {
+  margin: 1.2rem 0 0.8rem;
+}
+
+.extremes-table {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.extremes-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 140px;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+
+.extremes-row.max {
+  background: linear-gradient(90deg, rgba(34,197,94,0.10), rgba(255,255,255,0.85));
+}
+
+.extremes-row.min {
+  background: linear-gradient(90deg, rgba(239,68,68,0.10), rgba(255,255,255,0.85));
+}
+
+.extremes-type {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.extremes-bureau .bureau-name {
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.extremes-bureau .bureau-details {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.meter {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59,130,246,1), rgba(34,197,94,1));
+  width: 0%;
+  transition: width 180ms ease;
+}
+
+.extremes-row.min .meter-fill {
+  background: linear-gradient(90deg, rgba(239,68,68,1), rgba(251,191,36,1));
+}
+
+.meter-value {
+  margin-top: 0.35rem;
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.analysis-diagrams {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .analysis-diagrams {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metric-card {
+  padding: 0.95rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.metric-emoji {
+  font-size: 1.1rem;
+}
+
+.metric-title {
+  font-weight: 800;
+}
+
+.metric-value {
+  margin-bottom: 0.55rem;
+  color: #0f172a;
+}
+
+/* optionnel : rendre le texte moins "strict" */
+.participation-stats h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+/* =========================================================
+   ParticipationTableau (Consolidation) — Lisibilité (révision)
+   Objectif : esthétique uniquement (zéro impact fonctionnel)
+   ========================================================= */
+
+/* Cadre + scroll */
+.participation-tableau .tableau-scroll {
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Densification : plus de colonnes visibles */
+.participation-tableau .participation-table.participation-table--compact {
+  margin: 0.85rem 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+/* En-tête compact + sticky */
+.participation-tableau .participation-table--compact thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1e3c72;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  padding: 0.42rem 0.45rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Cellules compactes */
+.participation-tableau .participation-table--compact td {
+  padding: 0.38rem 0.45rem;
+}
+
+/* Largeurs */
+.participation-tableau .participation-table--compact .bureau-col { width: 130px; }
+.participation-tableau .participation-table--compact .inscrits-col { width: 92px; }
+.participation-tableau .participation-table--compact .hour-col { width: 62px; }
+
+/* Contraste pair/impair */
+.participation-tableau .participation-table--compact tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+.participation-tableau .participation-table--compact tbody tr:nth-child(even) {
+  background: #dbeafe;
+}
+
+/* Lignes en attente */
+.participation-tableau .participation-table--compact tbody tr.no-data {
+  opacity: 0.55;
+  filter: grayscale(0.10);
+}
+
+/* Survol */
+.participation-tableau .participation-table--compact tbody tr:hover {
+  background: rgba(0, 85, 164, 0.12);
+}
+
+/* Bureau : autoriser 2-3 lignes */
+.participation-tableau .participation-table--compact .bureau-name {
+  font-weight: 800;
+  color: #0f172a;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 140px;
+  line-height: 1.15;
+}
+
+/* Chiffres */
+.participation-tableau .participation-table--compact .number {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Cellule heure */
+.participation-tableau .participation-table--compact td.hour-cell {
+  text-align: right;
+  vertical-align: middle;
+  padding-top: 0.34rem;
+  padding-bottom: 0.34rem;
+  border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Votants */
+.participation-tableau .participation-table--compact .hour-votants {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.05;
+}
+
+/* % : plus discret */
+.participation-tableau .participation-table--compact .hour-percent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.18rem;
+  padding: 0.06rem 0.34rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(0, 85, 164, 0.08);
+  color: rgba(11, 59, 115, 0.95);
+  font-weight: 650;
+  font-size: 0.70rem;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Cellule vide vs renseignée (classes posées côté JSX) */
+.participation-tableau .participation-table--compact td.hour-cell.is-empty {
+  background: rgba(239, 68, 68, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.28);
+}
+.participation-tableau .participation-table--compact td.hour-cell.is-empty .hour-votants {
+  color: rgba(15, 23, 42, 0.55);
+  font-weight: 800;
+}
+.participation-tableau .participation-table--compact td.hour-cell.is-empty .hour-percent {
+  background: rgba(107, 114, 128, 0.10);
+  color: rgba(15, 23, 42, 0.60);
+  border-color: rgba(107, 114, 128, 0.18);
+}
+
+.participation-tableau .participation-table--compact td.hour-cell.is-filled {
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.14);
+}
+
+/* Total communal */
+.participation-tableau .participation-table--compact tfoot tr.total-row {
+  background: linear-gradient(90deg, rgba(0,85,164,0.14), rgba(255,255,255,0.90));
+  border-top: 2px solid rgba(0,85,164,0.28);
+}
+.participation-tableau .participation-table--compact tfoot td {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+/* Légende : bloc explicite */
+.participation-tableau .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.1rem;
+  align-items: center;
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(0, 85, 164, 0.06);
+  border: 1px solid rgba(0, 85, 164, 0.16);
+  border-left: 6px solid #0055A4;
+}
+.participation-tableau .legend p {
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #0f172a;
+  font-size: 0.92rem;
+  list-style: none;
+}
+.participation-tableau .legend-item {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.participation-tableau .legend-item.has-data { background: rgba(16, 185, 129, 0.85); }
+.participation-tableau .legend-item.no-data  { background: rgba(107, 114, 128, 0.65); }
+.participation-tableau .legend-item.cell-empty { background: rgba(239, 68, 68, 0.70); }
+.participation-tableau .legend-item.cell-filled { background: rgba(16, 185, 129, 0.75); }
+
+/* =========================================================
+   Participation (page + stats) — Thème "moderne & convivial"
+   Portée : uniquement .participation-saisie / .participation-tableau / .participation-stats
+   Objectif : esthétique uniquement (zéro impact fonctionnel)
+   ========================================================= */
+
+/* Conteneurs Participation : plus doux, plus arrondi, plus "app moderne" */
+.participation-saisie,
+.participation-tableau,
+.participation-stats {
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(249,250,251,0.92));
+}
+
+/* Typo locale (sans changer l'appli entière) : moins "institutionnel", plus moderne */
+.participation-saisie,
+.participation-tableau,
+.participation-stats,
+.participation-saisie * ,
+.participation-tableau * ,
+.participation-stats * {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+/* Titres : plus compacts, moins stricts */
+.participation-saisie h2,
+.participation-tableau h2,
+.participation-stats h2 {
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.participation-stats h3,
+.participation-tableau h3,
+.participation-saisie h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Stats : cartes plus rondes + dégradés subtils */
+.participation-stats .stats-grid {
+  gap: 1.1rem;
+}
+
+.participation-stats .stat-card {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.participation-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+}
+
+.participation-stats .stat-card.highlight {
+  border-left-width: 6px;
+  background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(255,255,255,0.90));
+}
+
+/* Valeurs : moins "bloc", plus lisible */
+.participation-stats .stat-value {
+  font-size: 1.85rem;
+  letter-spacing: -0.02em;
+}
+
+/* Évolution horaire : plus "widget" */
+.participation-stats .evolution-section {
+  margin-top: 1.25rem;
+}
+
+.participation-stats .evolution-chart {
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(248,250,252,0.95), rgba(241,245,249,0.95));
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.participation-stats .bar-track {
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  padding: 0.3rem;
+}
+
+/* Barre : un peu plus douce */
+.participation-stats .bar {
+  border-radius: 12px 12px 10px 10px;
+  opacity: 0.92;
+}
+
+.participation-stats .bar:hover {
+  opacity: 1;
+}
+
+/* Labels : plus petits, plus aérés */
+.participation-stats .bar-label {
+  font-size: 0.78rem;
+  color: rgba(30, 60, 114, 0.95);
+}
+
+.participation-stats .bar-votants {
+  font-size: 0.72rem;
+  color: rgba(71, 85, 105, 0.95);
+}
+
+/* Bureaux extrêmes : déjà moderne, on arrondit + ombre plus soft */
+.participation-stats .extremes-row {
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+/* Analyse : cartes plus rondes */
+.participation-stats .metric-card {
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+/* Participation tableau : plus doux et moderne */
+.participation-tableau .tableau-scroll {
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+.participation-tableau .legend {
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+}
+
+/* Saisie participation : champs plus "app" */
+.participation-saisie input,
+.participation-saisie select {
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+}
+
+.participation-saisie input:focus,
+.participation-saisie select:focus {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.65);
+}
+
+/* Boutons de la page participation : plus modernes */
+.participation-saisie .btn-primary,
+.participation-tableau .btn-primary,
+.participation-stats .btn-primary {
+  border-radius: 14px;
+  box-shadow: 0 10px 18px rgba(16, 185, 129, 0.20);
+}
+
+.participation-saisie .btn-primary:hover:not(:disabled),
+.participation-tableau .btn-primary:hover:not(:disabled),
+.participation-stats .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   Participation — Ajustements responsive + colonnes fixes + titres
+   Objectif : esthétique uniquement (zéro impact fonctionnel)
+   ========================================================= */
+
+/* Titres moins imposants (uniquement sur pages Participation) */
+.participation-saisie h2,
+.participation-tableau h2,
+.participation-stats h2 {
+  font-size: 1.55rem;
+  margin-bottom: 0.9rem;
+}
+
+.participation-saisie h3,
+.participation-tableau h3,
+.participation-stats h3 {
+  font-size: 1.10rem;
+  margin-bottom: 0.7rem;
+}
+
+/* Responsive : réduire le padding des "cartes" Participation sur petits écrans */
+@media (max-width: 900px) {
+  .participation-saisie,
+  .participation-tableau,
+  .participation-stats {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .participation-saisie,
+  .participation-tableau,
+  .participation-stats {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .participation-stats .stat-value {
+    font-size: 1.55rem;
+  }
+}
+
+/* Responsive : stats en grille cohérente (évite la colonne ultra étroite) */
+@media (max-width: 1100px) {
+  .participation-stats .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .participation-stats .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive : Évolution horaire — permettre défilement horizontal si nécessaire */
+@media (max-width: 620px) {
+  .participation-stats .evolution-chart {
+    overflow-x: auto;
+    padding-bottom: 0.9rem;
+  }
+
+  .participation-stats .chart-bar {
+    min-width: 52px; /* évite l’écrasement des barres/labels */
+  }
+}
+
+/* =========================================================
+   Tableau consolidation participation — 1ère colonne fixe (sticky)
+   ========================================================= */
+
+/* Contexte : le scroll horizontal est sur .tableau-scroll */
+.participation-tableau .tableau-scroll {
+  position: relative;
+}
+
+/* Fixer la 1ère colonne (en-tête + cellules) */
+.participation-tableau .participation-table--compact thead th.bureau-col {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  box-shadow: 6px 0 10px rgba(15, 23, 42, 0.08);
+}
+
+/* Cellules du nom de bureau */
+.participation-tableau .participation-table--compact tbody td.bureau-name,
+.participation-tableau .participation-table--compact tfoot td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  box-shadow: 6px 0 10px rgba(15, 23, 42, 0.06);
+}
+
+/* Garantir un fond opaque pour la colonne sticky (sinon transparence avec zébrage) */
+.participation-tableau .participation-table--compact tbody tr:nth-child(odd) td.bureau-name {
+  background: #ffffff;
+}
+.participation-tableau .participation-table--compact tbody tr:nth-child(even) td.bureau-name {
+  background: #dbeafe;
+}
+.participation-tableau .participation-table--compact tfoot td:first-child {
+  background: linear-gradient(90deg, rgba(0,85,164,0.14), rgba(255,255,255,0.92));
+}
+
+/* Petit séparateur visuel pour la colonne fixe */
+.participation-tableau .participation-table--compact tbody td.bureau-name::after,
+.participation-tableau .participation-table--compact thead th.bureau-col::after,
+.participation-tableau .participation-table--compact tfoot td:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 1px;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.10);
+}
+
+/* =========================================================
+   ParticipationStats — Couleurs des 4 KPI (Inscrits / Votants / Taux / Abstentions)
+   Objectif : esthétique uniquement (zéro impact fonctionnel)
+   ========================================================= */
+
+.participation-stats .stat-card.stat-card--inscrits {
+  border-left-color: rgba(59, 130, 246, 0.85);
+  background: linear-gradient(135deg, rgba(59,130,246,0.10), rgba(255,255,255,0.92));
+}
+
+.participation-stats .stat-card.stat-card--votants {
+  border-left-color: rgba(16, 185, 129, 0.85);
+  background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(255,255,255,0.92));
+}
+
+.participation-stats .stat-card.stat-card--taux {
+  border-left-color: rgba(245, 158, 11, 0.90);
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(255,255,255,0.92));
+}
+
+.participation-stats .stat-card.stat-card--abstentions {
+  border-left-color: rgba(239, 68, 68, 0.85);
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(255,255,255,0.92));
+}
+
+/* =========================================================
+   PATCH UI Résultats (Tour 1/2) — cartes / stats / classement
+   Ajout non destructif (chargé via src/styles/App.css)
+   ========================================================= */
+
+/* --- Consolidation communale : 6 cartes KPI --- */
+.resultats-consolidation .totaux-grid,
+.resultats-consolidation .resultats-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (max-width: 1100px) {
+  .resultats-consolidation .totaux-grid,
+  .resultats-consolidation .resultats-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .resultats-consolidation .totaux-grid,
+  .resultats-consolidation .resultats-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.resultats-consolidation .total-card {
+  border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 14px 14px 12px 14px;
+  background: rgba(255,255,255,0.72);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.resultats-consolidation .total-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+}
+
+.resultats-consolidation .total-card .card-value {
+  font-weight: 780;
+  letter-spacing: -0.01em;
+  font-size: 1.35rem;
+  line-height: 1.05;
+}
+
+.resultats-consolidation .total-card .card-label {
+  margin-top: 6px;
+  font-weight: 560;
+  opacity: 0.92;
+}
+
+/* Couleurs cartes KPI (si classes présentes) */
+.resultats-consolidation .total-card--neutral { background: linear-gradient(135deg, rgba(148,163,184,0.22), rgba(255,255,255,0.68)); }
+.resultats-consolidation .total-card--success { background: linear-gradient(135deg, rgba(34,197,94,0.20), rgba(255,255,255,0.70)); }
+.resultats-consolidation .total-card--primary { background: linear-gradient(135deg, rgba(59,130,246,0.20), rgba(255,255,255,0.70)); }
+.resultats-consolidation .total-card--info    { background: linear-gradient(135deg, rgba(99,102,241,0.20), rgba(255,255,255,0.70)); }
+.resultats-consolidation .total-card--warning { background: linear-gradient(135deg, rgba(245,158,11,0.22), rgba(255,255,255,0.70)); }
+.resultats-consolidation .total-card--dark    { background: linear-gradient(135deg, rgba(15,23,42,0.14), rgba(255,255,255,0.70)); }
+
+/* --- Statistiques : 4 blocs --- */
+.resultats-consolidation .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (max-width: 1000px) {
+  .resultats-consolidation .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .resultats-consolidation .stats-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resultats-consolidation .stats-card {
+  border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 14px 14px 12px 14px;
+  background: rgba(255,255,255,0.72);
+}
+
+.resultats-consolidation .stats-card-label {
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.resultats-consolidation .stats-card-value {
+  margin-top: 8px;
+  font-weight: 820;
+  font-size: 1.45rem;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+
+.resultats-consolidation .stats-card-sub {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  opacity: 0.88;
+}
+
+.resultats-consolidation .stats-card-bar {
+  margin-top: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.resultats-consolidation .stats-card-barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(59,130,246,0.85);
+}
+
+/* Couleurs par bloc */
+.resultats-consolidation .stats-card--declares { background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(255,255,255,0.70)); }
+.resultats-consolidation .stats-card--declares .stats-card-barFill { background: rgba(34,197,94,0.85); }
+
+.resultats-consolidation .stats-card--blancs { background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(255,255,255,0.70)); }
+.resultats-consolidation .stats-card--blancs .stats-card-barFill { background: rgba(99,102,241,0.85); }
+
+.resultats-consolidation .stats-card--nuls { background: linear-gradient(135deg, rgba(245,158,11,0.20), rgba(255,255,255,0.70)); }
+.resultats-consolidation .stats-card--nuls .stats-card-barFill { background: rgba(245,158,11,0.90); }
+
+.resultats-consolidation .stats-card--ecart { background: linear-gradient(135deg, rgba(148,163,184,0.20), rgba(255,255,255,0.70)); }
+
+/* --- Table candidats : modernisation légère --- */
+.resultats-consolidation .candidats-table {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+.resultats-consolidation .candidats-table thead th {
+  font-weight: 650;
+  letter-spacing: 0.03em;
+}
+
+.resultats-consolidation .candidats-table tbody tr:hover {
+  transform: translateY(-1px);
+  transition: transform 140ms ease;
+}
+
+/* --- RésultatsSaisie : select "Bureau de vote" moderne (même que Participation) --- */
+.resultats-saisie select.bureau-select,
+.resultats-saisie .bureau-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,23,42,0.14);
+  background: rgba(255,255,255,0.80);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  font-weight: 650;
+}
+
+.resultats-saisie select.bureau-select:focus,
+.resultats-saisie .bureau-select:focus {
+  outline: none;
+  border-color: rgba(59,130,246,0.45);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.12);
+}
+
+/* --- Classement : couleurs harmonisées + badges --- */
+.resultats-classement .classement-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.resultats-classement .classement-card {
+  border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255,255,255,0.72);
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 56px 1fr 140px;
+  gap: 12px;
+  align-items: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.resultats-classement .classement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+}
+
+@media (max-width: 700px) {
+  .resultats-classement .classement-card {
+    grid-template-columns: 56px 1fr;
+    grid-template-areas:
+      "rank main"
+      "rank bar";
+  }
+  .resultats-classement .classement-card .classement-rank { grid-area: rank; }
+  .resultats-classement .classement-card .classement-main { grid-area: main; }
+  .resultats-classement .classement-card .classement-barWrap { grid-area: bar; }
+}
+
+.resultats-classement .classement-rank {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 850;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  color: rgba(15,23,42,0.90);
+  background: rgba(148,163,184,0.22);
+  border: 1px solid rgba(15,23,42,0.10);
+}
+
+.resultats-classement .classement-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.resultats-classement .classement-nameRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.resultats-classement .classement-name { font-weight: 760; font-size: 1.05rem; letter-spacing: -0.01em; }
+
+.resultats-classement .classement-meta { font-size: 0.92rem; opacity: 0.88; }
+
+.resultats-classement .candidat-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.55);
+  border: 1px solid rgba(15,23,42,0.10);
+}
+
+.resultats-classement .candidat-dot.c0 { background: rgba(59,130,246,0.90); }
+.resultats-classement .candidat-dot.c1 { background: rgba(34,197,94,0.90); }
+.resultats-classement .candidat-dot.c2 { background: rgba(245,158,11,0.92); }
+.resultats-classement .candidat-dot.c3 { background: rgba(168,85,247,0.90); }
+.resultats-classement .candidat-dot.c4 { background: rgba(239,68,68,0.88); }
+.resultats-classement .candidat-dot.c5 { background: rgba(14,165,233,0.90); }
+.resultats-classement .candidat-dot.c6 { background: rgba(236,72,153,0.88); }
+.resultats-classement .candidat-dot.c7 { background: rgba(100,116,139,0.90); }
+
+.resultats-classement .badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  border: 1px solid rgba(15,23,42,0.10);
+  background: rgba(255,255,255,0.65);
+}
+
+.resultats-classement .badge-status--qualified { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.30); }
+.resultats-classement .badge-status--eliminated { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.28); }
+.resultats-classement .badge-status--leader { background: rgba(59,130,246,0.14); border-color: rgba(59,130,246,0.30); }
+
+.resultats-classement .classement-barWrap { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+
+.resultats-classement .classement-pct { font-weight: 820; font-size: 1.05rem; letter-spacing: -0.01em; }
+
+.resultats-classement .classement-bar {
+  width: 100%;
+  max-width: 220px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.10);
+  overflow: hidden;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+
+.resultats-classement .classement-barFill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0%;
+  transition: width 520ms ease;
+}
+
+.resultats-classement .classement-barFill.c0 { background: rgba(59,130,246,0.85); }
+.resultats-classement .classement-barFill.c1 { background: rgba(34,197,94,0.85); }
+.resultats-classement .classement-barFill.c2 { background: rgba(245,158,11,0.90); }
+.resultats-classement .classement-barFill.c3 { background: rgba(168,85,247,0.85); }
+.resultats-classement .classement-barFill.c4 { background: rgba(239,68,68,0.82); }
+.resultats-classement .classement-barFill.c5 { background: rgba(14,165,233,0.85); }
+.resultats-classement .classement-barFill.c6 { background: rgba(236,72,153,0.82); }
+.resultats-classement .classement-barFill.c7 { background: rgba(100,116,139,0.85); }
+
+
+
+/* ================================
+   PATCH UI Participation (restaure couleurs + layout)
+   ================================ */
+
+/* 4 cartes "Statistiques de participation" */
+.participation-stats .stats-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 14px;
+}
+@media (max-width: 980px){
+  .participation-stats .stats-grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+}
+@media (max-width: 520px){
+  .participation-stats .stats-grid{ grid-template-columns: 1fr; }
+}
+
+.participation-stats .stat-card{
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(17,24,39,0.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+}
+.participation-stats .stat-card .stat-label{
+  font-weight: 500;
+  opacity: 0.82;
+}
+.participation-stats .stat-card .stat-value{
+  margin-top: 8px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* Couleurs (gauche) + fonds doux */
+.participation-stats .stat-card--inscrits{
+  background: linear-gradient(135deg, rgba(37,99,235,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(37,99,235,0.85);
+}
+.participation-stats .stat-card--votants{
+  background: linear-gradient(135deg, rgba(30,64,175,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(30,64,175,0.85);
+}
+.participation-stats .stat-card--taux{
+  background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(34,197,94,0.88);
+}
+.participation-stats .stat-card--abstentions{
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(239,68,68,0.85);
+}
+
+/* Blocs "Chiffres clés" */
+.participation-stats .analysis-diagrams{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+}
+@media (max-width: 780px){
+  .participation-stats .analysis-diagrams{ grid-template-columns: 1fr; }
+}
+.participation-stats .metric-card{
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(17,24,39,0.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.92);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(1){
+  background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(34,197,94,0.88);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(2){
+  background: linear-gradient(135deg, rgba(245,158,11,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(245,158,11,0.88);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(3){
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(239,68,68,0.88);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(4){
+  background: linear-gradient(135deg, rgba(37,99,235,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(37,99,235,0.88);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(5){
+  background: linear-gradient(135deg, rgba(99,102,241,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(99,102,241,0.88);
+}
+.participation-stats .analysis-diagrams .metric-card:nth-child(6){
+  background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(16,185,129,0.88);
+}
+.participation-stats .metric-value strong{
+  font-weight: 850;
+  font-size: 1.05em;
+}
+.participation-stats .mini-bar{
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(17,24,39,0.08);
+  overflow:hidden;
+}
+.participation-stats .mini-bar-fill{
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,197,94,0.95));
+}
+
+/* Bureaux extrêmes : 1 ligne écran (2 cartes), empilé en responsive */
+.participation-stats .extremes-table{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 14px;
+}
+@media (max-width: 780px){
+  .participation-stats .extremes-table{ grid-template-columns: 1fr; }
+}
+.participation-stats .extremes-row{
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(17,24,39,0.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+}
+.participation-stats .extremes-row.max{
+  background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(34,197,94,0.88);
+}
+.participation-stats .extremes-row.min{
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(255,255,255,0.92));
+  border-left: 4px solid rgba(239,68,68,0.88);
+}
+
+/* ================================
+   PATCH UI Navigation (légende : pas de "double bouton")
+   ================================ */
+
+.scrutin-legend{
+  margin-left: auto;
+  max-width: 560px;
+}
+.scrutin-legend-row{
+  justify-content: flex-end;
+}
+.scrutin-legend .legend-dot{
+  box-shadow: none !important;
+  border: none !important;
+  width: 9px;
+  height: 9px;
+}
+
+/* ========================================
+/* ========================================
+   LAYOUT BV : Participation côte à côte
+   ======================================== */
+
+/* ========================================
+   LAYOUT BV : Participation côte à côte
+   ======================================== */
+
+/* Desktop : 2 colonnes côte à côte */
+.participation-bv-layout {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 24px !important;
+  margin-bottom: 24px !important;
+  width: 100% !important;
+  align-items: start !important;
+}
+
+/* Forcer les composants enfants à respecter la grille */
+.participation-bv-layout > .participation-saisie,
+.participation-bv-layout > .participation-tableau {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  margin-bottom: 0 !important;
+}
+
+/* S'assurer que les composants internes ne débordent pas */
+.participation-bv-layout .participation-saisie > *,
+.participation-bv-layout .participation-tableau > * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive : Empiler les blocs sur mobile/tablette */
+@media (max-width: 1024px) {
+  .participation-bv-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* DEBUG : Ajouter une bordure visible pour vérifier le layout */
+.participation-bv-layout {
+  border: 2px dashed #4CAF50 !important;
+  padding: 8px !important;
+}
+
+.participation-bv-layout > .participation-saisie {
+  border: 2px solid #2196F3 !important;
+}
+
+.participation-bv-layout > .participation-tableau {
+  border: 2px solid #FF9800 !important;
+}
