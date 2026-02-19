@@ -166,24 +166,6 @@ useEffect(() => {
 }, [tourActuel, isAdmin]);
 
 
-  // Recalcul automatique des EXPRIMÉS quand les voix changent
-  useEffect(() => {
-    // Calculer la somme des voix de toutes les listes
-    let sommeVoix = 0;
-    Object.keys(inputsVoix).forEach((key) => {
-      const voix = Number(inputsVoix[key]);
-      if (!isNaN(voix)) {
-        sommeVoix += voix;
-      }
-    });
-
-    // Mettre à jour le champ EXPRIMÉS automatiquement
-    setInputsMain((prev) => ({
-      ...prev,
-      exprimes: sommeVoix > 0 ? String(sommeVoix) : ''
-    }));
-  }, [inputsVoix]);
-
   const bureauOptions = useMemo(() => {
     const list = Array.isArray(bureaux) ? bureaux : [];
     return list
@@ -322,18 +304,27 @@ useEffect(() => {
         });
       } catch (_) {}
 
-      await reloadResultats();
+      // reloadResultats() retourne le tableau frais directement (résultat de load()).
+      // On l'utilise immédiatement pour alimenter appendedRowIndexRef SANS dépendre
+      // du state React (qui n'est pas encore mis à jour dans la même frame async).
+      const freshData = await reloadResultats();
+      const freshRows = Array.isArray(freshData) ? freshData : [];
+      const refreshed = freshRows.find(
+        r => String(r?.bureauId ?? '').trim().toUpperCase().replace(/\D/g, '') ===
+             String(selectedBureauId ?? '').trim().toUpperCase().replace(/\D/g, '')
+      ) || null;
 
-      const refreshed = findRowForBureau(selectedBureauId);
-      setRow(refreshed);
-      // Synchroniser la ref avec l'état frais
-      if (refreshed?.rowIndex !== undefined && refreshed?.rowIndex !== null) {
-        appendedRowIndexRef.current = refreshed.rowIndex;
+      if (refreshed !== null) {
+        setRow(refreshed);
+        // Mémoriser le rowIndex frais — évite tout appendRow ultérieur sur ce bureau
+        if (refreshed.rowIndex !== undefined && refreshed.rowIndex !== null) {
+          appendedRowIndexRef.current = refreshed.rowIndex;
+        }
       }
     } finally {
       isSavingRef.current = false;
     }
-  }, [buildRowData, findRowForBureau, reloadResultats, resultatsSheet, row, selectedBureauId, tourActuel]);
+  }, [buildRowData, reloadResultats, resultatsSheet, row, selectedBureauId, tourActuel]);
 
   const onBlurMain = async (field) => {
     try {
@@ -1527,10 +1518,16 @@ useEffect(() => {
                 type="text"
                 inputMode="numeric"
                 value={inputsMain.exprimes}
-                readOnly
-                disabled
-                style={{ width: '100%', padding: 6, background: '#f0f0f0', cursor: 'not-allowed', fontWeight: 700 }}
-                title="Exprimés issus du Google Sheet (lecture seule)"
+                onChange={(e) => setInputsMain((prev) => ({ ...prev, exprimes: e.target.value }))}
+                onBlur={() => onBlurMain('exprimes')}
+                disabled={(isLocked || adminValidated) && !isAdmin}
+                style={{
+                  width: '100%',
+                  padding: 6,
+                  background: ((isLocked || adminValidated) && !isAdmin) ? '#f0f0f0' : '#fff',
+                  cursor: ((isLocked || adminValidated) && !isAdmin) ? 'not-allowed' : 'text',
+                  fontWeight: 700
+                }}
               />
             </div>
           </div>

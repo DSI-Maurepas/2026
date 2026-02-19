@@ -11,7 +11,10 @@ const SiegesCommunautaire = ({ electionState }) => {
   // Configuration : nombre de sièges CC
   const { data: config } = useGoogleSheets('Config');
 
-  // Source de calcul : résultats T2 + Candidats actifT2
+  // Source prioritaire : tableau Google Sheets (voix municipales consolidées par liste)
+  const { data: seatsCommunity } = useGoogleSheets('Seats_Community');
+
+  // Source de repli (calcul automatique)
   const { data: candidats } = useGoogleSheets('Candidats');
   const { data: resultats } = useGoogleSheets(state.tourActuel === 1 ? 'Resultats_T1' : 'Resultats_T2');
 
@@ -39,12 +42,37 @@ const SiegesCommunautaire = ({ electionState }) => {
     }
   }, [config]);
 
-  useEffect(() => {
-    // ── Source de vérité : Resultats_T2 + Candidats filtrés actifT2 ──────────
-    // Seats_Community n'est JAMAIS utilisé comme source de voix :
-    // ses valeurs peuvent être périmées ou issues d'un tour précédent.
-    // Il est uniquement utilisé comme destination de persistance (écriture).
+  const seatsCommunityRows = useMemo(() => {
+    return (seatsCommunity || [])
+      .filter(r => (r?.nomListe || r?.listeId || r?.ListeID || r?.NomListe))
+      .map(r => ({
+        listeId: (r.listeId || r.ListeID || '').toString().trim(),
+        nomListe: (r.nomListe || r.NomListe || r.listeId || r.ListeID || '—').toString().trim(),
+        voix: Number(r.voixMunicipal ?? r.VoixMunicipal ?? r.voix ?? r.Voix ?? 0) || 0,
+        pctVoix: Number(r.pctMunicipal ?? r.PctMunicipal ?? r.pourcentage ?? r.PctVoix ?? 0) || 0,
+        eligible: typeof r.eligible === 'boolean' ? r.eligible : String(r.Eligible ?? '').toUpperCase() === 'TRUE',
+        _raw: r
+      }));
+  }, [seatsCommunity]);
 
+  useEffect(() => {
+    // 1) Si Seats_Community est renseigné : on l'utilise comme source de VOIX, puis on calcule
+    if (seatsCommunityRows.length > 0) {
+      const computed = calculService
+        .calculerSiegesCommunautairesDepuisListes(seatsCommunityRows, totalSieges)
+        .map(r => {
+          const prime = Number(r?.siegesPrime ?? 0) || 0;
+          const prop = Number(r?.siegesProportionnels ?? 0) || 0;
+          const methode = prime > 0
+            ? `Prime (${prime}) + Proportionnelle (${prop})`
+            : `Proportionnelle (${prop})`;
+          return { ...r, methode };
+        });
+      setSieges(Array.isArray(computed) ? computed : []);
+      return;
+    }
+
+    // 2) Calcul de repli : consolider les voix depuis Resultats_T2 + Candidats
     if (!resultats?.length || !candidats?.length) {
       setSieges([]);
       return;
@@ -52,53 +80,63 @@ const SiegesCommunautaire = ({ electionState }) => {
 
     // Filtrer les candidats actifs au tour actuel
     const candidatsActifs = candidats.filter(c => state.tourActuel === 1 ? c.actifT1 : c.actifT2);
+    
     if (candidatsActifs.length === 0) {
       setSieges([]);
       return;
     }
 
-    // Consolider les voix par liste depuis les résultats du tour actuel
+    // Consolider les voix par candidat (somme de tous les bureaux)
     const listesConsolidees = candidatsActifs.map(candidat => {
-      const listeId = (candidat.listeId || candidat.ListeID || '').toString().trim();
-      const nomListe = (candidat.nomListe || candidat.NomListe || listeId).toString().trim();
-
+      const listeId = candidat.listeId || candidat.ListeID || '';
+      const nomListe = candidat.nomListe || candidat.NomListe || listeId;
+      
+      // Somme des voix pour cette liste sur tous les bureaux
+      // Les voix sont dans bureau.voix qui est un objet {L1: 770, L2: 249, L3: 200, ...}
       const totalVoix = resultats.reduce((sum, bureau) => {
         const voixObj = bureau.voix || {};
-        return sum + (Number(voixObj[listeId]) || 0);
+        const voix = Number(voixObj[listeId]) || 0;
+        return sum + voix;
       }, 0);
-
-      return { listeId, nomListe, voixMunicipal: totalVoix, eligible: true };
+      
+      return {
+        listeId,
+        nomListe,
+        voixMunicipal: totalVoix,
+        eligible: true
+      };
     });
 
-    // Calculer la répartition
+    // Calculer la répartition avec la fonction qui fonctionne
     const normalized = calculService
       .calculerSiegesCommunautairesDepuisListes(listesConsolidees, totalSieges)
       .map(r => {
         const prime = Number(r?.siegesPrime ?? 0) || 0;
-        const prop  = Number(r?.siegesProportionnels ?? 0) || 0;
+        const prop = Number(r?.siegesProportionnels ?? 0) || 0;
         const methode = prime > 0
           ? `Prime (${prime}) + Proportionnelle (${prop})`
           : `Proportionnelle (${prop})`;
         return { ...r, methode };
       });
+    
+    setSieges(normalized);
 
-    setSieges(Array.isArray(normalized) ? normalized : []);
-
-    // ── Persistance Google Sheets (Seats_Community) — une seule fois ──────────
+    // ── Persistance Google Sheets (Seats_Community) — une seule fois ──
     if (normalized.length > 0 && !persistedRef.current) {
       persistedRef.current = true;
       const totalVoixAll = normalized.reduce((s, r) => s + (Number(r?.voix) || 0), 0);
       const rows = normalized.map(r => [
-        r.listeId  || '',
-        r.nom      || r.nomListe || '',
-        Number(r.voix) || 0,
-        totalVoixAll > 0 ? ((Number(r.voix) || 0) / totalVoixAll * 100).toFixed(2) : '0',
-        Number(r.sieges) || 0,
-        (Number(r.pourcentage) || 0) >= 5 ? 'TRUE' : 'FALSE'
+        r.listeId || '',                                            // A ListeID
+        r.nom || r.nomListe || '',                                  // B NomListe
+        Number(r.voix) || 0,                                        // C VoixMunicipal
+        totalVoixAll > 0 ? ((Number(r.voix) || 0) / totalVoixAll * 100).toFixed(2) : '0', // D PctMunicipal
+        Number(r.sieges) || 0,                                      // E SiegesCommunautaires
+        (Number(r.pourcentage) || 0) >= 5 ? 'TRUE' : 'FALSE'       // F Eligible
       ]);
       (async () => {
         try {
           await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_COMMUNITY);
+          // Écriture header + données
           const header = ['ListeID', 'NomListe', 'VoixMunicipal', 'PctMunicipal', 'SiegesCommunautaires', 'Eligible'];
           await googleSheetsService.appendRows(SHEET_NAMES.SEATS_COMMUNITY, [header, ...rows]);
           console.log('[SiegesCommunautaire] Persistance Sheets OK:', rows.length, 'lignes');
@@ -107,7 +145,7 @@ const SiegesCommunautaire = ({ electionState }) => {
         }
       })();
     }
-  }, [resultats, candidats, totalSieges, state.tourActuel]);
+  }, [seatsCommunityRows, resultats, candidats, totalSieges, state.tourActuel]);
 
   return (
     <div 

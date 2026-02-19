@@ -211,7 +211,7 @@ export default function InformationsParticipation({ electionState }) {
           <table className={`info-particip-table info-particip-table--t${tour}`}>
             <thead>
               <tr>
-                <th className="info-particip-th-bureau">Bureaux</th>
+                <th className="info-particip-th-bureau">Bureau</th>
                 <th className="info-particip-th-inscrits">Inscrits</th>
                 {HOURS.map((h) => (
                   <th key={h} className="info-particip-th-hour">

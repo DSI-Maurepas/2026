@@ -73,6 +73,8 @@ export default function Informations({ electionState }) {
   const { data: resultats,     load: loadResultats }    = useGoogleSheets(
     tourVisu === 2 ? "Resultats_T2" : "Resultats_T1"
   );
+  // Resultats_T1 chargé en permanence — nécessaire pour calculer les listes qualifiées T2 (seuil 10%)
+  const { data: resultatsT1, load: loadResultatsT1 } = useGoogleSheets("Resultats_T1");
   const { data: seatsMunicipal,  load: loadSeatsMunicipal }  = useGoogleSheets("Seats_Municipal");
   const { data: seatsCommunity,  load: loadSeatsCommunity }  = useGoogleSheets("Seats_Community");
 
@@ -84,8 +86,9 @@ export default function Informations({ electionState }) {
       loadResultats({}, { silent }),
       loadSeatsMunicipal({}, { silent }),
       loadSeatsCommunity({}, { silent }),
+      loadResultatsT1({}, { silent }),
     ]);
-  }, [loadBureaux, loadCandidats, loadParticipation, loadResultats, loadSeatsMunicipal, loadSeatsCommunity]);
+  }, [loadBureaux, loadCandidats, loadParticipation, loadResultats, loadResultatsT1, loadSeatsMunicipal, loadSeatsCommunity]);
 
   useEffect(() => {
     loadAll(true);
@@ -207,7 +210,33 @@ export default function Informations({ electionState }) {
   const abstention      = useMemo(()=>Math.max(0,(totalInscrits||0)-(votantsRef||0)),[totalInscrits,votantsRef]);
   const tauxAbstention  = useMemo(()=>pct(abstention,totalInscrits),[abstention,totalInscrits]);
 
-  // Top 5 listes
+  // Calcul des ids qualifiés pour le T2 (≥ 10% des suffrages exprimés du T1)
+  // Utilise resultatsT1 (toujours chargé) pour garantir le calcul même quand tourVisu === 2.
+  const idsQualifiesT2 = useMemo(() => {
+    const resT1 = Array.isArray(resultatsT1) ? resultatsT1 : [];
+    const cand  = Array.isArray(candidats)   ? candidats   : [];
+    if (!resT1.length || !cand.length) return null; // null = "pas encore calculable"
+    const nv=(v)=>{const num=Number(String(v??"").replace(",",".").replace(/\s/g,""));return Number.isFinite(num)?num:0;};
+    const totalExpT1 = resT1.reduce((s,r)=>s+nv(r?.exprimes??r?.Exprimes),0);
+    if (totalExpT1 <= 0) return null;
+    const SEUIL = 10;
+    const actifsT1 = cand.filter(c=>!!c.actifT1);
+    const base = actifsT1.length > 0 ? actifsT1 : cand.filter(c=>c?.listeId);
+    const qualifies = new Set();
+    base.forEach((c,i)=>{
+      const id = (c?.listeId??c?.id??c?.code??c?.key);
+      const idStr = id&&String(id).trim() ? String(id).trim() : `L${i+1}`;
+      const fallbackKey = `L${i+1}`;
+      const voixByLiId = resT1.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+nv(vo?.[idStr]??vo?.[`${idStr}_Voix`]??vo?.[`${idStr}Voix`]);},0);
+      const voixByFallback = idStr!==fallbackKey ? resT1.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+nv(vo?.[fallbackKey]??vo?.[`${fallbackKey}_Voix`]??vo?.[`${fallbackKey}Voix`]);},0) : 0;
+      const voix = voixByLiId > 0 ? voixByLiId : voixByFallback;
+      if ((voix / totalExpT1) * 100 >= SEUIL) qualifies.add(idStr);
+    });
+    return qualifies; // Set vide = aucune liste qualifiée (données insuffisantes)
+  }, [resultatsT1, candidats]);
+
+  // Classement des listes — source : resultats du tour affiché
+  // En Tour 2 : filtré sur les listes qualifiées T2 (≥ 10% au T1)
   const topListes = useMemo(() => {
     const res=Array.isArray(resultats)?resultats:[];
     const cand=Array.isArray(candidats)?candidats:[];
@@ -219,17 +248,41 @@ export default function Informations({ electionState }) {
       const leg=c?.nom??c?.name??c?.Nom??c?.label; return leg&&String(leg).trim()?String(leg).trim():`Candidat ${i+1}`;
     };
     const getId=(c,i)=>{const id=c?.listeId??c?.id??c?.code??c?.key;return id&&String(id).trim()?String(id).trim():`L${i+1}`;};
-    const actifs=cand.filter(c=>tourVisu===1?!!c.actifT1:!!c.actifT2); if(!actifs.length) return [];
+
+    // Filtre des candidats selon le tour :
+    // T1 : actifT1, fallback sur tous si non renseigné
+    // T2 : strictement les listes qualifiées T2 (≥10% au T1), calculées via idsQualifiesT2
+    //      Si idsQualifiesT2 est null (données T1 pas encore chargées), on attend → []
+    let actifs;
+    if (tourVisu === 2) {
+      if (idsQualifiesT2 === null) return []; // T1 pas encore chargé
+      const actifsFiltresT2 = cand.filter(c => {
+        const id = getId(c, 0); // index 0 car on cherche juste l'id, pas le nom
+        const idStr = (c?.listeId??c?.id??c?.code??c?.key);
+        const idFinal = idStr&&String(idStr).trim() ? String(idStr).trim() : id;
+        return idsQualifiesT2.has(idFinal);
+      });
+      actifs = actifsFiltresT2.length > 0 ? actifsFiltresT2 : [];
+    } else {
+      const actifsFiltresT1 = cand.filter(c=>!!c.actifT1);
+      actifs = actifsFiltresT1.length > 0 ? actifsFiltresT1 : cand.filter(c=>c?.listeId);
+    }
+    if(!actifs.length) return [];
+
     const totalExp=(totauxResultats?.exprimes??0)||res.reduce((a,r)=>a+n(r?.exprimes??r?.Exprimes),0);
     return actifs
       .map((c,i)=>{
         const id=getId(c,i);
-        const voix=res.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};const v=vo?.[id]??vo?.[`${id}_Voix`]??vo?.[`${id}Voix`];return a+n(v);},0);
+        // Lookup voix par listeId exact d'abord, puis par clé positionnelle L{i+1}
+        const fallbackKey=`L${i+1}`;
+        const voixByLiId=res.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+n(vo?.[id]??vo?.[`${id}_Voix`]??vo?.[`${id}Voix`]);},0);
+        const voixByFallback=id!==fallbackKey?res.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+n(vo?.[fallbackKey]??vo?.[`${fallbackKey}_Voix`]??vo?.[`${fallbackKey}Voix`]);},0):0;
+        const voix=voixByLiId>0?voixByLiId:voixByFallback;
         return {listeId:id,nomListe:getName(c,i),voix};
       })
       .sort((a,b)=>(b.voix||0)-(a.voix||0))
       .map(x=>({...x,pctVoix:totalExp>0?(x.voix/totalExp)*100:0}));
-  }, [resultats,candidats,tourVisu,totauxResultats]);
+  }, [resultats,candidats,tourVisu,totauxResultats,idsQualifiesT2]);
 
   const seatsByListeId = useMemo(()=>{
     const map=new Map();
@@ -302,10 +355,16 @@ export default function Informations({ electionState }) {
     };
     const getId = (c, i) => { const id = c?.listeId ?? c?.id ?? c?.code ?? c?.key; return id && String(id).trim() ? String(id).trim() : `L${i + 1}`; };
 
-    const actifs = cand.filter(c => !!c.actifT1);
+    // Filtre actifT1 — fallback sur tous candidats si aucun n'est marqué actif
+    const actifsFiltresAdmises = cand.filter(c => !!c.actifT1);
+    const actifs = actifsFiltresAdmises.length > 0 ? actifsFiltresAdmises : cand.filter(c => c?.listeId);
     const avecVoix = actifs.map((c, i) => {
       const id   = getId(c, i);
-      const voix = res.reduce((a, r) => { const vo = r?.voix || r?.Voix || {}; return a + nv(vo?.[id] ?? vo?.[`${id}_Voix`] ?? vo?.[`${id}Voix`]); }, 0);
+      // Lookup voix par listeId exact, puis fallback L{i+1}
+      const fallbackKey = `L${i+1}`;
+      const voixByLiId = res.reduce((a, r) => { const vo = r?.voix || r?.Voix || {}; return a + nv(vo?.[id] ?? vo?.[`${id}_Voix`] ?? vo?.[`${id}Voix`]); }, 0);
+      const voixByFallback = id !== fallbackKey ? res.reduce((a, r) => { const vo = r?.voix || r?.Voix || {}; return a + nv(vo?.[fallbackKey] ?? vo?.[`${fallbackKey}_Voix`] ?? vo?.[`${fallbackKey}Voix`]); }, 0) : 0;
+      const voix = voixByLiId > 0 ? voixByLiId : voixByFallback;
       const pct  = (voix / totalExp) * 100;
       return { id, nom: getName(c, i), voix, pct };
     });
