@@ -536,6 +536,28 @@ this._setCached(key, filtered);
     });
   }
 
+  /**
+   * Identique à getData, mais vide le cache et les requêtes inflight
+   * AVANT de lire, garantissant des données fraîches depuis Google Sheets.
+   *
+   * À utiliser UNIQUEMENT avant une écriture critique (ex: handleBlur dans ParticipationSaisie)
+   * pour éviter de réécrire des données périmées (stale) depuis le state React.
+   *
+   * ⚠️ Ne pas utiliser en boucle / en auto-refresh (performance / quotas).
+   */
+  async getDataFresh(sheetName, filters = {}) {
+    // Vider tout le cache + inflight pour cette sheet
+    const normalizedSheet = this.normalizeSheetName(sheetName);
+    for (const k of Array.from(this._cache.keys())) {
+      if (String(k).includes(normalizedSheet)) this._cache.delete(k);
+    }
+    for (const k of Array.from(this._inflight.keys())) {
+      if (String(k).includes(normalizedSheet)) this._inflight.delete(k);
+    }
+    // Lecture fraîche
+    return await this.getData(sheetName, filters);
+  }
+
 
   /**
    * Convertit un objet métier en ligne (Array) dans l'ordre exact des colonnes Google Sheets.

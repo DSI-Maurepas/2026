@@ -205,7 +205,7 @@ export default function InformationsEvolutionHoraire({
             <path className="info-evo-area" d={svgPaths.area} />
             <path className="info-evo-line" d={svgPaths.line} />
             {svgPaths.pts.map((p, idx) => (
-              <circle key={idx} className="info-evo-point" cx={p.x} cy={p.y} r="1.2" />
+              <circle key={idx} className="info-evo-point" cx={p.x} cy={p.y} r="1.8" />
             ))}
           </svg>
         )}

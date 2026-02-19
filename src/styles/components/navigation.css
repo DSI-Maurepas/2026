@@ -822,13 +822,34 @@
     margin: 0 !important;
   }
 
-  /* Menu principal en grille 2x2 (4 boutons) */
-  .main-navigation .nav-menu{
+  /* Menu principal en grille 2x2 (4 boutons) — SAUF profil INFO */
+  .main-navigation:not(.is-info) .nav-menu{
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     align-items: stretch;
     justify-items: stretch;
+  }
+
+  /* Profil INFO : badge flottant VISIBLE en responsive */
+  .main-navigation.is-info .tour-indicator-floating{
+    display: block !important;
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 9999 !important;
+  }
+
+  /* Profil INFO : row en flex column, actions en fin */
+  .main-navigation.is-info .nav-menu-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* Actions alignées à droite */
+  .main-navigation.is-info .nav-menu-actions {
+    align-self: flex-end !important;
+    margin-left: 0 !important;
   }
   .main-navigation .nav-menu li{
     width: 100% !important;
@@ -846,7 +867,7 @@
   }
 }
 
-/* Desktop : ne jamais afficher le badge flottant (mode écran inchangé) */
+/* Desktop : masquer le badge flottant pour TOUS (y compris INFO) */
 @media (min-width: 901px){
   .main-navigation .tour-indicator-floating{
     display: none !important;
@@ -904,3 +925,100 @@
     grid-column: 1 / -1;
   }
 }
+
+/* =========================================================
+   PROFIL INFO — Responsive
+   - Badge tour flottant en haut à droite (déjà géré par le media 900px global)
+   - 2 boutons (Informations + Participation) côte à côte sur 1 ligne
+   - Masquer tous les autres boutons de menu
+   ========================================================= */
+/* ═══ PROFIL INFO — Desktop & Responsive ═══════════════════════════ */
+
+/* Desktop (min-width: 901px) : layout normal avec pastilles tour */
+@media (min-width: 901px) {
+  /* Masquer le badge tour dans la ligne de boutons */
+  .main-navigation.is-info .nav-menu li[data-menu-id="tour-indicator"] {
+    display: none !important;
+  }
+
+  /* Seuls Info + Participation visibles, tous les autres masqués */
+  .main-navigation.is-info .nav-menu li[data-menu-id="dashboard"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="resultats"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="passage-t2"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="sieges"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="exports"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="admin"] {
+    display: none !important;
+  }
+
+  /* Info + Participation côte à côte */
+  .main-navigation.is-info .nav-menu {
+    display: flex !important;
+    gap: 12px;
+  }
+
+  .main-navigation.is-info .nav-menu li[data-menu-id="informations"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="participation"] {
+    display: block !important;
+  }
+}
+
+/* Responsive (max-width: 900px) : badge flottant + grille 2 colonnes */
+@media (max-width: 900px) {
+  /* Badge flottant déjà activé par la règle générale ligne 816 — OK */
+  
+  /* Grille 2 colonnes pour Info + Participation — FORCER display: grid */
+  .main-navigation.is-info .nav-menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Masquer le badge tour dans la grille (déjà flottant) */
+  .main-navigation.is-info .nav-menu li[data-menu-id="tour-indicator"] {
+    display: none !important;
+  }
+
+  /* Masquer tous les boutons sauf informations et participation */
+  .main-navigation.is-info .nav-menu li[data-menu-id="dashboard"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="resultats"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="passage-t2"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="sieges"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="exports"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="admin"] {
+    display: none !important;
+  }
+
+  /* Informations et Participation côte à côte, pleine largeur chacun */
+  .main-navigation.is-info .nav-menu li[data-menu-id="informations"],
+  .main-navigation.is-info .nav-menu li[data-menu-id="participation"] {
+    display: block !important;
+    width: 100% !important;
+  }
+}
+
+/* ═══ PROFIL INFO — RÈGLES ULTRA-SPÉCIFIQUES (debug) ═══════════════ */
+/* Si les règles ci-dessus ne marchent pas, ces règles devraient forcer */
+
+/* Desktop : Info + Participation côte à côte */
+@media (min-width: 901px) {
+  .nav-menu.nav-menu--info {
+    display: flex !important;
+    gap: 12px !important;
+  }
+}
+
+/* Responsive : grille 2 colonnes */
+@media (max-width: 900px) {
+  .nav-menu.nav-menu--info {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Actions alignées à droite (desktop ET responsive) */
+.nav-menu-actions.nav-menu-actions--info {
+  margin-left: auto !important;
+}
+

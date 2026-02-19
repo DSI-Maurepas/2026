@@ -135,23 +135,12 @@
 
 /* ─── Alignement rectangle : le dernier card de chaque colonne absorbe l'espace restant ─── */
 .info-col-a > article:last-child,
+.info-col-b > article:last-child,
 .info-col-c > article:last-child {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-/* Col B — Évolution horaire absorbe la hauteur supplémentaire (prioritaire sur Verrouillage) */
-.info-col-b > article.info-card-evolution {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-/* Col B — Verrouillage : hauteur naturelle, ne s'étire PAS */
-.info-col-b > article:last-child {
-  flex: 0 0 auto;
 }
 
 /* Le contenu extensible dans chaque dernier card */
@@ -163,16 +152,10 @@
   min-height: 0;
 }
 
-/* Col A — Sièges Muni (dernier en T2) : la liste s'étire */
-.info-col-a > article:last-child .sieges-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* Col B — Verrouillage : tuiles en haut (le bloc ne s'étire plus) */
+/* Col B — Verrouillage : les tuiles remplissent la hauteur disponible */
 .info-col-b > article:last-child .bv-tiles {
-  align-content: start;
+  flex: 1;
+  align-content: flex-start;  /* les tuiles restent en haut, pas étirées verticalement */
   min-height: 0;
 }
 
@@ -183,13 +166,6 @@
   overflow-y: auto;
 }
 
-/* Col C — Sièges Comm (dernier en T2) : la liste s'étire */
-.info-col-c > article:last-child .sieges-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
 /* ═══ CARTE GÉNÉRIQUE ══════════════════════════════════════════════ */
 .info-card {
   background: #fff; border-radius: 16px; padding: 16px 18px;
@@ -198,9 +174,8 @@
 }
 /* Les derniers cards s'étirent — overflow visible pour que flex interne fonctionne */
 .info-col-a > article:last-child,
+.info-col-b > article:last-child,
 .info-col-c > article:last-child { overflow: visible; }
-/* Évolution horaire s'étire aussi (flex:1) */
-.info-col-b > article.info-card-evolution { overflow: visible; }
 .info-card.info-card-evolution { padding: 0; }
 .info-card .card-title {
   font-size: 11px; font-weight: 800; letter-spacing: .07em;
@@ -224,16 +199,15 @@
 .kpi-sub   { font-size: 11px; opacity: .68; margin-top: 2px; }
 
 /* ═══ ÉVOLUTION HORAIRE ════════════════════════════════════════════ */
-/* L'évolution s'étire dans son card */
-.info-evolution { padding: 16px 18px 16px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.info-evolution { padding: 16px 18px 16px; }
 .info-evolution-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; margin-bottom: 12px; flex-shrink: 0;
+  gap: 12px; margin-bottom: 12px;
 }
 .info-evolution-title { font-size: 14px; font-weight: 800; color: var(--info-accent); }
 .info-evolution-sub   { font-size: 12px; opacity: .6; white-space: nowrap; }
 
-.info-evo-chart-area { position: relative; min-height: 260px; flex: 1; }
+.info-evo-chart-area { position: relative; height: 260px; }
 
 .info-evo-bars {
   position: absolute; inset: 0;
@@ -259,16 +233,15 @@
   position: absolute; left: 0; top: 0;
   width: 100%; height: calc(100% - 44px); pointer-events: none;
 }
-.info-evo-area  { fill: var(--info-accent, #0b3b86); fill-opacity: .06; }
+.info-evo-area  { fill: rgba(255,255,255,.10); }
 .info-evo-line  {
-  fill: none; stroke: var(--info-accent, #0b3b86); stroke-width: 1.4;
+  fill: none; stroke: rgba(255,255,255,.95); stroke-width: 2.2;
   stroke-linecap: round; stroke-linejoin: round;
-  stroke-opacity: .7;
-  filter: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
 }
 .info-evo-point {
-  fill: var(--info-accent, #0b3b86); stroke: #fff; stroke-width: .4;
-  filter: none;
+  fill: rgba(255,255,255,.95); stroke: rgba(0,0,0,.2); stroke-width: .8;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
 }
 
 /* ═══ VERROUILLAGE BUREAUX ═════════════════════════════════════════ */
@@ -278,7 +251,7 @@
   grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
   gap: 6px;
   margin-bottom: 10px;
-  align-content: start;
+  align-content: start;  /* tuiles restent en haut si bv-tiles s'étire */
 }
 
 .bv-tile {
@@ -513,635 +486,52 @@
   margin-top: 4px;
 }
 
-/* ═══ BLOCS SIÈGES (T2) ═══════════════════════════════════════════ */
-.info-card-sieges {
-  display: flex;
-  flex-direction: column;
-}
-
-.sieges-total-banner {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  background: var(--info-accent);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 10px;
-}
-.sieges-total-banner--comm {
-  background: linear-gradient(135deg, var(--info-accent) 0%, #1e40af 100%);
-}
-.sieges-total-nb {
-  font-size: 28px;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1;
-}
-.sieges-total-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255,255,255,.85);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.sieges-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.sieges-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 4px;
-  border-bottom: 1px solid rgba(0,0,0,.06);
-}
-.sieges-row:last-child { border-bottom: none; }
-.sieges-row--first {
-  background: var(--info-accent-soft);
-  border-radius: 8px;
-  padding: 7px 8px;
-}
-.sieges-row-name {
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-  flex: 1;
-}
-.sieges-row-detail {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-}
-
-.sieges-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 26px;
-  height: 24px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 900;
-  padding: 0 6px;
-}
-.sieges-badge--maj {
-  background: var(--info-accent-soft);
-  color: var(--info-accent);
-  border: 1px solid var(--info-accent-mid);
-}
-.sieges-badge--prop {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-}
-.sieges-badge--total {
-  background: var(--info-accent);
-  color: #fff;
-}
-
-.sieges-badge--sm {
-  min-width: 18px;
-  height: 16px;
-  font-size: 9px;
-  border-radius: 4px;
-  padding: 0 3px;
-}
-
-.sieges-legende {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  font-size: 10px;
-  opacity: .72;
-}
-.sieges-legende-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-}
-
 /* ═══ PIED DE PAGE ═════════════════════════════════════════════════ */
 .info-bottom   { margin-top: 14px; }
 .info-footnote { font-size: 12px; opacity: .6; font-style: italic; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   PROFIL INFO — BARRE DE NAVIGATION (Informations / Participation)
-═══════════════════════════════════════════════════════════════════ */
-.info-profile-nav-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-.info-profile-nav-btns {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.info-profile-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 0 0 auto;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   PAGE INFORMATIONS — PARTICIPATION (profil INFO)
-   Tableau de consolidation pleine page — projection grand écran
-═══════════════════════════════════════════════════════════════════ */
-
-/* ── Layout pleine page ── */
-.info-particip-page {
-  position: relative;
-  left: 50%;
-  width: 100vw;
-  max-width: 1900px;
-  transform: translateX(-50%);
-  padding: 16px 24px 24px;
-  box-sizing: border-box;
-}
-.info-particip-page * { box-sizing: border-box; }
-
-/* Mode T1 seul : pleine page sans scroll */
-.info-particip-page--single {
-  height: calc(100vh - 200px);
-  min-height: 500px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Mode T2 : 2 blocs empilés, scroll vertical autorisé */
-.info-particip-page--dual {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ── Header ── */
-.info-particip-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 12px;
-  flex-shrink: 0;
-}
-.info-particip-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.info-particip-h1 {
-  font-size: 28px;
-  font-weight: 900;
-  color: #1e3c72;
-  line-height: 1.1;
-  margin: 0;
-}
-
-/* ── Contenu ── */
-.info-particip-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  min-height: 0;
-}
-
-/* ── Bloc tableau ── */
-.info-particip-block {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Pleine page T1 : le bloc absorbe tout l'espace restant */
-.info-particip-block--fullscreen {
-  flex: 1;
-  min-height: 0;
-}
-
-/* ── Header du bloc ── */
-.info-particip-block-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: #fff;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-.info-particip-block-title {
-  font-size: 20px;
-  font-weight: 900;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-}
-.info-particip-block-icon {
-  font-size: 22px;
-}
-.info-particip-block-meta {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.info-particip-meta-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.info-particip-meta-pill--accent {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* ── Variante TOUR 1 — charte verte ── */
-.info-particip-block-header--t1 {
-  background: linear-gradient(135deg, #166534 0%, #15803d 100%);
-  color: #fff;
-}
-.info-particip-block-header--t1 .info-particip-block-title {
-  color: #fff;
-}
-/* T1 : en-tête du tableau vert foncé */
-.info-particip-block--t1 .info-particip-table thead th {
-  background: #15803d;
-  color: #ffffff;
-  border-bottom-color: rgba(255, 255, 255, 0.25);
-}
-.info-particip-block--t1 .info-particip-total-row {
-  background: linear-gradient(90deg, rgba(22, 101, 52, 0.15), rgba(255, 255, 255, 0.90)) !important;
-  border-top: 3px solid rgba(22, 101, 52, 0.35);
-}
-.info-particip-block--t1 .info-particip-total-row td {
-  background: transparent !important;
-}
-.info-particip-block--t1 .info-particip-total-row .info-particip-votants {
-  color: #166534;
-}
-.info-particip-block--t1 .info-particip-total-row .info-particip-pct {
-  background: rgba(22, 101, 52, 0.12);
-}
-.info-particip-block--t1 .info-particip-pct {
-  background: rgba(22, 101, 52, 0.07);
-  color: rgba(22, 101, 52, 0.92);
-  border-color: rgba(22, 101, 52, 0.10);
-}
-/* T1 : zébrage vert pâle */
-.info-particip-block--t1 .info-particip-row-even td { background: #ffffff; }
-.info-particip-block--t1 .info-particip-row-odd td  { background: #f0fdf4; }
-.info-particip-block--t1 tbody tr:hover td {
-  background: rgba(22, 101, 52, 0.10) !important;
-}
-.info-particip-block--t1 .info-particip-td-hour.is-filled {
-  background: rgba(22, 163, 74, 0.08);
-}
-
-/* ── Variante TOUR 2 — charte bleue ── */
-.info-particip-block-header--t2 {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: #fff;
-}
-.info-particip-block-header--t2 .info-particip-block-title {
-  color: #fff;
-}
-/* T2 : en-tête du tableau bleu foncé (explicite) */
-.info-particip-block--t2 .info-particip-table thead th {
-  background: #1e3c72;
-  color: #ffffff;
-  border-bottom-color: rgba(255, 255, 255, 0.22);
-}
-/* T2 : zébrage bleu-gris prononcé (identique au tableau de participation existant) */
-.info-particip-block--t2 .info-particip-row-even td { background: #ffffff; }
-.info-particip-block--t2 .info-particip-row-odd td  { background: #dbeafe; }
-.info-particip-block--t2 tbody tr:hover td {
-  background: rgba(30, 60, 114, 0.12) !important;
-}
-.info-particip-block--t2 .info-particip-td-hour.is-filled {
-  background: rgba(30, 60, 114, 0.06);
-}
-.info-particip-block--t2 .info-particip-pct {
-  background: rgba(0, 85, 164, 0.07);
-  color: rgba(11, 59, 115, 0.92);
-  border-color: rgba(0, 85, 164, 0.10);
-}
-
-/* ── Wrapper du tableau ── */
-.info-particip-table-wrap {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
-  -webkit-overflow-scrolling: touch;
-  padding: 16px;
-}
-
-/* ── TABLEAU — lisibilité projection grand écran ── */
-.info-particip-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;
-  font-size: 0.92rem;
-  line-height: 1.15;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-}
-
-/* En-tête */
-.info-particip-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #1e3c72;
-  color: #ffffff;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.22);
-  padding: 10px 10px;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-align: center;
-}
-.info-particip-th-bureau {
-  width: 180px;
-  text-align: left !important;
-  padding-left: 16px !important;
-}
-.info-particip-th-inscrits {
-  width: 100px;
-  text-align: right !important;
-}
-.info-particip-th-hour {
-  min-width: 72px;
-}
-
-/* Corps */
-.info-particip-table tbody td {
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* Zébrage lisible projection */
-.info-particip-row-even td { background: #ffffff; }
-.info-particip-row-odd  td { background: #eef2f8; }
-
-/* Survol */
-.info-particip-table tbody tr:hover td {
-  background: rgba(0, 85, 164, 0.10) !important;
-}
-
-/* Cellule bureau */
-.info-particip-td-bureau {
-  font-weight: 800;
-  color: #0f172a;
-  white-space: normal;
-  word-break: break-word;
-  max-width: 200px;
-  line-height: 1.2;
-  text-align: left;
-  padding-left: 16px !important;
-  font-size: 0.88rem;
-}
-
-/* Cellule inscrits */
-.info-particip-td-inscrits {
-  text-align: right;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  white-space: nowrap;
-  font-size: 0.92rem;
-  color: #334155;
-}
-
-/* Cellule heure */
-.info-particip-td-hour {
-  text-align: right;
-  vertical-align: middle;
-  border-left: 1px solid rgba(0, 0, 0, 0.04);
-  padding: 5px 6px !important;
-}
-.info-particip-td-hour.is-empty {
-  background: rgba(239, 68, 68, 0.10) !important;
-}
-.info-particip-td-hour.is-filled {
-  background: rgba(16, 185, 129, 0.06);
-}
-
-/* Votants (chiffre gros, lisible) */
-.info-particip-votants {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-  font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  color: #0f172a;
-  line-height: 1.1;
-  font-size: 0.92rem;
-  text-align: right;
-}
-
-/* Pourcentage (pill) */
-.info-particip-pct {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 2px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(0, 85, 164, 0.07);
-  color: rgba(11, 59, 115, 0.92);
-  font-weight: 700;
-  font-size: 0.76rem;
-  letter-spacing: 0.01em;
-  line-height: 1.15;
-  white-space: nowrap;
-  float: right;
-}
-
-/* Total communal */
-.info-particip-total-row {
-  background: linear-gradient(90deg, rgba(0, 85, 164, 0.15), rgba(255, 255, 255, 0.90)) !important;
-  border-top: 3px solid rgba(0, 85, 164, 0.35);
-}
-.info-particip-total-row td {
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-  background: transparent !important;
-}
-.info-particip-total-row .info-particip-votants {
-  font-size: 0.98rem;
-  color: #1e3c72;
-}
-.info-particip-total-row .info-particip-pct {
-  background: rgba(0, 85, 164, 0.12);
-  font-weight: 800;
-}
-
 /* ═══ RESPONSIVE ═══════════════════════════════════════════════════ */
 @media (max-width: 1200px) {
+  /* Page sort du breakout — layout normal */
   .info-page { position: static; left: auto; width: 100%; transform: none; padding: 12px; }
-  .info-header { flex-direction: column; }
 
-  /* Titre Informations — Tour X : sur une seule ligne */
-  .info-title-h1 { font-size: 22px; white-space: nowrap; }
+  /* Header : colonne unique */
+  .info-header { flex-direction: column; align-items: stretch; gap: 14px; }
 
-  /* 4 tuiles info header → 2 lignes x 2 colonnes */
-  .info-meta { grid-template-columns: 1fr 1fr; }
+  /* Tour switch : côte à côte, pleine largeur */
+  .info-tour-switch { flex-direction: row; width: 100%; }
+  .info-tour-btn    { flex: 1; }
+  .info-tour-hint   { width: 100%; text-align: center; }
 
-  /* Boutons Tour 1 / Tour 2 : côte à côte toujours */
-  .info-tour-switch {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: center;
-    width: 100%;
+  /* Méta-cartes : 2 colonnes, max-width pour éviter débordement */
+  .info-meta { 
+    grid-template-columns: 1fr 1fr; 
+    flex: none; 
+    width: 100%; 
+    max-width: 100%;
+    box-sizing: border-box;
   }
-  .info-tour-btn { width: auto; min-width: 140px; flex: 1; max-width: 220px; }
 
-  /* Grille 3 colonnes → 1 colonne */
+  /* Titre sur une ligne — réduire la taille si besoin */
+  .info-title-h1 { font-size: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Grille 3 colonnes → colonne unique empilée */
   .info-grid { grid-template-columns: 1fr; grid-template-areas: "cola" "colb" "colc"; }
 
-  /* Colonnes empilées : les blocs ne s'étirent plus artificiellement */
-  .info-col-a > article:last-child,
-  .info-col-c > article:last-child {
-    flex: 0 0 auto;
-  }
-  .info-col-b > article.info-card-evolution {
-    flex: 0 0 auto;
-  }
+  /* KPIs participation : 2 × 2 */
+  .kpis { grid-template-columns: 1fr 1fr !important; }
 
-  /* KPIs Participation : forcer 2x2 avec taille contrôlée */
-  .kpis { grid-template-columns: 1fr 1fr; }
-  .kpi-value { font-size: 18px; }
-  .kpi-label { font-size: 10px; }
-  .kpi-sub   { font-size: 10px; }
+  /* Évolution horaire : scroll horizontal pour ne pas écraser les valeurs */
+  .info-card-evolution { overflow-x: auto; }
+  .info-evo-chart-area { min-width: 700px; }
 
-  /* Évolution horaire : scroll horizontal pour lisibilité */
-  .info-evo-chart-area {
-    min-height: 220px;
-    height: 220px;
-    flex: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-  .info-evo-bars {
-    position: relative;
-    inset: auto;
-    min-width: 700px;
-    width: 100%;
-    height: 220px;
-    padding-bottom: 44px;
-  }
-  .info-evo-svg {
-    min-width: 700px;
-    width: 100%;
-    height: calc(100% - 44px);
-  }
-
-  /* Courbe + points : réduire taille en responsive */
-  .info-evo-line { stroke-width: 1.4; }
-  .info-evo-point { r: 2.5; }
-
-  /* Barres : pourcentage plus petit */
-  .info-evo-bar-pct { font-size: 9px; }
-  .info-evo-label   { font-size: 10px; }
-  .info-evo-votants { font-size: 9px; }
-
-  /* ── Correction responsive : sous-titre évolution horaire justifié à droite ── */
-  .info-evolution-sub {
-    text-align: right;
-  }
-
-  /* ── InformationsParticipation responsive ── */
-  .info-particip-page {
-    position: static;
-    left: auto;
-    width: 100%;
-    transform: none;
-    padding: 12px;
-  }
-  .info-particip-page--single {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-  .info-particip-h1 { font-size: 20px; }
-  .info-particip-block-header { padding: 10px 14px; flex-direction: column; align-items: flex-start; gap: 8px; }
-  .info-particip-block-title { font-size: 16px; }
-  .info-particip-table { font-size: 0.78rem; }
-  .info-particip-table thead th { font-size: 0.70rem; padding: 6px 6px; }
-  .info-particip-th-bureau { width: 120px; }
-  .info-particip-th-inscrits { width: 72px; }
-  .info-particip-votants { font-size: 0.78rem; }
-  .info-particip-pct { font-size: 0.66rem; }
-  .info-particip-table-wrap { overflow-x: auto; }
-
-  /* Navigation profil INFO responsive */
-  .info-profile-nav-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .info-profile-nav-btns {
-    justify-content: center;
-  }
-  .info-profile-nav-actions {
-    justify-content: flex-end;
-  }
+  /* Légende évolution : alignée à droite */
+  .info-evolution-head { flex-wrap: wrap; }
+  .info-evolution-sub  { text-align: right; margin-left: auto; }
 }
+
 @media (max-width: 640px) {
-  .info-title-h1 { font-size: 18px; }
-
-  /* Tuiles meta 2x2 conservées */
-  .info-meta { grid-template-columns: 1fr 1fr; }
-  .info-meta-item .value { font-size: 16px; }
-  .info-meta-item .label { font-size: 10px; }
-
-  .info-tour-btn { min-width: 110px; height: 50px; font-size: 14px; }
-  .bv-tile    { width: 56px; }
-  .rank-seats { grid-template-columns: 1fr; }
-
-  /* Courbe + points encore plus fins */
-  .info-evo-line { stroke-width: 1.2; }
-  .info-evo-point { r: 2; }
-
-  /* ── Correction responsive : sous-titre évolution horaire justifié à droite ── */
-  .info-evolution-sub {
-    text-align: right;
-  }
-
-  /* InformationsParticipation : encore plus compact */
-  .info-particip-h1 { font-size: 17px; }
-  .info-particip-block-title { font-size: 14px; }
-  .info-particip-meta-pill { font-size: 11px; padding: 3px 8px; }
+  .info-title-h1 { font-size: 20px; }
+  .info-meta     { grid-template-columns: 1fr 1fr; }
+  .bv-tile       { width: 56px; }
 }

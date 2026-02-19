@@ -10,6 +10,7 @@ import { canAccessPage } from "../../config/authConfig";
  */
 const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSignOut, electionState, accessAuth, onAccessLogout }) => {
   const { tourActuel, tour1Verrouille, tour2Verrouille } = electionState || {};
+  const isInfo = accessAuth?.role === 'INFO';
 
   const isTourLocked = (tourActuel === 1 && tour1Verrouille) || (tourActuel === 2 && tour2Verrouille);
 
@@ -81,10 +82,12 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
   // === Responsive nav buttons: même largeur (celle du plus grand) en mobile uniquement ===
   const btnRefs = useRef([]);
   const [mobileBtnWidth, setMobileBtnWidth] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useLayoutEffect(() => {
     const mq = window.matchMedia("(max-width: 900px)");
     const compute = () => {
+      setIsMobile(mq.matches);
       if (!mq.matches) {
         setMobileBtnWidth(null);
         return;
@@ -105,9 +108,11 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
   }, [currentPage]);
 
   return (
-    <nav className={`main-navigation${accessAuth?.role === "BV" ? " is-bv" : ""}`} aria-label="Navigation principale">
-      {/* Badge TOUR flottant — visible uniquement en mobile (position fixe haut-droite) */}
-      <div className={`tour-indicator-floating tour-indicator-badge tour-indicator-badge--${tourActuel === 2 ? 2 : 1}`}>
+    <nav className={`main-navigation${accessAuth?.role === "BV" ? " is-bv" : ""}${isInfo ? " is-info" : ""}`} aria-label="Navigation principale">
+      {/* Badge TOUR flottant — visible en mobile ET pour profil INFO en desktop */}
+      <div 
+        className={`tour-indicator-floating tour-indicator-badge tour-indicator-badge--${tourActuel === 2 ? 2 : 1}`}
+      >
         <span className="tour-indicator-icon">{tourActuel === 2 ? "🔵" : "🟢"}</span>
         <span className="tour-indicator-text">{tourActuel === 2 ? "TOUR 2" : "TOUR 1"}</span>
       </div>
@@ -135,37 +140,71 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
         </div>
       </div>
 
-      <div className="nav-menu-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-      <ul className="nav-menu" style={mobileBtnWidth ? { "--nav-btn-w": `${mobileBtnWidth}px` } : undefined}>
-              {/* Badge indicateur de tour — premier élément de la ligne de boutons (desktop) */}
-              <li data-menu-id="tour-indicator">
-                <span className={`tour-indicator-badge tour-indicator-badge--${tourActuel === 2 ? 2 : 1}`}>
-                  <span className="tour-indicator-icon">{tourActuel === 2 ? "🔵" : "🟢"}</span>
-                  <span className="tour-indicator-text">{tourActuel === 2 ? "TOUR 2" : "TOUR 1"}</span>
-                </span>
-              </li>
-              {visibleItems.map((item, idx) => (
-                <li key={item.id} data-menu-id={item.id}>
-                  <button
-                    data-menu-id={item.id}
-                    ref={(el) => {
-                      btnRefs.current[idx] = el;
-                    }}
-                    className={`nav-item nav-item--${item.id} ${currentPage === item.page ? "active" : ""} ${item.disabled ? "is-disabled" : ""}`}
-                    onClick={() => {
-                      if (!item.disabled) onNavigate(item.page);
-                    }}
-                    type="button"
-                    disabled={!!item.disabled}
-                    title={item.disabled ? item.disabledHint || "Indisponible" : ""}
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+      <div 
+        className="nav-menu-row" 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: isInfo ? "flex-start" : "space-between", 
+          gap: "1rem", 
+          flexWrap: "wrap" 
+        }}
+      >
+        <ul 
+          className="nav-menu" 
+          style={{
+            ...(mobileBtnWidth ? { "--nav-btn-w": `${mobileBtnWidth}px` } : {}),
+            ...(isInfo && isMobile ? { 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: '12px',
+              width: '100%'
+            } : {}),
+            ...(isInfo && !isMobile ? {
+              display: 'flex',
+              gap: '12px'
+            } : {})
+          }}
+        >
+          {/* Badge indicateur de tour — premier élément de la ligne de boutons (desktop) */}
+          <li data-menu-id="tour-indicator" style={isInfo ? { display: 'none' } : undefined}>
+            <span className={`tour-indicator-badge tour-indicator-badge--${tourActuel === 2 ? 2 : 1}`}>
+              <span className="tour-indicator-icon">{tourActuel === 2 ? "🔵" : "🟢"}</span>
+              <span className="tour-indicator-text">{tourActuel === 2 ? "TOUR 2" : "TOUR 1"}</span>
+            </span>
+          </li>
+          {visibleItems.map((item, idx) => (
+            <li key={item.id} data-menu-id={item.id} style={isInfo && isMobile ? { width: '100%' } : undefined}>
+              <button
+                data-menu-id={item.id}
+                ref={(el) => {
+                  btnRefs.current[idx] = el;
+                }}
+                className={`nav-item nav-item--${item.id} ${currentPage === item.page ? "active" : ""} ${item.disabled ? "is-disabled" : ""}`}
+                onClick={() => {
+                  if (!item.disabled) onNavigate(item.page);
+                }}
+                type="button"
+                disabled={!!item.disabled}
+                title={item.disabled ? item.disabledHint || "Indisponible" : ""}
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
 
-        <div className="nav-menu-actions" style={{ display: "flex", gap: "0.75rem", alignItems: "center", justifyContent: "flex-end", flex: "0 0 auto" }}>
+        <div 
+          className="nav-menu-actions" 
+          style={{ 
+            display: "flex", 
+            gap: "0.75rem", 
+            alignItems: "center", 
+            justifyContent: "flex-end", 
+            flex: "0 0 auto",
+            marginLeft: isInfo ? "auto" : undefined
+          }}
+        >
           {!isAuthenticated ? (
             <button className="nav-item nav-item--google-auth" type="button" onClick={onSignIn}>Connexion Google</button>
           ) : (

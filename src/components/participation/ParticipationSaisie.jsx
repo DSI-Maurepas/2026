@@ -40,6 +40,7 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
   const [inputs, setInputs] = useState({}); // buffer de saisie (string) pour éviter validations pendant frappe
   const [loading, setLoading] = useState(false);
   const [savingKey, setSavingKey] = useState(null);
+  const [validationError, setValidationError] = useState(null); // {current, prevLabel, prevVal}
 
   const loadBureaux = useCallback(async () => {
     const list = await googleSheetsService.getData('Bureaux');
@@ -117,7 +118,26 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
     const n = parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 0) return;
 
-    // Pas de validation cumulative sur onChange : on enregistre ici (onBlur)
+    // ── Validation cumulative : H doit être ≥ H-1 ──────────────────
+    const keyIndex = HOURS.findIndex((h) => h.key === key);
+    if (keyIndex > 0) {
+      const prevKey = HOURS[keyIndex - 1].key;
+      const prevVal = parseInt(inputs[prevKey] ?? row?.[prevKey] ?? 0, 10);
+      if (Number.isFinite(prevVal) && n < prevVal) {
+        // Annuler la saisie : remettre la valeur actuelle en sheets
+        const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10))
+          ? String(row[key])
+          : '';
+        setInputs((prev) => ({ ...prev, [key]: current }));
+        setValidationError({
+          current: n,
+          prevLabel: HOURS[keyIndex - 1].label,
+          prevVal,
+        });
+        return;
+      }
+    }
+
     const updated = { ...row, [key]: n };
 
     // Timestamp si colonne présente
@@ -152,8 +172,51 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
     }
   };
 
+  const accentColor = tourActuel === 2 ? '#1d4ed8' : '#166534';
+  const accentLight = tourActuel === 2 ? '#dbeafe' : '#dcfce7';
+  const accentBorder = tourActuel === 2 ? '#93c5fd' : '#86efac';
+
   return (
     <div className="participation-saisie">
+
+      {/* ── Modal erreur validation cumulative ── */}
+      {validationError && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: '28px 32px',
+            maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,.25)',
+            border: `2px solid ${accentBorder}`
+          }}>
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 8 }}>⚠️</div>
+            <div style={{ fontWeight: 800, fontSize: 16, color: accentColor, textAlign: 'center', marginBottom: 12 }}>
+              Saisie invalide — Valeur trop faible
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.6, background: accentLight, borderRadius: 10, padding: '12px 16px', border: `1px solid ${accentBorder}` }}>
+              La valeur saisie <strong>{validationError.current}</strong> est inférieure
+              au cumul de l'heure précédente ({validationError.prevLabel} = <strong>{validationError.prevVal}</strong>).
+              <br/>
+              <span style={{ opacity: 0.8 }}>Les votants sont cumulés : la valeur doit être ≥ {validationError.prevVal}.</span>
+            </div>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <button
+                onClick={() => setValidationError(null)}
+                style={{
+                  background: accentColor, color: '#fff', border: 'none',
+                  borderRadius: 10, padding: '10px 28px', fontWeight: 800,
+                  fontSize: 14, cursor: 'pointer'
+                }}
+              >
+                Corriger la saisie
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h3>🗳️ Participation — Saisie par bureau</h3>
 
       <div className="form-group">
