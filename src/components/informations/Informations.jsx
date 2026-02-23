@@ -389,17 +389,30 @@ export default function Informations({ electionState }) {
   },[resultats,bureaux]);
 
   // ── Sièges T2 : répartition municipaux et communautaires ────────
-  const siegesMuniDisplay = useMemo(() => {
-    const allEntries = Array.from(muniByListeId.values());
-    if (!allEntries.length) return { items: [], total: 0 };
-    // Filtrer uniquement les listes actives au T2
+  // Filtre : listes qualifiées T2 (≥10% au T1) via idsQualifiesT2.
+  // Même logique que topListes — pas de fallback "toutes les listes" si actifT2 vide.
+  const _filtreEntriesSieges = (allEntries) => {
+    if (!allEntries.length) return [];
+    // Priorité 1 : idsQualifiesT2 calculé depuis Resultats_T1
+    if (idsQualifiesT2 !== null && idsQualifiesT2.size > 0) {
+      return allEntries.filter(e => idsQualifiesT2.has(String(e.listeId ?? e.liste ?? '').trim()));
+    }
+    // Priorité 2 : actifT2 renseigné dans Candidats
     const cand = Array.isArray(candidats) ? candidats : [];
     const activeT2Ids = new Set(
       cand.filter(c => !!c.actifT2).map(c => String(c.listeId ?? c.id ?? '').trim()).filter(Boolean)
     );
-    const entries = activeT2Ids.size > 0
-      ? allEntries.filter(e => activeT2Ids.has(String(e.listeId ?? e.liste ?? '').trim()))
-      : allEntries;
+    if (activeT2Ids.size > 0) {
+      return allEntries.filter(e => activeT2Ids.has(String(e.listeId ?? e.liste ?? '').trim()));
+    }
+    // Aucune information disponible : ne rien afficher (pas de fallback sur toutes les listes)
+    return [];
+  };
+
+  const siegesMuniDisplay = useMemo(() => {
+    const allEntries = Array.from(muniByListeId.values());
+    if (!allEntries.length) return { items: [], total: 0 };
+    const entries = _filtreEntriesSieges(allEntries);
     const total = entries.reduce((s, e) => s + coerceInt(e.siegesTotal), 0);
     const items = entries.map(e => {
       const id = String(e.listeId ?? e.liste ?? '').trim();
@@ -408,19 +421,12 @@ export default function Informations({ electionState }) {
       return { listeId: id, nomListe: nom, sieges: coerceInt(e.siegesTotal) };
     }).sort((a, b) => b.sieges - a.sieges || a.nomListe.localeCompare(b.nomListe, 'fr'));
     return { items, total };
-  }, [muniByListeId, candidats, topListes]);
+  }, [muniByListeId, candidats, topListes, idsQualifiesT2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const siegesCommDisplay = useMemo(() => {
     const allEntries = Array.from(seatsByListeId.values());
     if (!allEntries.length) return { items: [], total: 0 };
-    // Filtrer uniquement les listes actives au T2
-    const cand = Array.isArray(candidats) ? candidats : [];
-    const activeT2Ids = new Set(
-      cand.filter(c => !!c.actifT2).map(c => String(c.listeId ?? c.id ?? '').trim()).filter(Boolean)
-    );
-    const entries = activeT2Ids.size > 0
-      ? allEntries.filter(e => activeT2Ids.has(String(e.listeId ?? e.liste ?? '').trim()))
-      : allEntries;
+    const entries = _filtreEntriesSieges(allEntries);
     const total = entries.reduce((s, e) => s + coerceInt(e.siegesTotal), 0);
     const items = entries.map(e => {
       const id = String(e.listeId ?? e.liste ?? '').trim();
@@ -429,7 +435,7 @@ export default function Informations({ electionState }) {
       return { listeId: id, nomListe: nom, sieges: coerceInt(e.siegesTotal) };
     }).sort((a, b) => b.sieges - a.sieges || a.nomListe.localeCompare(b.nomListe, 'fr'));
     return { items, total };
-  }, [seatsByListeId, candidats, topListes]);
+  }, [seatsByListeId, candidats, topListes, idsQualifiesT2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tourLabel  = tourVisu===2?"Tour 2":"Tour 1";
   const themeClass = tourVisu===2?"t2":"t1";

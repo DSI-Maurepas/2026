@@ -18,6 +18,7 @@ const ResultatsSaisieBureau = React.lazy(() => import("./components/resultats/Re
 const ResultatsConsolidation = React.lazy(() => import("./components/resultats/ResultatsConsolidation"));
 const ResultatsValidation = React.lazy(() => import("./components/resultats/ResultatsValidation"));
 const ResultatsClassement = React.lazy(() => import("./components/resultats/ResultatsClassement"));
+const FeuilleResultatsBV = React.lazy(() => import("./components/resultats/FeuilleResultatsBV"));
 const PassageSecondTour = React.lazy(() => import("./components/secondTour/PassageSecondTour"));
 const ConfigurationT2 = React.lazy(() => import("./components/secondTour/ConfigurationT2"));
 const SiegesMunicipal = React.lazy(() => import("./components/sieges/SiegesMunicipal"));
@@ -289,7 +290,12 @@ export default function App() {
                 {/* 1. Tableau des bureaux + Formulaire de saisie */}
                 <ResultatsSaisieBureau electionState={safeElectionState} />
                 
-                {/* 2. Validation et Classement (masqués pour les BV) */}
+                {/* 2. Feuille officielle de résultats (profil BV uniquement) */}
+                {isBureauVote && (
+                  <FeuilleResultatsBV electionState={safeElectionState} />
+                )}
+
+                {/* 3. Validation et Classement (masqués pour les BV) */}
                 {!isBureauVote && (
                   <>
                     <ResultatsValidation electionState={safeElectionState} />

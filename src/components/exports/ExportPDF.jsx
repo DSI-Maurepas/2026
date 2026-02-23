@@ -27,7 +27,7 @@ const ExportPDF = ({ electionState }) => {
     <div className="export-pdf">
       <h3>📄 Exports PDF</h3>
 
-      <div className="export-buttons">
+      <div className="export-buttons" style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
         <button
           className={`export-btn ${tourActuel === 1 ? 't1' : 't2'}`}
           onClick={() => handleExport('participation')}
@@ -47,6 +47,20 @@ const ExportPDF = ({ electionState }) => {
           onClick={() => handleExport('statistiques')}
         >
           📊 Statistiques
+        </button>
+
+        <button
+          className={`export-btn ${tourActuel === 1 ? 't1' : 't2'}`}
+          onClick={() => handleExport('affiche_resultats')}
+        >
+          🗺️ Affiche Résultats (PDF)
+        </button>
+
+        <button
+          className={`export-btn ${tourActuel === 1 ? 't1' : 't2'}`}
+          onClick={() => handleExport('resultats_maurepas')}
+        >
+          🟦 Résultats Maurepas
         </button>
 
         <button

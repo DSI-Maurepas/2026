@@ -385,34 +385,17 @@ async sleep(ms) {
           actif: row[7] === 'TRUE' || row[7] === true
         }));
 
-      case 'Candidats': {
-        // Helper robuste pour lire un booléen actif/inactif depuis une cellule.
-        // Accepte :
-        //   - booléen natif true/false (après parseSheetValue)
-        //   - chaîne "TRUE" / "FALSE" (insensible à la casse)
-        //   - chaîne "1" / "0"
-        //   - chaîne "OUI" / "NON"
-        // Fallback : false (inactif) si valeur absente ou non reconnue.
-        const _actif = (row, key, fallbackIdx) => {
-          const i = _idx(key, fallbackIdx);
-          const v = (i !== undefined && i !== null) ? row[i] : undefined;
-          if (v === undefined || v === null || v === '') return false;
-          if (typeof v === 'boolean') return v;
-          const s = String(v).trim().toUpperCase();
-          return s === 'TRUE' || s === '1' || s === 'OUI';
-        };
-
+      case 'Candidats':
         return rows.map(row => ({
-          listeId:          _str(row, 'ListeID',         0, '') || _str(row, 'listeId', 0, '') || String(row[0] ?? ''),
-          nomListe:         _str(row, 'NomListe',        1, '') || _str(row, 'nomListe', 1, '') || String(row[1] ?? ''),
-          teteListeNom:     _str(row, 'TeteListeNom',    2, '') || _str(row, 'teteListeNom', 2, '') || String(row[2] ?? ''),
-          teteListePrenom:  _str(row, 'TeteListePrenom', 3, '') || _str(row, 'teteListePrenom', 3, '') || String(row[3] ?? ''),
-          couleur:          _str(row, 'Couleur',         4, '') || _str(row, 'couleur', 4, '') || String(row[4] ?? '') || '#0055A4',
-          ordre:            _int(row, 'Ordre',           5, 0),
-          actifT1:          _actif(row, 'ActifT1',       6) || _actif(row, 'actifT1', 6),
-          actifT2:          _actif(row, 'ActifT2',       7) || _actif(row, 'actifT2', 7),
+          listeId: row[0] || '',
+          nomListe: row[1] || '',
+          teteListeNom: row[2] || '',
+          teteListePrenom: row[3] || '',
+          couleur: row[4] || '#0055A4',
+          ordre: parseInt(row[5]) || 0,
+          actifT1: String(row[6] ?? '').trim().toUpperCase() === 'TRUE',
+          actifT2: String(row[7] ?? '').trim().toUpperCase() === 'TRUE'
         }));
-      }
 
       case 'Participation_T1':
       case 'Participation_T2':
@@ -493,9 +476,6 @@ async sleep(ms) {
         });
 
         const deduped = Array.from(byBureau.values());
-        if (deduped.length < mapped.length) {
-          console.warn(`[googleSheetsService] ${sheetName} : ${mapped.length - deduped.length} ligne(s) dupliquée(s) supprimée(s) par déduplication bureauId`);
-        }
 
         return deduped;
       }

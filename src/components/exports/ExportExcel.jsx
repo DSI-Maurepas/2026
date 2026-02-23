@@ -31,7 +31,7 @@ const ExportExcel = ({ electionState }) => {
     <div className="export-excel">
       <h3>📊 Exports Excel</h3>
       
-      <div className="export-buttons">
+      <div className="export-buttons" style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
         <button
           className={`export-btn ${tourActuel === 1 ? 't1' : 't2'}`}
           onClick={() => handleExport('participation')}
@@ -58,6 +58,13 @@ const ExportExcel = ({ electionState }) => {
           onClick={() => handleExport('audit')}
         >
           📝 Audit
+        </button>
+
+        <button
+          className={`export-btn ${tourActuel === 1 ? 't1' : 't2'}`}
+          onClick={() => handleExport('affiche_resultats')}
+        >
+          🗺️ Affiche Résultats (XLSX)
         </button>
 
         <button
