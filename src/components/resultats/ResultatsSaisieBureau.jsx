@@ -381,7 +381,14 @@ useEffect(() => {
           ''
       ).trim() || '—';
 
-    return { nom, president, secretaire };
+    const suppleant =
+      String(
+        b?.SecretaireSuppleant ??
+          b?.secretaireSuppleant ??
+          ''
+      ).trim() || '—';
+
+    return { nom, president, secretaire, suppleant };
   }, [bureaux, selectedBureauId]);
 
   const controles = useMemo(() => {
@@ -1547,6 +1554,7 @@ useEffect(() => {
                 <div><strong>Bureau :</strong> {bureauMeta.nom}</div>
                 <div><strong>Président :</strong> {bureauMeta.president}</div>
                 <div><strong>Secrétaire :</strong> {bureauMeta.secretaire}</div>
+                <div><strong>Suppléant(e) :</strong> {bureauMeta.suppleant}</div>
               </div>
             </div>
 
