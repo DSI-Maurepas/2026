@@ -2063,12 +2063,12 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
     const pctPct = 2.5;
     const nStats = 6;
     const colsHtml = cands.map(() => `<col style="width:${voixPct}%"><col style="width:${pctPct}%">`).join('');
-    const candLabelTh = cands.map((_,i) => `<th colspan="2" style="background:#8DB4E2;font-size:7.5pt;font-weight:bold;">Candidat n\u00b0${i+1}</th>`).join('');
+    const candLabelTh = cands.map((_,i) => `<th colspan="2" style="background:#8DB4E2;font-size:11pt;font-weight:bold;padding:8px 6px;">Candidat n\u00b0${i+1}</th>`).join('');
     const candNameTh = cands.map(c => {
       const nm = this.escapeHtml(c?.nomListe ?? '');
-      return `<th colspan="2" style="background:#DCE6F1;height:110px;vertical-align:middle;padding:4px;"><div style="white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-align:center;font-size:8.5pt;font-weight:700;line-height:1.1;">${nm}</div></th>`;
+      return `<th colspan="2" style="background:#DCE6F1;height:140px;vertical-align:middle;padding:6px;"><div style="white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-align:center;font-size:12pt;font-weight:700;line-height:1.1;">${nm}</div></th>`;
     }).join('');
-    const candSubTh = cands.map(() => '<th style="background:#DCE6F1;font-size:6.5pt;font-weight:bold;">Voix</th><th style="background:#DCE6F1;font-size:6.5pt;font-weight:bold;">%</th>').join('');
+    const candSubTh = cands.map(() => '<th style="background:#DCE6F1;font-size:9.5pt;font-weight:bold;">Voix</th><th style="background:#DCE6F1;font-size:9.5pt;font-weight:bold;">%</th>').join('');
     const dataRows = BUREAUX_VOTE.map((bv,idx) => {
       const r=resByBureau.get(bv.id)||{};
       const ins=toNum(r?.inscrits??0),em=toNum(r?.votants??r?.emargements??0);
@@ -2078,14 +2078,14 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       const ctds=cands.map(c=>{
         const v=toNum(vm?.[c?.listeId??c?.id??'']??vm?.[c?.nomListe]??0);
         const p=ex>0?`${(v/ex*100).toFixed(2)}\u00a0%`:'';
-        return `<td style="font-weight:bold;font-size:8pt;">${v||''}</td><td style="font-size:7pt;">${p}</td>`;
+        return `<td style="font-weight:bold;font-size:11pt;">${v||''}</td><td style="font-size:10pt;">${p}</td>`;
       }).join('');
-      return `<tr style="background:${bg};"><td style="font-size:7pt;text-align:center;padding:1px 2px;"><strong>${this.escapeHtml(bv.id)}</strong><br><span style='font-size:6.5pt;'>${this.escapeHtml(bv.nom)}</span><br><span style='font-size:6pt;'>${this.escapeHtml(bv.adresse)}</span></td><td style="font-weight:bold;font-size:8pt;">${ins||''}</td><td style="font-weight:bold;font-size:8pt;">${em||''}</td><td style="font-weight:bold;font-size:8pt;">${em||''}</td><td style="font-weight:bold;font-size:8pt;">${an||''}</td><td style="font-weight:bold;font-size:8pt;">${bl||''}</td><td style="font-weight:bold;font-size:8pt;">${ex||''}</td>${ctds}</tr>`;
+      return `<tr style="background:${bg};"><td style="font-size:10pt;text-align:center;padding:1px 2px;"><strong>${this.escapeHtml(bv.id)}</strong><br><span style='font-size:9.5pt;'>${this.escapeHtml(bv.nom)}</span><br><span style='font-size:9pt;'>${this.escapeHtml(bv.adresse)}</span></td><td style="font-weight:bold;font-size:11pt;">${ins||''}</td><td style="font-weight:bold;font-size:11pt;">${em||''}</td><td style="font-weight:bold;font-size:11pt;">${em||''}</td><td style="font-weight:bold;font-size:11pt;">${an||''}</td><td style="font-weight:bold;font-size:11pt;">${bl||''}</td><td style="font-weight:bold;font-size:11pt;">${ex||''}</td>${ctds}</tr>`;
     }).join('');
     const totCtds=cands.map((_,ci)=>{
       const v=totVoix[ci];
       const p=totEx>0?`${(v/totEx*100).toFixed(2)}\u00a0%`:'';
-      return `<td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${v}</td>` +`<td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${p}</td>`;
+      return `<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${v}</td>` +`<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${p}</td>`;
     }).join('');
     const commune = ELECTION_CONFIG.COMMUNE_CODE || '78403';
     const html = [
@@ -2101,7 +2101,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       `.header h1{font-size:20pt;font-weight:bold;line-height:1.1}`,
       `.header .sous{font-size:10pt;margin-top:2px}`,
       `table{width:100%;border-collapse:collapse;table-layout:fixed}`,
-      `th,td{border:0.5pt solid #000;padding:1px 2px;text-align:center;vertical-align:middle}`,
+      `th,td{border:0.5pt solid #000;padding:2px 3px;text-align:center;vertical-align:middle}`,
       `.no-print{margin-top:8px}`,
       `@media print{.no-print{display:none}}`,
       `</style></head><body>`,
@@ -2115,21 +2115,21 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       `<col style="width:${statPct}%"><col style="width:${statPct}%"><col style="width:${statPct}%">`,
       `${colsHtml}</colgroup>`,
       `<thead><tr>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:8pt;">Bureau<br>de vote</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">Inscrits</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">\u00c9marg.</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">Votants</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">Bulletins<br>annul\u00e9s</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">Bulletins<br>blancs</th>`,
-      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:7.5pt;">Suffrages<br>exprim\u00e9s</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Bureau<br>de vote</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Inscrits</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">\u00c9marg.</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Votants</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Bulletins<br>annul\u00e9s</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Bulletins<br>blancs</th>`,
+      `<th rowspan="3" style="background:#DCE6F1;font-weight:bold;font-size:11pt;">Suffrages<br>exprim\u00e9s</th>`,
       `${candLabelTh}</tr>`,
       `<tr>${candNameTh}</tr>`,
       `<tr>${candSubTh}</tr>`,
       `</thead><tbody>${dataRows}`,
       `<tr class="totaux-row" style="background:#F2DCDB;font-weight:bold;">`,
-      `<td style="font-size:11pt;font-weight:800;padding-top:12px;padding-bottom:12px;">TOTAUX</td>`,
-      `<td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totIns}</td><td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totEm}</td><td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totEm}</td>`,
-      `<td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totAn}</td><td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totBl}</td><td style="font-weight:800;font-size:10.5pt;padding-top:12px;padding-bottom:12px;">${totEx}</td>`,
+      `<td style="font-size:14pt;font-weight:800;padding-top:12px;padding-bottom:12px;">TOTAUX</td>`,
+      `<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totIns}</td><td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totEm}</td><td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totEm}</td>`,
+      `<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totAn}</td><td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totBl}</td><td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${totEx}</td>`,
       `${totCtds}</tr></tbody></table>`,
       `<div class="no-print" style="margin-top:8px;">`,
       `<button onclick="window.print()" style="padding:6px 14px;background:#0055A4;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:10pt;">Imprimer / Enregistrer en PDF</button>`,
@@ -2420,19 +2420,19 @@ async loadExcelJS() {
   .grid { display: grid; grid-template-columns: 38mm 1fr; column-gap: 8mm; align-items: start; margin-top: 6mm; }
   .blason-wrap img { width: 30mm; height: 34mm; object-fit: cover; }
   table { border-collapse: collapse; width: 100%; }
-  td, th { border: 1px solid #000; padding: 10px 8px; }
-  .box td { font-size: 14pt; }
+  td, th { border: 1px solid #000; padding: 15px 8px; }
+  .box td { font-size: 16pt; }
   .label { background: ${BLUE}; font-weight: 500; text-align: center; }
   .value { text-align: center; }
   .value.big { font-weight: 800; font-size: 18pt; }
-  .section-title th { background: ${BLUE}; font-size: 16pt; font-weight: 800; text-align: center; padding: 12px 8px; }
-  .cand th { background: ${BLUE}; font-size: 14pt; font-weight: 800; text-align: center; }
-  .col-idx { width: 10mm; text-align: center; }
-  .col-nom { width: 95mm; }
-  .col-voix { width: 35mm; text-align: center; font-weight: 800; }
-  .col-pct { width: 35mm; text-align: center; font-weight: 800; }
+  .section-title th { background: ${BLUE}; font-size: 18pt; font-weight: 800; text-align: center; padding: 18px 8px; }
+  .cand th { background: ${BLUE}; font-size: 16pt; font-weight: 800; text-align: center; padding: 30px 8px; }
+  .col-idx { width: 10mm; text-align: center; font-size: 14pt; }
+  .col-nom { width: 95mm; font-size: 14pt; }
+  .col-voix { width: 35mm; text-align: center; font-weight: 800; font-size: 14pt; }
+  .col-pct { width: 35mm; text-align: center; font-weight: 800; font-size: 14pt; }
   .total-row td { background: ${BLUE}; font-weight: 800; }
-  .total-row td.col-voix, .total-row td.col-pct { font-size: 14pt; }
+  .total-row td.col-voix, .total-row td.col-pct { font-size: 16pt; }
 </style>
 </head>
 <body>
