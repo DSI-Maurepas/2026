@@ -192,13 +192,16 @@ export default function App() {
     }
   }, [accessAuth]);
 
-  // Bloque pages sensibles si non connecté OAuth (sauf profil INFO qui reste sur informations)
+  // Bloque pages sensibles si non connecté OAuth (sauf profil INFO qui reste sur informations, BV qui reste sur participation)
   const authRequiredPages = new Set(["participation", "resultats", "passage-t2", "sieges", "exports", "admin", "informations", "info-participation"]);
   useEffect(() => {
     if (!isAuthenticated && authRequiredPages.has(currentPage)) {
       if (accessAuth?.role === "INFO") {
         // INFO reste sur informations (la page gère l'état non connecté)
         setCurrentPage("informations");
+      } else if (accessAuth?.role === "BV") {
+        // BV reste sur participation (la page gère l'état non connecté via renderAuthGate)
+        setCurrentPage("participation");
       } else {
         setCurrentPage("dashboard");
       }
