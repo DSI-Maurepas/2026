@@ -1,0 +1,263 @@
+/* src/App.css */
+
+.App {
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #0f6aba 0%, #0575E6 100%);
+  background-attachment: fixed; 
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #0f6aba 0%, #0575E6 100%);
+  color: white;
+  padding: 0.5rem 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.blason-maurepas {
+  height: 45px;
+  width: auto;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+}
+
+/* NAVIGATION */
+.main-nav {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+/* Style des boutons standards */
+.main-nav button {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+.main-nav button:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+}
+
+.main-nav button.active {
+  background: white;
+  color: #021B79;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+  font-weight: 700;
+  border-color: white;
+}
+
+/* ✅ STYLE MENU DÉROULANT DE QUALITÉ */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+}
+
+.dropbtn {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: white;
+  min-width: 180px; 
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+  z-index: 1000;
+  border-radius: 8px; 
+  overflow: hidden;
+  margin-top: 0; 
+  border: 1px solid rgba(0,0,0,0.2); 
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Affichage au survol */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Styles des liens dans le menu déroulant */
+.dropdown-content button {
+  color: #334155 !important;
+  padding: 12px 20px !important;
+  text-decoration: none !important;
+  display: block !important;
+  width: 100% !important;
+  text-align: left !important;
+  border: none !important;
+  background: white !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  font-family: 'Segoe UI', sans-serif !important;
+  transition: all 0.2s ease !important;
+  border-bottom: 1px solid #f1f5f9 !important; 
+}
+
+.dropdown-content button:last-child {
+  border-bottom: none !important;
+}
+
+.dropdown-content button:hover {
+  background-color: #f8fafc !important;
+  color: #0f6aba !important;
+  padding-left: 24px !important;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-footer {
+  background: rgba(0, 0, 0, 0.4);
+  color: #e0e0e0;
+  padding: 1rem;
+  margin-top: auto;
+  font-size: 0.85rem;
+  backdrop-filter: blur(5px);
+}
+
+.app-loading {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+  color: #64748b;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e2e8f0;
+  border-top-color: #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .header-title {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .header-title h1 {
+      font-size: 1.2rem;
+  }
+
+  .main-nav {
+    width: 100%;
+    justify-content: center; /* ✅ Centré pour rapprocher les boutons */
+    gap: 4px; /* ✅ Espace réduit */
+    flex-wrap: nowrap;
+    overflow-x: visible; 
+  }
+
+  /* ✅ Uniformisation des 3 premiers boutons (Salles, Clio, IA) */
+  .main-nav > button:nth-child(1),
+  .main-nav > button:nth-child(2),
+  .main-nav > button:nth-child(3) {
+    flex: 1; /* Largeur identique pour les 3 */
+    min-width: 0;
+    justify-content: center;
+    padding: 0.5rem 0; /* Padding optimisé */
+  }
+
+  /* Les autres éléments s'adaptent */
+  .main-nav > button:nth-child(4),
+  .dropdown {
+    flex: 0 0 auto;
+  }
+
+  /* Masquer le texte pour Salles, Clio, IA */
+  .nav-text {
+    display: none;
+  }
+  
+  /* Ajustement de la taille du texte restant (Mes Réservations, Admin) */
+  .nav-text-opt {
+    font-size: 0.75rem;
+  }
+
+  .dropdown {
+    position: relative; 
+  }
+
+  .dropdown-content {
+    right: 0;
+    min-width: 140px;
+  }
+
+  /* Ajustement général boutons */
+  .main-nav button, .dropbtn {
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .app-main {
+    padding: 1rem 0.5rem;
+  }
+}

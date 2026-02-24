@@ -1,0 +1,52 @@
+/* src/components/AdminAuto.css */
+
+/* Surcharge locale via la classe racine .admin-auto-panel si nécessaire, 
+   mais ici on réutilise les classes globales ou on les redéfinit. */
+
+.admin-auto-panel .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  table-layout: fixed; 
+}
+
+/* ✅ NOUVELLE DISTRIBUTION LARGEURS (Sans colonne Salle) */
+/* 1: Date, 2: Horaire, 3: Agent, 4: Service, 5: Objet, 6: Email, 7: Actions */
+.admin-auto-panel .admin-table th:nth-child(1) { width: 9%; } /* Date (+1%) */
+.admin-auto-panel .admin-table th:nth-child(2) { width: 11%; } /* Horaire (+1%) */
+.admin-auto-panel .admin-table th:nth-child(3) { width: 13%; } /* Agent (+1%) */
+.admin-auto-panel .admin-table th:nth-child(4) { width: 17%; } /* Service (+1%) */
+.admin-auto-panel .admin-table th:nth-child(5) { width: 16%; } /* Objet (+1%) */
+.admin-auto-panel .admin-table th:nth-child(6) { width: 16%; } /* Email (+1%) */
+.admin-auto-panel .admin-table th:nth-child(7) { width: 17%; } /* Actions (Inchangé) */
+
+/* Styles hérités de AdminPanel.css mais appliqués dans le contexte AdminAuto */
+.admin-auto-panel .admin-table th {
+  background: #f8fafc;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-auto-panel .admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  color: #1e293b;
+  white-space: normal;
+  overflow: visible;
+  word-wrap: break-word;
+  vertical-align: top;
+}
+
+@media (max-width: 768px) {
+  .admin-auto-panel { padding: 0.1rem; }
+  .filters-section { display: none; }
+  .reservations-section { display: none; }
+}

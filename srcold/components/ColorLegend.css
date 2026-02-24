@@ -1,0 +1,369 @@
+/* src/components/ColorLegend.css */
+/* VERSION 10 OBJETS - 500px COMPACT - SANS SCROLL */
+
+.color-legend-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 0.9rem;
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 2px solid #e0e0e0;
+  animation: slideInFromRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  height: 700px;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Effet de brillance subtil en arrière-plan */
+.color-legend-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(33, 150, 243, 0.03) 0%, transparent 70%);
+  animation: rotateGlow 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateGlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   MESSAGE SURVOL SALLES - TOUT EN HAUT avec flèche ←
+   ============================================================================ */
+
+.legend-hover-tip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 0.7rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 8px;
+  border: 2px solid #2196f3;
+  margin-bottom: 1.2rem;
+  animation: pulseGlow 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2); 
+  }
+  50% { 
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4); 
+  }
+}
+
+.hover-arrow {
+  font-size: 0.8rem;
+  color: #1976d2;
+  font-weight: bold;
+  animation: arrowBounce 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { 
+    transform: translateX(-4); 
+  }
+  50% { 
+    transform: translateX(-9px); 
+  }
+}
+
+.hover-text {
+  color: #0d47a1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  font-style: normal;
+  flex: 1;
+}
+
+/* ============================================================================
+   HEADER DE LA LÉGENDE (BLOC INFO AMPOULE) - MODIFIÉ
+   Même style que legend-hover-tip
+   ============================================================================ */
+.legend-header {
+  /* Style copié de legend-hover-tip */
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 8px;
+  border: 2px solid #2196f3;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 1.1rem;
+  animation: pulseGlow 2s ease-in-out infinite; /* Même animation d'ombre */
+  flex-shrink: 0;
+  
+  /* Layout colonne pour Titre + Sous-titres */
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: left;
+}
+
+/* Ligne contenant l'ampoule et le titre h3 */
+.legend-header-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.legend-icon {
+  font-size: 0.9rem;
+/* animation: float 3s ease-in-out infinite; */
+  display: inline-block;
+  line-height: 1;
+}
+
+/* @keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+} */
+
+.legend-header h3 {
+  /* Adaptation couleur pour fond bleu */
+  color: #0d47a1; /* Bleu foncé pour contraste */
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+.legend-subtitle {
+  /* Adaptation couleur pour fond bleu */
+  color: #0d47a1;
+  font-size: 0.75rem;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2; 
+  font-style: normal;
+}
+
+/* ============================================================================
+   LISTE DES ITEMS
+   ============================================================================ */
+
+/* Liste des items - SANS SCROLL - 10 items */
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  overflow: hidden;
+  justify-content: space-evenly;
+}
+
+/* Item de légende - ULTRA COMPACT */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.6rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.legend-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.legend-item:hover {
+  transform: translateX(3px) scale(1.02);
+  border-color: #2196f3;
+  box-shadow: 0 9px 12px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(33, 150, 243, 0.1);
+  z-index: 10;
+}
+
+.legend-item:hover::before {
+  background: linear-gradient(180deg, #2196f3 0%, #1976d2 100%);
+}
+
+.legend-item.hovered {
+  transform: translateX(3px) scale(1.03);
+  border-color: #2196f3;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 30%, white 100%);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.2), 0 0 0 3px rgba(33, 150, 243, 0.15);
+  z-index: 20;
+}
+
+.legend-item.hovered::before {
+  width: 4px;
+  background: linear-gradient(180deg, #2196f3 0%, #1976d2 100%);
+}
+
+/* Boîte de couleur - COMPACT */
+.legend-color-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  position: relative;
+}
+
+.legend-item:hover .legend-color-box {
+  transform: rotate(5deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.legend-item.hovered .legend-color-box {
+  transform: rotate(-5deg) scale(1.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: rotate(-5deg) scale(1.15); }
+  50% { transform: rotate(-5deg) scale(1.2); }
+}
+
+/* Texte de la légende - COMPACT */
+.legend-text {
+  flex: 1;
+  color: #424242;
+  font-weight: 500;
+  font-size: 0.90rem;
+  line-height: 1.1;
+  transition: all 0.3s ease;
+}
+
+.legend-item:hover .legend-text {
+  color: #2196f3;
+  font-weight: 600;
+}
+
+.legend-item.hovered .legend-text {
+  color: #1565c0;
+  font-weight: 600;
+  transform: translateX(5px);
+}
+
+/* Effet de lueur au survol */
+.legend-glow {
+  position: absolute;
+  right: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  opacity: 0;
+  filter: blur(12px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+
+.legend-item.hovered .legend-glow {
+  opacity: 0.4;
+  right: -5px;
+  width: 40px;
+  height: 40px;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(1); }
+  50% { opacity: 0.5; transform: translateY(-50%) scale(1.1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .color-legend-container {
+    padding: 0.6rem;
+    height: auto;
+    max-height: none;
+  }
+
+  .legend-items {
+    gap: 0.25rem;
+  }
+
+  .legend-item {
+    padding: 0.35rem 0.5rem;
+  }
+
+  .legend-color-box {
+    width: 20px;
+    height: 20px;
+  }
+
+  .legend-text {
+    font-size: 0.7rem;
+  }
+}
+
+/* Animation d'entrée échelonnée pour les items - RAPIDE */
+.legend-item {
+  animation: slideInItem 0.3s ease backwards;
+}
+
+.legend-item:nth-child(1) { animation-delay: 0.03s; }
+.legend-item:nth-child(2) { animation-delay: 0.06s; }
+.legend-item:nth-child(3) { animation-delay: 0.09s; }
+.legend-item:nth-child(4) { animation-delay: 0.12s; }
+.legend-item:nth-child(5) { animation-delay: 0.15s; }
+.legend-item:nth-child(6) { animation-delay: 0.18s; }
+.legend-item:nth-child(7) { animation-delay: 0.21s; }
+.legend-item:nth-child(8) { animation-delay: 0.24s; }
+.legend-item:nth-child(9) { animation-delay: 0.27s; }
+.legend-item:nth-child(10) { animation-delay: 0.30s; }
+.legend-item:nth-child(11) { animation-delay: 0.33s; }
+.legend-item:nth-child(12) { animation-delay: 0.36s; }
+.legend-item:nth-child(13) { animation-delay: 0.39s; }
+
+@keyframes slideInItem {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* PROBLÈME 8 : Masquer TOUT en responsive (3ème demande) */
+@media (max-width: 1280px) {
+  .color-legend-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+}

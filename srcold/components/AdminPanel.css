@@ -1,0 +1,221 @@
+/* src/components/AdminPanel.css */
+
+/* BLOC CONNEXION */
+.admin-login-blue-block {
+  background-color: #bad9f5;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  width: fit-content;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.login-text-desktop { color: #1565c0; font-weight: 700; font-size: 0.95rem; white-space: nowrap; }
+.login-icon-desktop { font-size: 1.2rem; margin-right: 0.2rem; }
+.login-title-mobile { display: none; color: #1565c0; font-weight: 800; font-size: 1.1rem; margin: 0 0 0.5rem 0; text-align: center; }
+.admin-login-form-inline { display: flex; align-items: center; gap: 0.8rem; margin: 0; }
+.admin-password-input-inline { padding: 0.6rem 1rem; border: 2px solid white; border-radius: 8px; font-size: 0.95rem; }
+.auth-button-inline { padding: 0.6rem 1.2rem; background: #1976d2; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+.admin-auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.admin-panel {
+  padding: 0.2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.2rem;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* STYLE BOUTONS ADMIN */
+.download-excel-btn { 
+  background: white; 
+  color: #2e7d32; 
+  border: 2px solid #2e7d32; 
+  padding: 0.6rem 1.2rem; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+  transition: all 0.5s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+.download-excel-btn:hover { 
+  background: #e8f5e9; 
+  transform: translateY(-4px); 
+}
+
+.logout-btn { 
+  background: white; 
+  color: #ef5350; 
+  border: 2px solid #ef5350; 
+  padding: 0.6rem 1.2rem; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: 600;
+  transition: all 0.5s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+.logout-btn:hover { 
+  background: #ffebee; 
+  transform: translateY(-4px); 
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+/* FILTRES */
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  margin-top: 40px; /* ✅ AJOUT : Décalage de 40px vers le bas */
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  align-items: center;
+  flex-wrap: nowrap; 
+  overflow-x: auto; 
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.admin-select, .admin-input {
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.reservations-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.admin-table-container {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  table-layout: fixed; /* ✅ IMPORTANT : Permet de fixer la largeur des colonnes */
+}
+
+/* ✅ DEFINITION LARGEUR COLONNES */
+/* 1: Salle, 2: Date, 3: Horaire, 4: Agent, 5: Service, 6: Objet, 7: Email, 8: Actions */
+.admin-table th:nth-child(1) { width: 6%; } /* Salle */
+.admin-table th:nth-child(2) { width: 9%; }  /* Date */
+.admin-table th:nth-child(3) { width: 10%; }  /* Horaire */
+.admin-table th:nth-child(4) { width: 12%; } /* Agent */
+.admin-table th:nth-child(5) { width: 16%; } /* Service */
+.admin-table th:nth-child(6) { width: 15%; } /* Objet */
+.admin-table th:nth-child(7) { width: 14%; } /* Email */
+.admin-table th:nth-child(8) { width: 18%; } /* Actions */
+
+.admin-table th {
+  background: #f8fafc;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  color: #1e293b;
+  
+  /* ✅ CORRECTION : Autoriser le retour à la ligne */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-wrap: break-word; /* Coupe les mots trop longs si nécessaire (ex: emails) */
+  vertical-align: top; /* Alignement en haut pour les cellules multi-lignes */
+}
+
+.salle-cell { display: flex; align-items: center; gap: 0.7rem; }
+.salle-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+.salle-name { 
+  font-weight: 600; 
+  /* ✅ CORRECTION : Autoriser le retour à la ligne pour le nom de salle */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.sort-icon { margin-left: 0.5rem; color: #94a3b8; font-size: 0.8rem; }
+.actions-wrapper { display: flex; gap: 0.5rem; flex-wrap: wrap; } /* Wrap pour les boutons si colonne étroite */
+.edit-button, .delete-button { padding: 0.4rem 0.8rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.edit-button { background: #e3f2fd; color: #1976d2; }
+.delete-button { background: #fee2e2; color: #ef4444; }
+
+/* Modales */
+.cancel-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+.cancel-modal { background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.cancel-modal h3 { color: #d32f2f; margin-bottom: 1rem; }
+.motif-selection { margin: 1.5rem 0; text-align: left; }
+.motif-selection label { display: block; margin-bottom: 0.5rem; color: #475569; font-weight: 600; }
+.motif-select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+.modal-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+.cancel-action-btn { padding: 0.6rem 1.5rem; border: none; background: #e2e8f0; color: #475569; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.confirm-action-btn { padding: 0.6rem 1.5rem; border: none; background: #ef5350; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.confirm-action-btn:hover { background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 83, 80, 0.4); }
+.confirm-action-btn:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; opacity: 0.6; }
+
+@media (max-width: 768px) {
+  .admin-panel { padding: 1rem; }
+  .filters-section { display: none; }
+  .reservations-section { display: none; }
+  .admin-login-blue-block { width: 100%; padding: 1.5rem; flex-direction: column; }
+  .login-title-mobile { display: block; }
+  .login-text-desktop, .login-icon-desktop { display: none; }
+  .admin-login-form-inline { flex-direction: column; width: 100%; }
+  .admin-password-input-inline { width: 100%; text-align: center; }
+  .auth-button-inline { width: 100%; }
+}

@@ -20,8 +20,6 @@ export default function ResultatsSaisieBureau({ electionState: electionStateProp
   const auth = useMemo(() => getAuthState(), []);
   const forcedBureauId = isBV(auth) ? String(auth.bureauId) : null;
   const isAdmin = !isBV(auth); // Admin peut toujours modifier
-  // ⚠️ CORRECTION : BV = exprimés toujours calculé automatiquement (jamais saisissable)
-  const isBureauVote = !isAdmin;
 
   const { state: electionStateHook } = useElectionState();
   const electionState = electionStateProp || electionStateHook;
@@ -236,17 +234,6 @@ useEffect(() => {
     }
     setInputsVoix(nextVoix);
   }, [selectedBureauId, tourActuel, candidatsActifs, findRowForBureau, getInscritsForBureau]);
-
-
-  // ⚠️ CORRECTION : Pour les BV, exprimés = votants - (blancs + nuls), calculé automatiquement
-  useEffect(() => {
-    if (!isBureauVote) return;
-    const votants = parseInt(inputsMain.votants, 10) || 0;
-    const blancs  = parseInt(inputsMain.blancs,  10) || 0;
-    const nuls    = parseInt(inputsMain.nuls,    10) || 0;
-    const exprimes = Math.max(0, votants - (blancs + nuls));
-    setInputsMain((prev) => ({ ...prev, exprimes: String(exprimes) }));
-  }, [isBureauVote, inputsMain.votants, inputsMain.blancs, inputsMain.nuls]);
 
   const coerceInt = (v) => {
     const s = String(v ?? '').trim();
@@ -1533,26 +1520,20 @@ useEffect(() => {
 
             {/* EXPRIMÉS */}
             <div className="resultats-field-exprimes">
-              {/* ⚠️ CORRECTION : label indique le calcul automatique pour BV */}
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4, fontWeight: 700 }}>
-                EXPRIMÉS {isBureauVote && <span style={{ fontWeight: 400, fontStyle: 'italic', opacity: 0.7 }}>(calculé)</span>}
-              </div>
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4, fontWeight: 700 }}>EXPRIMÉS</div>
               <input
                 type="text"
                 inputMode="numeric"
                 value={inputsMain.exprimes}
-                onChange={isBureauVote ? undefined : (e) => setInputsMain((prev) => ({ ...prev, exprimes: e.target.value }))}
-                onBlur={isBureauVote ? undefined : () => onBlurMain('exprimes')}
-                readOnly={isBureauVote}
-                disabled={isBureauVote || ((isLocked || adminValidated) && !isAdmin)}
-                title={isBureauVote ? 'Calculé automatiquement : Votants − (Blancs + Nuls)' : ''}
+                onChange={(e) => setInputsMain((prev) => ({ ...prev, exprimes: e.target.value }))}
+                onBlur={() => onBlurMain('exprimes')}
+                disabled={(isLocked || adminValidated) && !isAdmin}
                 style={{
                   width: '100%',
                   padding: 6,
-                  background: (isBureauVote || ((isLocked || adminValidated) && !isAdmin)) ? '#f0f0f0' : '#fff',
-                  cursor: (isBureauVote || ((isLocked || adminValidated) && !isAdmin)) ? 'not-allowed' : 'text',
-                  fontWeight: 700,
-                  color: isBureauVote ? '#555' : 'inherit'
+                  background: ((isLocked || adminValidated) && !isAdmin) ? '#f0f0f0' : '#fff',
+                  cursor: ((isLocked || adminValidated) && !isAdmin) ? 'not-allowed' : 'text',
+                  fontWeight: 700
                 }}
               />
             </div>

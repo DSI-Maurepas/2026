@@ -1,0 +1,250 @@
+/* Sièges Municipal & Communautaire */
+.sieges-municipal,
+.sieges-communautaire {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sieges-municipal h2,
+.sieges-communautaire h2 {
+  color: #1e3c72;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.total-sieges {
+  background: #e3f2fd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #2196F3;
+  font-size: 1.1rem;
+}
+
+.total-sieges strong {
+  color: #1e3c72;
+}
+
+.sieges-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.sieges-table thead {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+}
+
+.sieges-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sieges-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.sieges-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.sieges-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.sieges-table td {
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+
+.sieges-table td strong {
+  color: #1e3c72;
+  font-size: 1.05rem;
+}
+
+.sieges-number {
+  font-weight: 900;
+  font-size: 1.3rem !important;
+  color: #4CAF50 !important;
+  text-align: center;
+}
+
+.explication {
+  background: #fff3e0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #FF9800;
+}
+
+.explication h4 {
+  margin: 0 0 1rem 0;
+  color: #1e3c72;
+  font-size: 1.1rem;
+}
+
+.explication p {
+  margin: 0.5rem 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.explication p:before {
+  content: '•';
+  margin-right: 0.5rem;
+  color: #FF9800;
+  font-weight: bold;
+}
+
+/* Message d'alerte si pas de résultats */
+.sieges-empty {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.sieges-empty p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #856404;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sieges-table {
+    font-size: 0.85rem;
+  }
+  
+  .sieges-table th,
+  .sieges-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .sieges-number {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* ================================================================
+   RESPONSIVE - VERSION MOBILE SIÈGES
+   Tableaux responsive avec colonne Candidat sticky
+   ================================================================ */
+
+@media (max-width: 768px) {
+  /* Container du tableau avec scroll horizontal */
+  .sieges-municipal,
+  .sieges-communautaire {
+    overflow-x: visible;
+    padding: 1rem;
+  }
+
+  /* Wrapper pour le scroll du tableau uniquement */
+  .sieges-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  .sieges-table thead,
+  .sieges-table tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Première colonne (Candidat) sticky */
+  .sieges-table th:first-child,
+  .sieges-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: white;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    min-width: 140px;
+    max-width: 140px;
+  }
+
+  /* Header de la première colonne avec fond bleu */
+  .sieges-table th:first-child {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+  }
+
+  /* Autres colonnes avec largeur minimale */
+  .sieges-table th,
+  .sieges-table td {
+    min-width: 80px;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Colonne Méthode plus large */
+  .sieges-table th:last-child,
+  .sieges-table td:last-child {
+    min-width: 180px;
+  }
+
+  /* Ajustement du titre */
+  .sieges-municipal h2,
+  .sieges-communautaire h2 {
+    font-size: 1.3rem;
+    line-height: 1.3;
+  }
+
+  /* Total sièges plus compact */
+  .total-sieges {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  /* Bloc explication plus compact */
+  .explication {
+    font-size: 0.85rem;
+    padding: 1rem;
+  }
+
+  .explication h4 {
+    font-size: 1rem;
+  }
+
+  .explication p {
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Sur très petits écrans, encore plus compact */
+  .sieges-table th:first-child,
+  .sieges-table td:first-child {
+    min-width: 120px;
+    max-width: 120px;
+  }
+
+  .sieges-table th,
+  .sieges-table td {
+    min-width: 70px;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .sieges-municipal h2,
+  .sieges-communautaire h2 {
+    font-size: 1.1rem;
+  }
+}

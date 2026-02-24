@@ -1,0 +1,331 @@
+/* src/components/IAGrid.css */
+
+/* --- CHARTE BLEUE (MAUREPAS) --- */
+.ia-grid-container { 
+  width: 100%; 
+  padding: 0.1rem 2rem; 
+  padding-bottom: 80px; 
+  user-select: none;
+  background: transparent;
+}
+
+/* =========================================
+   LAYOUT GLOBAL (GRILLE + SIDEBAR)
+   ========================================= */
+
+.ia-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 2rem;
+  align-items: start; 
+}
+
+/* =========================================
+   SIDEBAR GAUCHE (INFO & FORMULAIRE)
+   ========================================= */
+
+.ia-sidebar {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: start;
+  width: 100%;
+}
+
+/* BLOC INFO & FORMULAIRE */
+.ia-info-panel, .ia-form-wrapper {
+  grid-area: 1 / 1;
+  width: 100%;
+  position: relative;
+  transition: opacity 0.8s ease;
+}
+
+/* Fiches Info (Hauteur fixe pour alignement) */
+.ia-info-panel {
+  height: 680px; 
+  opacity: 0;
+  pointer-events: none;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  /* ✅ CORRECTION UNIQUE : Scroll activé pour voir les 8 IA */
+  overflow-y: auto; 
+  border: 1px solid #e0e0e0;
+  z-index: 10;
+  visibility: hidden; 
+}
+
+.ia-info-panel::-webkit-scrollbar { width: 6px; }
+.ia-info-panel::-webkit-scrollbar-thumb { background-color: rgba(15, 106, 186, 0.3); border-radius: 4px; }
+.ia-info-panel::-webkit-scrollbar-track { background: transparent; }
+
+.ia-info-panel.visible { opacity: 1; pointer-events: auto; visibility: visible; }
+
+/* Animation Fade-out spécifique SANS déplacement (Opacity only) */
+.ia-info-panel.fade-out {
+  animation: fadeOutStatic 0.8s ease forwards;
+}
+
+/* Formulaire (Hauteur libre) */
+.ia-form-wrapper {
+  min-height: 680px;
+  height: auto;
+  opacity: 0; 
+  pointer-events: none; 
+  z-index: 20; 
+  visibility: hidden;
+}
+
+.ia-form-wrapper.visible { opacity: 1; pointer-events: auto; visibility: visible; }
+
+/* --- STRUCTURE INTERNE CARTE INFO --- */
+.ia-detail-card { display: flex; flex-direction: column; height: 100%; }
+.ia-detail-image { width: 100%; height: 160px; background-size: cover; background-position: center; background-repeat: no-repeat; flex-shrink: 0; border-bottom: 4px solid #0f6aba; }
+.ia-detail-content { padding: 1.2rem; color: #334155; flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
+.ia-detail-content h3 { margin-top: 0; color: #0f6aba; font-size: 1.4rem; border-bottom: 2px solid #90caf9; padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
+.ia-detail-content p { line-height: 1.5; font-size: 0.95rem; color: #475569; margin-bottom: 1rem; }
+
+/* Alignement gauche pour les cas d'usage */
+.ia-extra-info { font-size: 0.85rem; color: #546e7a; background: #f8fafc; padding: 0.8rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1rem; text-align: left; }
+.ia-extra-info h4 { margin-top: 0; margin-bottom: 0.5rem; color: #021B79; font-size: 0.9rem; }
+.ia-extra-info ul { padding-left: 1.2rem; margin-bottom: 0.5rem; margin-top: 0; }
+.ia-extra-info li { margin-bottom: 0.3rem; }
+
+.ia-placeholder-msg { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem; color: #94a3b8; font-style: italic; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; }
+
+/* --- STYLE FORMULAIRE --- */
+.ia-form-container { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; height: auto; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; overflow: visible; }
+.form-title-ia { color: #0f6aba; border-bottom: 2px solid #90caf9; padding-bottom: 0.5rem; margin-bottom: 1rem; margin-top: 0; font-size: 1.1rem; flex-shrink: 0; }
+.selections-summary-ia { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; flex-shrink: 0; }
+.summary-header { color: #334155; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+.summary-list { max-height: none; overflow-y: visible; padding-right: 0; } 
+.summary-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 4px 8px; border-radius: 4px; margin-bottom: 4px; font-size: 0.8rem; color: #334155; border-left: 3px solid #0f6aba; }
+.remove-btn { background: #ef5350; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.form-content-scroll { flex: 1; overflow-y: visible; padding-right: 0; height: auto; }
+.form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #0f6aba; box-shadow: 0 0 0 3px rgba(15, 106, 186, 0.1); }
+.recurrence-box { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
+.recurrence-options { background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.form-actions { display: flex; gap: 10px; margin-top: 1rem; flex-shrink: 0; }
+.btn-cancel { flex: 1; background: #94a3b8; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.btn-submit { flex: 1; background: #0f6aba; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.3s; }
+.btn-submit:hover { background: #0b4f8c; }
+.btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+/* --- GRILLE DROITE --- */
+.ia-grid-section { background: white; border-radius: 16px; padding: 1.2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow-x: auto; }
+.ia-table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+.ia-table th { padding: 12px; background: #0f6aba; color: white; text-align: center; border-radius: 8px; font-weight: 700; min-width: 80px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.ia-table th small { font-weight: 400; opacity: 0.9; font-size: 0.8rem; }
+.ia-row-image-cell { width: 100px; height: 70px; padding: 0; cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s; background: #f1f5f9; }
+.ia-row-image-cell:hover { transform: scale(1.05); border-color: #0f6aba; z-index: 2; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.ia-row-thumb { width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; }
+.ia-sub-row { display: flex; flex-direction: column; gap: 4px; height: 100%; }
+.ia-slot { height: 33px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; transition: all 0.1s ease-out; }
+.ia-time-label { font-size: 0.6rem; margin-right: 6px; opacity: 0.7; text-transform: uppercase; color: inherit; }
+.ia-slot.free { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
+.ia-slot.free:hover { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
+.ia-slot.occupied { background: #ffcdd2; border: 1px solid #ef9a9a; color: #b71c1c; cursor: pointer; opacity: 0.9; }
+.ia-slot.selected { background: #1976d2 !important; color: white !important; border-color: #0d47a1; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+.ia-slot.past { background: #eeeeee; color: #bdbdbd; border-color: #e0e0e0; cursor: not-allowed; opacity: 0.7; }
+
+/* Animation clignotement */
+@keyframes blinking-slot {
+  0% { opacity: 1; box-shadow: inset 0 0 0 0 #ff9800; background-color: #2196f3; }
+  50% { opacity: 0.6; box-shadow: inset 0 0 10px 2px #ff9800; background-color: #64b5f6; }
+  100% { opacity: 1; box-shadow: inset 0 0 0 0 #ff9800; background-color: #2196f3; }
+}
+
+.ia-slot.editing-pulse {
+  animation: blinking-slot 1.5s infinite ease-in-out;
+  border: 2px solid #ff9800 !important;
+  z-index: 5;
+}
+
+/* --- NAV BAR ALIGNÉE AVEC VEHICLEGRID --- */
+.week-navigation { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 1.0rem; 
+  padding: 0.8rem 1.0rem; 
+  background: white; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  gap: 0.1rem;
+}
+
+.nav-group-left { display: flex; align-items: center; gap: 1.2rem; min-width: 300px; }
+.nav-group-center { display: flex; align-items: center; justify-content: center; gap: 0.8rem; flex: 1; }
+
+.back-button-inline { padding: 0.6rem 1.2rem; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; white-space: nowrap; }
+.back-button-inline:hover { background: linear-gradient(135deg, #475569 0%, #334155 100%); transform: translateY(-2px); }
+.room-title-inline { font-size: 1.4rem; color: #1e293b; margin: 0; font-weight: 800; text-transform: capitalize; white-space: nowrap; }
+
+.week-nav-btn { padding: 0.6rem 1.2rem; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.week-date-display { color: #1565c0; margin: 0 0.5rem; font-size: 1.1rem; font-weight: 700; text-transform: capitalize; white-space: nowrap; background: #f8fafc; padding: 6px 18px; border-radius: 10px; border: 1px solid #3b82f6; }
+
+
+/* --- STYLES FICHE RÉSERVATION (POPOVER) --- */
+.ia-popover-card {
+  position: fixed; 
+  transform: translate(-50%, -50%);
+  width: 320px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  border: 1px solid #e0e0e0;
+  z-index: 9999;
+  overflow: hidden;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.ia-popover-card.fade-out {
+  animation: fadeOut 0.2s ease forwards;
+}
+
+@keyframes popIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes fadeOut { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -40%) scale(0.95); } }
+
+/* Keyframe pour la fiche info (Statique) */
+@keyframes fadeOutStatic { 
+  from { opacity: 1; } 
+  to { opacity: 0; } 
+}
+
+.ia-popover-header { background: #ffcdd2; color: #c62828; padding: 1rem; font-weight: 700; font-size: 1rem; text-align: left; border-bottom: 1px solid #ef9a9a; }
+.ia-popover-body { padding: 1.2rem; color: #333; display: flex; flex-direction: column; gap: 0.8rem; }
+.ia-popover-row { font-size: 0.95rem; }
+.ia-popover-time { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed #e0e0e0; font-weight: 600; color: #0f6aba; text-align: center; font-size: 0.9rem; }
+
+/* MODALS */
+.blocked-modal-overlay, .success-modal-overlay, .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px); animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.blocked-modal, .success-modal, .warning-modal, .modal-content { background: white; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); text-align: center; overflow: hidden; padding: 0; animation: scaleUp 0.3s; }
+@keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.warning-modal-header { background: #ff9800; padding: 1.5rem; color: white; }
+.success-modal-header { background: #00bfa5; padding: 1.5rem; color: white; }
+.blocked-modal .warning-modal-header { background: #ef5350; }
+.warning-modal-header h2, .success-modal-header h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+.blocked-modal-message, .success-modal-body p, .warning-modal-body p { font-size: 1.1rem; color: #333; margin: 1.5rem; line-height: 1.5; }
+.blocked-modal { padding-bottom: 20px; }
+.blocked-modal-emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
+.conflict-list { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 1rem; margin: 1rem 1.5rem; max-height: 150px; overflow-y: auto; list-style-type: none; text-align: left; }
+.conflict-list li { font-size: 0.9rem; margin-bottom: 0.5rem; color: #e65100; font-weight: 600; border-bottom: 1px dashed #ffe0b2; padding-bottom: 4px; }
+.blocked-close-button, .close-modal-button { padding: 0.8rem 2rem; background: #37474f; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.warning-modal-footer, .success-modal-footer { padding: 1.2rem; background: #f9f9f9; display: flex; justify-content: center; gap: 15px; }
+.modal-content { padding: 2.5rem; }
+.modal-content h3 { color: #0f6aba; margin-bottom: 1.5rem; }
+
+/* ✅ RESPONSIVE MOBILE */
+@media (max-width: 1100px) {
+  .ia-layout { 
+    display: flex;
+    flex-direction: column; 
+  }
+  
+  .ia-grid-container {
+    padding: 0.5rem;
+  }
+
+  /* 1. LA GRILLE EN HAUT */
+  .ia-grid-section { 
+    order: 1; 
+    padding: 4px; 
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 2. LE RESTE (Sidebar) EN BAS */
+  .ia-sidebar { 
+    order: 2; 
+    display: block; 
+    width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  /* LE FORMULAIRE DANS LE FLUX NORMAL */
+  .ia-form-wrapper {
+    position: static; 
+    width: 100%;
+    min-height: auto;
+    height: auto;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    display: block;
+  }
+
+  /* LA FICHE INFO (PHOTO/CAS USAGE) : POPUP PLEIN ÉCRAN */
+  .ia-info-panel {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    z-index: 5000;
+    background: rgba(15, 106, 186, 0.85); 
+    backdrop-filter: blur(4px);
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .ia-info-panel.visible {
+    display: flex; 
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* CARTE INTERNE DÉTOURÉE */
+  .ia-info-panel .ia-detail-card {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    max-height: 85vh;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 2px solid white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ia-detail-content {
+    overflow-y: auto;
+  }
+
+  .ia-detail-image {
+    height: 200px;
+  }
+
+  /* Navigation mobile */
+  .week-navigation { flex-direction: column; gap: 0.5rem; height: auto; padding: 0.8rem; }
+  .nav-group-left { width: 100%; justify-content: center; margin-bottom: 0.5rem; order: 1; }
+  .nav-group-center { width: 100%; flex-wrap: wrap; justify-content: center; gap: 0.5rem; order: 2; }
+  
+  .week-date-display { width: 100%; text-align: center; order: 1; margin-bottom: 0.5rem; font-size: 1rem; }
+  .week-nav-btn { order: 2; padding: 0.4rem 0.6rem; font-size: 1.1rem; }
+
+  /* Masquer le texte des boutons nav */
+  .ia-nav-label {
+    display: none;
+  }
+  
+  /* Grille Sticky Bleu */
+  .ia-table th:first-child {
+    position: sticky; left: 0; z-index: 12; background-color: #0f6aba; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  }
+  .ia-table td:first-child {
+    position: sticky; left: 0; z-index: 10; background-color: white; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  }
+  .ia-table th { min-width: 60px; padding: 8px 4px; font-size: 0.8rem; }
+  .ia-table th small { font-size: 0.7rem; }
+}

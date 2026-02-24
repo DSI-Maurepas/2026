@@ -1,0 +1,17 @@
+// src/authConfig.js
+
+export const msalConfig = {
+  auth: {
+    clientId: "COLLEZ_ICI_VOTRE_ID_APPLICATION_CLIENT", // <--- Remplacez par le code copié à l'étape 1
+    authority: "https://login.microsoftonline.com/COLLEZ_ICI_VOTRE_ID_ANNUAIRE_LOCATAIRE", // <--- Remplacez par le code copié à l'étape 1
+    redirectUri: "http://localhost:3000", // Mettez l'URL de votre site
+  },
+  cache: {
+    cacheLocation: "sessionStorage", // On garde la session en mémoire tant que le navigateur est ouvert
+    storeAuthStateInCookie: false,
+  },
+};
+
+export const loginRequest = {
+  scopes: ["User.Read"], // On demande juste le droit de lire le nom de l'utilisateur
+};

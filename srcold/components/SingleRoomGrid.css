@@ -1,0 +1,285 @@
+/* src/components/SingleRoomGrid.css */
+/* VERSION CORRIGÉE : Navigation sur 1 ligne sur PC */
+
+/* PROBLÈME 6 : Capacité alignée gauche */
+.room-header, .room-header *, .salle-info, .salle-info *, .info-value, .capacity-text, [class*="capacity"], [class*="personnes"] { text-align: left !important; }
+
+.single-room-container { width: 100%; padding: 0.1rem 2rem; padding-bottom: 80px; }
+
+/* --- NAVIGATION (Refonte Flexbox pour garantir 1 ligne) --- */
+.week-navigation { 
+  display: flex; /* Changement Grid -> Flex */
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 1.5rem; 
+  padding: 0.8rem 1.5rem; 
+  background: white; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  gap: 1rem;
+}
+
+/* Groupe Gauche (Titre + Retour) */
+.nav-group-left { 
+  display: flex; 
+  align-items: center; 
+  gap: 1.2rem; 
+  min-width: 300px; /* Réserve d'espace pour éviter le tassement */
+}
+
+.back-button-inline { padding: 0.6rem 1.2rem; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; white-space: nowrap; }
+.back-button-inline:hover { background: linear-gradient(135deg, #475569 0%, #334155 100%); transform: translateY(-2px); }
+.room-title-inline { font-size: 1.4rem; color: #1e293b; margin: 0; font-weight: 800; text-transform: capitalize; white-space: nowrap; }
+
+/* Groupe Centre (Boutons navigation) */
+.nav-group-center { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 0.8rem; 
+  flex: 1; /* Prend l'espace central */
+}
+
+/* Groupe Droite (Vide pour équilibrer si besoin, ou masqué) */
+.nav-group-right-spacer { display: none; }
+
+.week-nav-btn { padding: 0.6rem 1.2rem; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.week-date-display { 
+  color: #1565c0; 
+  margin: 0 0.5rem; 
+  font-size: 1.1rem; 
+  font-weight: 700; 
+  text-transform: capitalize; 
+  white-space: nowrap;
+  background: #f8fafc; 
+  padding: 6px 18px;
+  border-radius: 10px;
+  border: 1px solid #3b82f6; 
+}
+
+/* INSTRUCTION MOBILE (Masqué sur Desktop) */
+.mobile-instruction { display: none; text-align: center; margin-bottom: 20px; background-color: #cdf6ff; color: #1e3a8a; font-size: 0.9rem; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.mobile-instruction p { margin: 0; line-height: 1.4; }
+
+/* LAYOUT */
+.single-room-layout { display: grid; grid-template-columns: 350px 1fr; gap: 1rem; align-items: start; }
+.room-sidebar { 
+  position: sticky; 
+  top: 1rem; 
+  z-index: 10; 
+  display: flex; 
+  flex-direction: column;
+  /* Gap géré par le conteneur interne pour l'animation */
+}
+
+/* GRILLE */
+.week-grid-container { background: white; border-radius: 16px; padding: 1rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); overflow-x: auto; overflow: hidden; }
+.week-grid { display: table !important; width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; user-select: none; -webkit-user-select: none; }
+
+/* ✅ CORRECTION : Première case BLANCHE */
+.week-grid th:first-child.hour-header { background-color: white !important; border-top-left-radius: 16px; border: 1px solid #e2e8f0; }
+
+.week-grid th { display: table-cell !important; height: 50px !important; padding: 0 !important; background-color: #1976d2 !important; color: white !important; border: 1px solid #1565c0; text-align: center; vertical-align: middle; }
+.hour-header { width: 52px; background-color: white !important; color: transparent !important; border: 1px solid #e2e8f0 !important; border-left: none !important; text-align: center !important; vertical-align: middle !important; padding: 0 !important; }
+
+/* ✅ CORRECTION : Police en gras */
+.day-header .day-name { display: block; font-weight: 800 !important; text-transform: uppercase; font-size: 0.85rem; text-align: center; color: white !important; }
+.day-header .day-date { font-size: 0.8rem; color: white !important; text-align: center; display: block; margin-top: 2px; font-weight: 700 !important; }
+
+.name-short { display: none; }
+.name-full { display: inline; }
+
+/* CELLULES */
+.week-grid td { display: table-cell !important; height: 25px; padding: 0; vertical-align: middle; position: relative; border-right: 1px solid #94a3b8; }
+.week-grid tr:last-child td { border-bottom: 1px solid #64748b !important; }
+.hour-cell-full { background: white; color: #94a3b8; font-size: 0.75rem; font-weight: 600; text-align: center !important; vertical-align: middle !important; padding: 0 !important; border-bottom: none !important; border-right: 1px solid #64748b !important; }
+.hour-cell-half { background: white; border-top: none !important; border-bottom: none !important; border-right: 1px solid #64748b !important; text-align: center !important; }
+.full-hour-border { border-top: 1px solid #64748b; }
+.half-hour-border { border-top: 1px dotted rgba(0, 0, 0, 0.3); }
+
+/* ✅ CORRECTIFS CRÉNEAUX */
+.slot-cell { width: 100%; height: 100%; cursor: pointer; transition: background-color 0.1s; background-clip: border-box; }
+.slot-cell:hover:not(.occupied):not(.blocked):not(.past-date) { background-color: #e0f2fe; }
+.slot-cell.selected { background-color: #2196f3 !important; border: 2px solid #1976d2; }
+
+/* ✅ ICI : On retire le background rose en dur et le not-allowed */
+.slot-cell.occupied { 
+  /* background-color: #fee2e2; SUPPRIMÉ */
+  cursor: pointer; /* REMIS À POINTER */
+  position: relative; 
+  /* La couleur de fond sera gérée par le JS via style={{ backgroundColor }} */
+}
+
+.slot-cell.blocked { background-color: #f1f5f9; background-image: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 10px, #f1f5f9 10px, #f1f5f9 20px); cursor: not-allowed; }
+.slot-cell.past-date { background-color: #e5e5e5; background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23999999' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E"); cursor: not-allowed; }
+.slot-cell.lunch-break { border-bottom: 2px dashed #cbd5e1; background-image: linear-gradient(45deg, #f1f5f9 25%, transparent 25%, transparent 50%, #f1f5f9 50%, #f1f5f9 75%, transparent 75%, transparent); background-size: 10px 10px; }
+.slot-cell.admin-only-locked { background-color: #ffebee !important; background-image: none !important; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.admin-only-locked::after { content: '🔒'; font-size: 0.7rem; opacity: 0.4; }
+.slot-cell.lunch-break.admin-only-locked { background-image: none !important; background-color: #ffebee !important; }
+.slot-cell.lunch-break.admin-only-locked::after { content: '🔒' !important; opacity: 0.4; }
+.desktop-legend { display: block; }
+
+/* Animation clignotement */
+@keyframes blinking-slot {
+  0% { opacity: 1; box-shadow: inset 0 0 0 0 #ff9800; background-color: #2196f3; }
+  50% { opacity: 0.6; box-shadow: inset 0 0 10px 2px #ff9800; background-color: #64b5f6; }
+  100% { opacity: 1; box-shadow: inset 0 0 0 0 #ff9800; background-color: #2196f3; }
+}
+
+.slot-cell.editing-pulse {
+  animation: blinking-slot 1.5s infinite ease-in-out;
+  border: 2px solid #ff9800 !important;
+  z-index: 5;
+}
+
+/* FORMULAIRE & POPUPS */
+.room-form-container { background: white; border-radius: 16px; padding: 1rem 1.2rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-top: 0; height: auto; max-height: none; overflow-y: auto; box-sizing: border-box; }
+.form-title { color: #1e293b; font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+.form-row { display: flex; gap: 0.8rem; width: 100%; }
+.form-group { margin-bottom: 0.6rem; width: 100%; }
+.form-input, .form-select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 0.6rem; font-family: inherit; font-size: 0.9rem; }
+
+/* ✅ MODIFICATION : Hauteur réduite pour le textarea (comme par date) */
+.form-textarea { 
+  width: 100%; 
+  padding: 0.6rem; 
+  border: 1px solid #cbd5e1; 
+  border-radius: 8px; 
+  margin-bottom: 0.6rem; 
+  font-family: inherit; 
+  font-size: 0.9rem;
+  height: 60px !important; 
+  min-height: 60px !important;
+}
+
+.disposition-select { background-color: #fffbeb; border-color: #fcd34d; color: #92400e; }
+.selections-summary { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; }
+.selection-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; padding: 0.6rem; background: white; border: 1px solid #a5d6a7; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.remove-selection-btn { background: #ef5350; color: white; width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
+.recurrence-section-styled { margin-bottom: 1rem; }
+.recurrence-box { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
+.recurrence-box label { margin: 0; color: #1565c0; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.recurrence-box input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #2196f3; }
+.recurrence-options { background: #f8fafc; padding: 0.6rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 0.4rem; }
+.form-actions { display: flex; gap: 0.8rem; margin-top: 1rem; }
+.btn-submit { flex: 1; padding: 0.8rem; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); cursor: pointer; width: 100%; }
+.btn-cancel { flex: 1; padding: 0.8rem; background: #78909c; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+
+/* ✅ MODIFICATION : Suppression de la marge pour coller au gap de 1rem du conteneur parent */
+.no-selection-message { 
+  text-align: center; 
+  padding: 2rem 1rem; 
+  color: #94a3b8; 
+  background: #f8fafc; 
+  border-radius: 12px; 
+  border: 2px dashed #e2e8f0; 
+  margin-top: 0 !important; /* Marge supprimée */
+}
+
+.reservation-popup-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); width: 320px; pointer-events: auto; cursor: pointer; z-index: 10000; border: 1px solid #e2e8f0; opacity: 1; transition: opacity 0.4s ease-in-out; }
+.reservation-popup-card.fading-out { opacity: 0; }
+.popup-card-header { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 0.8rem; font-weight: 700; color: white; border-bottom: none; display: flex; align-items: center; gap: 0.8rem; text-align: left; }
+.popup-card-body { padding: 1rem; color: #475569; font-size: 0.9rem; text-align: left; }
+.popup-info-line { margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 0.8rem; }
+.popup-info-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+.popup-info-text { flex: 1; font-weight: 500; }
+.modal-overlay, .blocked-modal-overlay, .success-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99999; display: flex; align-items: center; justify-content: center; }
+.modal-content, .blocked-modal, .success-modal { background: white; padding: 1.5rem; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; }
+.success-modal-header h2 { color: #ffffff; text-align: center; }
+.success-subtitle { margin-bottom: 1rem; font-weight: normal; }
+.reservations-list { text-align: left; margin: 1rem 0; background: #f9f9f9; padding: 1rem; border-radius: 8px; max-height: 200px; overflow-y: auto; }
+.reservation-item-success { border-bottom: 1px dashed #ddd; padding: 0.5rem 0; display: flex; align-items: center; font-size: 0.9rem; }
+.calendar-icon { margin-right: 8px; font-size: 1rem; }
+.close-modal-button { margin-top: 1rem; padding: 0.6rem 2rem; background: #1e293b; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; }
+.download-ical-button { background: #2196f3; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 1rem; }
+.warning-modal { background: white; padding: 0; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; }
+.warning-modal-header { background: #ff9800; padding: 1.5rem; text-align: center; }
+.warning-modal-header h2 { color: white; margin: 0; }
+.blocked-modal-emoji { font-size: 3rem; display: block; }
+.blocked-modal-title { margin: 0.5rem 0 0 0; color: white; font-size: 1.5rem; font-weight: 700; }
+.blocked-modal-message { font-size: 1.1rem; margin: 1.5rem 0; color: #475569; line-height: 1.6; padding: 0 1rem; }
+.blocked-close-button { padding: 0.8rem 2rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); margin-bottom: 1rem; }
+.blocked-close-button:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+.blocked-close-button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+.warning-modal-body { padding: 1.5rem; text-align: left; color: #333; }
+.conflict-list { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 1rem; margin: 1rem 0; max-height: 150px; overflow-y: auto; list-style-type: none; }
+.conflict-list li { font-size: 0.9rem; margin-bottom: 0.5rem; color: #e65100; font-weight: 600; }
+.warning-modal-footer { padding: 1.5rem; background: #f9f9f9; display: flex; justify-content: space-between; gap: 1rem; }
+
+.week-grid th.day-header { border: 1px solid #1976d2 !important; border-radius: 0 !important; }
+.hour-header { border: 1px solid #e2e8f0 !important; border-radius: 0 !important; }
+
+@media (min-width: 1281px) {
+  .day-header .day-date { color: #f0f0f0 !important; font-weight: 400 !important; }
+  .week-grid th.day-header { background: #1976d2 !important; color: white !important; }
+  .day-header .day-name, .day-header .day-date { color: white !important; }
+}
+
+.week-grid th.hour-header, .week-grid thead tr th:first-child, .week-grid tbody tr td:first-child { border-left: none !important; border-right: none !important; box-shadow: none !important; outline: none !important; }
+
+@media (max-width: 768px) {
+  .single-room-container { padding: 0.7rem; }
+  .week-navigation { flex-direction: column; gap: 0.5rem; height: auto; padding: 0.8rem; }
+  .nav-group-left { width: 100%; justify-content: center; margin-bottom: 0.5rem; order: 1; }
+  .nav-group-center { width: 100%; flex-wrap: wrap; justify-content: center; gap: 0.5rem; order: 2; }
+  .week-date-display { width: 100%; text-align: center; order: 1; margin-bottom: 0.5rem; font-size: 1rem; }
+  .week-nav-btn { order: 2; padding: 0.4rem 0.6rem; font-size: 1.1rem; }
+  .single-room-layout { display: flex; flex-direction: column !important; gap: 1.5rem; }
+  .week-grid-container { order: 1; width: 100%; overflow-x: auto; }
+  .room-sidebar { order: 2; width: 100%; position: static; min-height: 100vh; padding-bottom: 50px; }
+  .room-form-container { max-height: none; height: auto; }
+  .name-short { display: inline; }
+  .name-full { display: none; }
+  .mobile-instruction { display: block; order: 2; }
+  .desktop-legend { display: none !important; }
+  .hour-header { background: white !important; border: none !important; color: transparent !important; border-radius: 0 !important; }
+  .week-grid, .week-grid *, .week-grid th, .week-grid th.hour-header, .week-grid thead, .week-grid thead tr, .week-grid thead tr th, .week-grid thead tr th:first-child, .week-grid tbody, .week-grid tbody tr, .week-grid tbody tr:first-child, .week-grid tbody tr td, .week-grid tbody tr td:first-child, .hour-header { border-left: none !important; border-right: none !important; box-shadow: none !important; outline: none !important; border-left-width: 0 !important; border-left-style: none !important; border-left-color: transparent !important; }
+  .week-grid th { border: 1px solid rgba(255,255,255,0.3) !important; border-left: none !important; }
+  .week-grid th:first-child { border-left: none !important; }
+  .week-grid, .week-grid *, .week-grid th, .week-grid td, .week-grid tbody, .week-grid tbody tr, .week-grid tbody tr:first-child, .week-grid tbody tr:first-child td, .week-grid tbody tr:first-child td:first-child, .hour-header, .day-header { border-left: none !important; border-right: none !important; box-shadow: none !important; outline: none !important; }
+  .week-grid th { border: 1px solid rgba(255,255,255,0.3) !important; border-left: none !important; }
+  .hour-header { border: none !important; }
+  .week-grid, .week-grid th, .week-grid td, .hour-header, .day-header { box-shadow: none !important; }
+  .week-grid tbody tr:first-child td:first-child { border-left: none !important; box-shadow: none !important; }
+  .week-grid th.day-header { background: #1976d2 !important; color: white !important; border-radius: 0 !important; }
+  .day-header .day-name, .day-header .day-date { color: white !important; }
+  .week-grid th.day-header { border-radius: 0 !important; }
+  .day-header .day-date { font-size: 0.60rem !important; }
+  .week-grid th, .hour-header, .day-header { outline: none !important; border-top: none !important; }
+  .day-header .day-date { font-weight: 400 !important; }
+  .recurrence-options input[type="date"] { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; flex: 1 !important; }
+  .recurrence-options .form-group { width: 100% !important; max-width: 100% !important; }
+  .blocked-modal { width: 85%; padding: 0; }
+  .warning-modal-header { padding: 1.2rem; }
+  .blocked-modal-emoji { font-size: 2.5rem; }
+  .blocked-modal-title { font-size: 1.3rem; }
+  .blocked-modal-message { font-size: 1rem; margin: 1.2rem 1rem; padding: 0 0.5rem; }
+  .blocked-close-button { padding: 0.7rem 1.5rem; font-size: 0.95rem; width: 80%; margin: 0 auto 1rem; display: block; }
+  .reservation-popup-card {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90% !important;
+    max-width: 320px !important;
+    z-index: 20000 !important;
+    margin: 0 !important;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+  }
+}
+
+/* ✅ NOUVEAU : Wrapper pour l'animation Fade In / Fade Out */
+.sidebar-fade-content {
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  /* ✅ MODIFICATION : Écart de 1rem entre les éléments */
+  gap: 0.
+  1rem; 
+  width: 100%;
+}
+
+.sidebar-fade-content.fading {
+  opacity: 0;
+}

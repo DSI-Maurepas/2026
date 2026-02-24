@@ -1,0 +1,259 @@
+/* src/components/ReservationGrid.css */
+
+.reservation-grid-container { 
+  width: 100%; 
+  padding: 0.1rem 2rem; 
+  box-sizing: border-box; 
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.back-button-original { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+
+/* NAVIGATION */
+.date-navigation-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0.8rem 1.5rem; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
+.nav-group-left { min-width: 120px; }
+.nav-group-center { display: flex; align-items: center; gap: 10px; }
+.nav-spacer { min-width: 120px; visibility: hidden; }
+
+.central-date-block { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+  background: #f8fafc; 
+  padding: 6px 18px; 
+  border-radius: 10px; 
+  border: 1px solid #3b82f6; 
+  height: 36px; 
+}
+
+.central-date-block .date-display h2 { margin: 0; font-size: 1.1rem; color: #1565c0; font-weight: 700; white-space: nowrap; line-height: 1; }
+
+.nav-today-button { background: #3b82f6; color: white !important; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-weight: 700; cursor: pointer; height: 36px; }
+
+.nav-nav-btn { 
+  padding: 0.6rem 1.2rem; 
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); 
+  color: white !important; 
+  border: none; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  white-space: nowrap; 
+}
+
+/* STRUCTURE */
+.grid-column { background: white !important; border-radius: 18px !important; padding: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important; border: 1px solid #e2e8f0; position: relative !important; }
+.reservation-form { background: white !important; border-radius: 18px !important; padding: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important; border: 1px solid #e2e8f0; }
+.reservation-content { display: grid; grid-template-columns: minmax(900px, 1fr) 320px; gap: 25px; }
+
+/* EN-TETES SALLES */
+.reservation-grid .salle-header { 
+  background-color: #1e40af !important; 
+  text-align: center; 
+  border-bottom: 1px solid #64748b; 
+  border-right: 1px solid rgba(255,255,255,0.3); 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  position: sticky; 
+  top: 0; 
+  z-index: 20;
+  user-select: none;
+}
+.reservation-grid .salle-header span.salle-name-white { color: #ffffff !important; font-weight: 800; font-size: 0.85rem; display: block; }
+.reservation-grid .salle-header span.salle-capacity-white { 
+  color: #ffffff !important; 
+  font-size: 0.70rem; 
+  font-weight: normal; 
+  display: block; 
+  margin-top: 2px; 
+}
+
+.salle-name-desktop { display: block; color: white; font-weight: 800; font-size: 0.85rem; }
+.salle-capacity-desktop { display: block; color: white; font-size: 0.70rem; font-weight: normal; margin-top: 2px; }
+.salle-name-mobile, .salle-capacity-mobile { display: none; }
+
+/* GRILLE */
+.reservation-grid { 
+  display: grid !important; 
+  grid-template-columns: 45px repeat(9, 1fr); 
+  grid-template-rows: 60px repeat(28, 25px); 
+  width: 100%;
+  user-select: none; 
+}
+
+.time-slot { background: white; border-right: 1px solid #94a3b8; border-top: 1px dotted rgba(0,0,0,0.3); position: relative; }
+.full-hour-start { border-top: 1px solid #64748b; }
+.lunch-break::after { content: '🍽️'; font-size: 1.1rem; opacity: 0.25; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+
+.time-label {
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+/* FICHE PROPRIETE */
+.reservation-popup-card { background: white; border-radius: 12px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); width: 280px; overflow: hidden; border: 1px solid #e2e8f0; pointer-events: auto; cursor: pointer; opacity: 1; transition: opacity 0.4s ease-in-out; }
+.reservation-popup-card.fading-out { opacity: 0; }
+.popup-card-header { background: #3b82f6; color: white; padding: 0.8rem; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 0.5rem; }
+.popup-card-body { padding: 1rem; color: #475569; font-size: 0.85rem; line-height: 1.5; text-align: left; }
+.popup-info-line { margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 0.6rem; text-align: left; white-space: normal; }
+.popup-info-icon { font-size: 1rem; width: 20px; flex-shrink: 0; }
+
+.salle-detail-wrapper {
+  opacity: 1;
+  transition: opacity 0.6s ease-out; 
+  cursor: pointer;
+}
+.salle-detail-wrapper.fading-out {
+  opacity: 0;
+}
+
+/* STYLE FORM */
+.form-row { display: flex; gap: 0.8rem; width: 100%; }
+.form-group { margin-bottom: 0.6rem; width: 100%; }
+.form-input, .form-select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 0.6rem; font-family: inherit; font-size: 0.9rem; }
+
+/* ✅ AJOUT */
+.form-textarea { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 0.6rem; font-family: inherit; font-size: 0.9rem; height: 60px; min-height: 60px; }
+
+.disposition-select { background-color: #fffbeb; border-color: #fcd34d; color: #92400e; }
+.selections-summary { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; }
+.selection-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; padding: 0.6rem; background: white; border: 1px solid #a5d6a7; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.remove-selection-btn { background: #ef5350; color: white; width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
+.recurrence-section-styled { margin-bottom: 1rem; }
+.recurrence-box { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
+.recurrence-box label { margin: 0; color: #1565c0; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.recurrence-box input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #2196f3; }
+.recurrence-options { background: #f8fafc; padding: 0.6rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 0.4rem; }
+.form-actions { display: flex; gap: 0.8rem; margin-top: 1rem; }
+.btn-submit { flex: 1; padding: 0.8rem; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); cursor: pointer; width: 100%; }
+.btn-cancel { flex: 1; padding: 0.8rem; background: #78909c; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+.no-selection-message { text-align: center; padding: 2rem 1rem; color: #64748b; background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e1; margin-top: 1.5rem; }
+
+.form-title { color: #1e293b; font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+
+.time-slot.admin-only-locked { background-color: #ffebee !important; background-image: none !important; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.admin-only-locked::after { content: '🔒'; font-size: 0.7rem; opacity: 0.4; }
+
+.time-slot.past-date, .time-slot.dimanche, .time-slot.jour-ferie { background: repeating-linear-gradient( 45deg, #f1f5f9, #f1f5f9 10px, #e2e8f0 10px, #e2e8f0 20px ) !important; cursor: not-allowed !important; position: relative; }
+.time-slot.past-date::after { content: '🚫'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.9rem; opacity: 0.4; }
+
+.blocked-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+.blocked-modal { background: white; padding: 0; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; }
+.warning-modal-header { background: #ff9800; padding: 1.5rem; border-radius: 20px 20px 0 0; text-align: center; }
+.blocked-modal-emoji { font-size: 3rem; display: block; }
+.blocked-modal-title { margin: 0.5rem 0 0 0; color: white; font-size: 1.5rem; font-weight: 700; }
+.blocked-modal-message { font-size: 1.1rem; margin: 1.5rem 0; color: #475569; line-height: 1.6; }
+.blocked-close-button { padding: 0.8rem 2rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+.blocked-close-button:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+.blocked-close-button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+
+@media (max-width: 768px) {
+  .date-navigation-bar { display: flex !important; flex-direction: column !important; gap: 12px !important; padding: 15px !important; align-items: center !important; height: auto !important; }
+  .nav-group-left { order: 1 !important; width: 100% !important; display: flex !important; justify-content: center !important; min-width: auto !important; }
+  .nav-spacer { display: none !important; }
+  .nav-group-center { order: 2 !important; width: 100% !important; display: flex !important; flex-wrap: wrap !important; justify-content: center !important; align-items: center !important; gap: 10px !important; }
+  
+  .nav-group-center .central-date-block { 
+    order: -1 !important; 
+    width: auto !important; 
+    background: #f8fafc !important; 
+    border: 1px solid #3b82f6 !important;
+    padding: 6px 18px !important;
+    border-radius: 10px !important;
+    display: flex !important; 
+    justify-content: center !important; 
+    height: auto !important; 
+    margin-bottom: 4px !important; 
+  }
+  .nav-group-center .central-date-block .date-display h2 { font-size: 1.1rem !important; color: #1e40af !important; white-space: nowrap !important; }
+  .nav-group-center .central-date-block { flex-basis: 100% !important; }
+  .reservation-content { display: flex !important; flex-direction: column !important; width: 100% !important; }
+  
+  .grid-column { display: block !important; overflow-x: auto !important; margin-bottom: 20px !important; width: 100% !important; max-width: 100vw !important; }
+  .reservation-grid { 
+    display: grid !important;
+    grid-template-columns: 45px repeat(9, 55px) !important; 
+    min-width: 540px !important; 
+    width: auto !important;
+    position: relative !important; 
+  }
+  
+  .form-column { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; }
+  .time-label { position: -webkit-sticky !important; position: sticky !important; left: 0 !important; z-index: 9999 !important; background: white !important; box-shadow: 2px 0 8px rgba(0,0,0,0.2) !important; border-right: 2px solid #e2e8f0 !important; }
+  .time-label:hover { background: white !important; }
+  .recurrence-options input[type="date"] { width: 100% !important; box-sizing: border-box !important; }
+  .color-legend-container { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; width: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; }
+
+  .salle-name-desktop, .salle-capacity-desktop { display: none !important; }
+  .salle-name-mobile { 
+    display: block !important; 
+    color: white !important; 
+    font-weight: 700 !important; 
+    font-size: 0.75rem !important; 
+    font-family: 'Arial Narrow', sans-serif !important; 
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .salle-capacity-mobile { 
+    display: block !important; 
+    color: rgba(255,255,255,0.8) !important; 
+    font-size: 0.65rem !important; 
+    margin-top: 1px !important;
+  }
+
+  .salle-detail-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 10002; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .salle-detail-wrapper > div { background: white; border-radius: 16px; width: 90%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+  .reservation-popup-card { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 90% !important; max-width: 320px !important; z-index: 20000 !important; margin: 0 !important; box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important; }
+  .blocked-modal { width: 85%; padding: 0; }
+  .warning-modal-header { padding: 1.2rem; }
+  .blocked-modal-emoji { font-size: 2.5rem; }
+  .blocked-modal-title { font-size: 1.3rem; }
+  .blocked-modal-message { font-size: 1rem; margin: 1.2rem 1rem; padding: 0 0.5rem; }
+  .blocked-close-button { padding: 0.7rem 1.5rem; font-size: 0.95rem; width: 80%; margin: 0 auto 1rem; display: block; }
+}
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 99999; display: flex; align-items: center; justify-content: center; }
+.modal-content { background: white; padding: 2rem; border-radius: 16px; max-width: 400px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.25); text-align: center; }
+.modal-content h3 { margin-top: 0; color: #1e293b; font-size: 1.25rem; margin-bottom: 1.5rem; }
+.modal-content .form-input { width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; margin-bottom: 0.2rem; box-sizing: border-box; text-align: center; }
+.form-actions { display: flex; gap: 1rem; justify-content: space-between; }
+.btn-cancel, .btn-submit { flex: 1; padding: 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; }
+.btn-cancel { background: #94a3b8; color: white; }
+.btn-submit { background: #22c55e; color: white; }
+
+.success-modal { background: white; padding: 0; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; text-align: center; }
+.success-modal-header { background: #4caf50; padding: 1.5rem; color: white; }
+.success-modal-header h2 { margin: 0; color: white; font-size: 1.5rem; }
+.success-modal-body { padding: 1.5rem; text-align: left; }
+.reservations-list { background: #f9f9f9; padding: 1rem; border-radius: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 1rem; }
+.reservation-item-success { border-bottom: 1px dashed #ddd; padding: 0.5rem 0; display: flex; align-items: center; font-size: 0.9rem; color: #333; }
+.ical-info-text { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; text-align: center; font-style: italic; }
+.download-ical-button { background: #2196f3; color: white; border: none; padding: 0.8rem; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; margin-top: 0.5rem; }
+.success-modal-footer { padding: 1rem; background: #f9f9f9; text-align: center; }
+.close-modal-button { padding: 0.8rem 2rem; background: #1e293b; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-weight: 600; }
+
+.warning-modal { background: white; padding: 0; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; }
+.warning-modal-header { background: #ff9800; padding: 1.5rem; text-align: center; }
+.warning-modal-header h2 { color: white; margin: 0; }
+.warning-modal-body { padding: 1.5rem; text-align: left; color: #333; }
+.conflict-list { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 1rem; margin: 1rem 0; max-height: 150px; overflow-y: auto; list-style-type: none; }
+.conflict-list li { font-size: 0.9rem; margin-bottom: 0.5rem; color: #e65100; font-weight: 600; }
+.warning-modal-footer { padding: 1.5rem; background: #f9f9f9; display: flex; justify-content: space-between; gap: 1rem; }
+
+/* ✅ AJOUT */
+.sidebar-fade-content {
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out;
+  display: block;
+}
+
+.sidebar-fade-content.fading {
+  opacity: 0;
+}

@@ -1,0 +1,120 @@
+/* src/components/SalleCard.css */
+
+.salle-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.salle-card-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.salle-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.salle-card:hover .salle-card-image img {
+  transform: scale(1.05);
+}
+
+.salle-card-content {
+  padding: 1.5rem;
+}
+
+.salle-card-title {
+  margin: 0 0 1.5rem 0;
+  color: #1976d2;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-bottom: 2px solid #e3f2fd;
+  padding-bottom: 0.8rem;
+}
+
+.salle-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 1rem; /* Ajusté pour harmonie */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ✅ NOUVEAU : Style tag gris pour la capacité */
+.capacity-container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.capacity-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f5f5f5; /* Gris clair fond */
+  color: #424242;      /* Gris foncé texte */
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.capacity-tag:hover {
+  background: #eeeeee;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Listes existantes */
+.equipements-list,
+.dispositions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.equipement-tag,
+.disposition-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.equipement-tag:hover,
+.disposition-tag:hover {
+  background: #bbdefb;
+  transform: translateY(-2px);
+}
+
+.tag-icon {
+  font-size: 1.1rem;
+}
