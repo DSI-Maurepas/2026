@@ -222,7 +222,15 @@ export default function App() {
       authService.signOut();
     } finally {
       setAuthToken(null);
-      setCurrentPage("dashboard");
+      if (accessAuth?.role === "BV") {
+        // BV reste sur participation : renderAuthGate() affiche le bouton "Se connecter avec Google"
+        setCurrentPage("participation");
+      } else if (accessAuth?.role === "INFO") {
+        // INFO reste sur informations : la page gère l'état non connecté
+        setCurrentPage("informations");
+      } else {
+        setCurrentPage("dashboard");
+      }
     }
   };
 
