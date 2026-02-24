@@ -428,28 +428,29 @@ async sleep(ms) {
       case 'Resultats_T1':
       case 'Resultats_T2': {
         // Colonnes attendues (Google Sheets):
-        // A BureauID | B Inscrits | C Votants | D Blancs | E Nuls | F Exprimes | G..L L1_Voix..L6_Voix | M SaisiPar | N ValidePar | O Timestamp
+        // A BureauID | B Inscrits | C Votants | D Procurations | E Blancs | F Nuls | G Exprimes | H..M L1_Voix..L6_Voix | N SaisiPar | O ValidePar | P Timestamp
         const mapped = rows.map(row => {
           const voix = {
-            L1: parseInt(row[6]) || 0,
-            L2: parseInt(row[7]) || 0,
-            L3: parseInt(row[8]) || 0,
-            L4: parseInt(row[9]) || 0,
-            L5: parseInt(row[10]) || 0,
-            L6: parseInt(row[11]) || 0,
+            L1: parseInt(row[7]) || 0,
+            L2: parseInt(row[8]) || 0,
+            L3: parseInt(row[9]) || 0,
+            L4: parseInt(row[10]) || 0,
+            L5: parseInt(row[11]) || 0,
+            L6: parseInt(row[12]) || 0,
           };
 
           return {
             bureauId: row[0] || '',
             inscrits: parseInt(row[1]) || 0,
             votants: parseInt(row[2]) || 0,
-            blancs: parseInt(row[3]) || 0,
-            nuls: parseInt(row[4]) || 0,
-            exprimes: parseInt(row[5]) || 0,
+            procurations: parseInt(row[3]) || 0,  // ⚠️ CORRECTION : colonne D ajoutée
+            blancs: parseInt(row[4]) || 0,
+            nuls: parseInt(row[5]) || 0,
+            exprimes: parseInt(row[6]) || 0,
             voix,
-            saisiPar: row[12] || '',
-            validePar: row[13] || '',
-            timestamp: row[14] || ''
+            saisiPar: row[13] || '',
+            validePar: row[14] || '',
+            timestamp: row[15] || ''
           };
         });
 
@@ -607,21 +608,22 @@ this._setCached(key, filtered);
         const l6 = parseInt(voix.L6 ?? voix['L6'] ?? obj.L6_Voix ?? obj.L6 ?? 0) || 0;
 
         return [
-          obj.bureauId ?? '',                 // A BureauID
-          parseInt(obj.inscrits) || 0,         // B Inscrits
-          parseInt(obj.votants) || 0,          // C Votants
-          parseInt(obj.blancs) || 0,           // D Blancs
-          parseInt(obj.nuls) || 0,             // E Nuls
-          parseInt(obj.exprimes) || 0,          // F Exprimes
-          l1,                                  // G L1_Voix
-          l2,                                  // H L2_Voix
-          l3,                                  // I L3_Voix
-          l4,                                  // J L4_Voix
-          l5,                                  // K L5_Voix
-          l6,                                  // L L6_Voix
-          obj.saisiPar ?? '',                  // M SaisiPar
-          obj.validePar ?? '',                 // N ValidePar
-          obj.timestamp ?? ''                  // O Timestamp
+          obj.bureauId ?? '',                   // A BureauID
+          parseInt(obj.inscrits) || 0,           // B Inscrits
+          parseInt(obj.votants) || 0,            // C Votants
+          parseInt(obj.procurations) || 0,       // D Procurations  ⚠️ CORRECTION
+          parseInt(obj.blancs) || 0,             // E Blancs
+          parseInt(obj.nuls) || 0,               // F Nuls
+          parseInt(obj.exprimes) || 0,           // G Exprimes
+          l1,                                    // H L1_Voix
+          l2,                                    // I L2_Voix
+          l3,                                    // J L3_Voix
+          l4,                                    // K L4_Voix
+          l5,                                    // L L5_Voix
+          l6,                                    // M L6_Voix
+          obj.saisiPar ?? '',                    // N SaisiPar
+          obj.validePar ?? '',                   // O ValidePar
+          obj.timestamp ?? ''                    // P Timestamp
         ];
       }
       case 'Participation_T1':

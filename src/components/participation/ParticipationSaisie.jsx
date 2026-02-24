@@ -29,7 +29,8 @@ const normalizeBureauId = (value) => {
 
 const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
   const auth = useMemo(() => getAuthState(), []);
-  const forcedBureauId = isBV(auth) ? String(auth.bureauId) : null;
+  // ⚠️ CORRECTION : préfixe "BV" conservé pour cohérence avec les onglets Google Sheets (BV1..BV13)
+  const forcedBureauId = isBV(auth) ? `BV${auth.bureauId}` : null;
 
   const tourActuel = electionState?.tourActuel || 1;
   const participationSheet = tourActuel === 2 ? 'Participation_T2' : 'Participation_T1';
@@ -222,7 +223,7 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
       <div className="form-group">
         <label>Bureau de vote :</label>
         {forcedBureauId ? (
-          <div className="bureau-select bureau-select--locked">BV {forcedBureauId}</div>
+          <div className="bureau-select bureau-select--locked">{forcedBureauId}</div>
         ) : (
           <select className="bureau-select" value={selectedBureauId} onChange={(e) => setSelectedBureauId(e.target.value)}>
             <option value="">-- Sélectionner un bureau --</option>

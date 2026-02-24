@@ -18,7 +18,8 @@ const normalizeBureauId = (value) => {
 
 export default function ResultatsSaisieBureau({ electionState: electionStateProp } = {}) {
   const auth = useMemo(() => getAuthState(), []);
-  const forcedBureauId = isBV(auth) ? String(auth.bureauId) : null;
+  // ⚠️ CORRECTION : préfixe "BV" conservé pour cohérence avec les onglets Google Sheets (BV1..BV13)
+  const forcedBureauId = isBV(auth) ? `BV${auth.bureauId}` : null;
   const isAdmin = !isBV(auth); // Admin peut toujours modifier
   // ⚠️ CORRECTION : BV = exprimés toujours calculé automatiquement (jamais saisissable)
   const isBureauVote = !isAdmin;
