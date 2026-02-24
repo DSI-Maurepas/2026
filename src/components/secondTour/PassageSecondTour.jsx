@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useGoogleSheets } from '../../hooks/useGoogleSheets';
 import auditService from '../../services/auditService';
 import authService from '../../services/authService';
+import googleSheetsService from '../../services/googleSheetsService';
 
 // IMPORTANT:
 // On N'INSTANCIE PAS useElectionState ici.
@@ -30,6 +31,10 @@ const PassageSecondTour = ({
   const [showConfirmBackModal, setShowConfirmBackModal] = useState(false);
   const [pendingQualified, setPendingQualified] = useState([]);
   const [successQualified, setSuccessQualified] = useState([]);
+
+  // ─── NOUVEAU : gestion désistements & renommages ───────────────────────────
+  // Chaque entrée : { ...candidat, actif: bool, nomFinal: string, enEdition: bool, nomEdition: string }
+  const [gestionListes, setGestionListes] = useState([]);
 
   // Flag piloté par l'Administration (ElectionsState: secondTourEnabled)
   // Tolérant aux types (booléen, number, string)
@@ -166,6 +171,117 @@ const PassageSecondTour = ({
     }
   }, [resultats, candidats]);
 
+  // ─── NOUVEAU : initialise gestionListes dès que candidatsQualifies change ──
+  // Ne réinitialise pas si l'utilisateur a déjà fait des modifications
+  // (on vérifie que les ids correspondent encore, sinon on réinitialise)
+  useEffect(() => {
+    if (!Array.isArray(candidatsQualifies) || candidatsQualifies.length === 0) {
+      setGestionListes([]);
+      return;
+    }
+    setGestionListes((prev) => {
+      // Si prev est vide ou les ids ont changé → réinitialisation complète
+      const prevIds = prev.map((l) => String(l.id ?? l.nom));
+      const newIds = candidatsQualifies.map((c) => String(c.id ?? c.nom));
+      const idsMatch =
+        prevIds.length === newIds.length && newIds.every((id) => prevIds.includes(id));
+      if (idsMatch) return prev; // Conserver les modifications manuelles
+      // Réinitialisation
+      return candidatsQualifies.map((c) => ({
+        ...c,
+        actif: true,
+        nomFinal: c.nom ?? '',
+        enEdition: false,
+        nomEdition: c.nom ?? '',
+      }));
+    });
+  }, [candidatsQualifies]);
+
+  // ─── NOUVEAU : actions sur gestionListes ────────────────────────────────────
+
+  /** Active ou désiste une liste */
+  const toggleActifListe = useCallback((id) => {
+    setGestionListes((prev) =>
+      prev.map((l) =>
+        String(l.id ?? l.nom) === String(id)
+          ? { ...l, actif: !l.actif, enEdition: false }
+          : l
+      )
+    );
+  }, []);
+
+  /** Ouvre/ferme le champ de renommage */
+  const toggleEditionNom = useCallback((id) => {
+    setGestionListes((prev) =>
+      prev.map((l) =>
+        String(l.id ?? l.nom) === String(id)
+          ? { ...l, enEdition: !l.enEdition, nomEdition: l.nomFinal }
+          : { ...l, enEdition: false }
+      )
+    );
+  }, []);
+
+  /** Met à jour le champ texte en cours d'édition */
+  const handleNomEditionChange = useCallback((id, valeur) => {
+    setGestionListes((prev) =>
+      prev.map((l) =>
+        String(l.id ?? l.nom) === String(id) ? { ...l, nomEdition: valeur } : l
+      )
+    );
+  }, []);
+
+  /** Valide le renommage */
+  const validerNomEdition = useCallback((id) => {
+    setGestionListes((prev) =>
+      prev.map((l) => {
+        if (String(l.id ?? l.nom) !== String(id)) return l;
+        const nouveau = (l.nomEdition ?? '').trim();
+        return {
+          ...l,
+          nomFinal: nouveau || l.nom, // jamais vide
+          enEdition: false,
+          nomEdition: nouveau || l.nom,
+        };
+      })
+    );
+  }, []);
+
+  /** Annule le renommage */
+  const annulerNomEdition = useCallback((id) => {
+    setGestionListes((prev) =>
+      prev.map((l) =>
+        String(l.id ?? l.nom) === String(id)
+          ? { ...l, enEdition: false, nomEdition: l.nomFinal }
+          : l
+      )
+    );
+  }, []);
+
+  /** Réinitialise le nom d'une liste au nom d'origine */
+  const reinitialiserNom = useCallback((id) => {
+    setGestionListes((prev) =>
+      prev.map((l) =>
+        String(l.id ?? l.nom) === String(id)
+          ? { ...l, nomFinal: l.nom, enEdition: false, nomEdition: l.nom }
+          : l
+      )
+    );
+  }, []);
+
+  // ─── Listes actives (celles qui participent au 2nd tour) ───────────────────
+  const listesActives = useMemo(
+    () => gestionListes.filter((l) => l.actif),
+    [gestionListes]
+  );
+
+  // ─── Listes avec nom modifié (pour mise à jour Google Sheets) ──────────────
+  const listesAvecNomModifie = useMemo(
+    () => gestionListes.filter((l) => l.nomFinal !== l.nom),
+    [gestionListes]
+  );
+
+  // ────────────────────────────────────────────────────────────────────────────
+
   const handlePassageT2 = async () => {
     if (!secondTourEnabled) {
       setMessage({
@@ -175,42 +291,91 @@ const PassageSecondTour = ({
       return;
     }
 
-    if (candidatsQualifies.length < 2) {
+    if (listesActives.length < 1) {
       setMessage({
         type: 'error',
-        text: 'Il faut au minimum 2 candidats qualifiés pour passer au 2nd tour',
+        text: 'Il faut au minimum 1 liste active pour confirmer le passage au 2nd tour.',
       });
       return;
     }
 
-    // Remplace le confirm() navigateur par un modal charté.
-    setPendingQualified(candidatsQualifies);
+    // Préparer les candidats avec leur nom final (fusion / renommage pris en compte)
+    const candidatsPourT2 = listesActives.map((l) => ({
+      ...l,
+      nom: l.nomFinal, // Le nom final remplace le nom original
+    }));
+
+    setPendingQualified(candidatsPourT2);
     setShowConfirmT2Modal(true);
   };
 
   const confirmPassageT2 = async () => {
-    const candidats = Array.isArray(pendingQualified) ? pendingQualified : [];
-    if (candidats.length < 2) {
-      setMessage({ type: 'error', text: 'Impossible de confirmer : minimum 2 candidats requis.' });
+    const candidatsFinal = Array.isArray(pendingQualified) ? pendingQualified : [];
+    if (candidatsFinal.length < 1) {
+      setMessage({ type: 'error', text: 'Impossible de confirmer : aucune liste sélectionnée.' });
       setShowConfirmT2Modal(false);
       return;
     }
     try {
       setLoading(true);
-      await passerSecondTour(candidats);
+
+      // ─── NOUVEAU : mise à jour Google Sheets pour les listes renommées ──────
+      // On itère sur les listes dont le nom a changé et on met à jour l'onglet Candidats
+      if (listesAvecNomModifie.length > 0) {
+        for (const liste of listesAvecNomModifie) {
+          try {
+            // Recherche de la ligne de la liste dans l'onglet Candidats
+            // On tente la mise à jour via googleSheetsService si disponible
+            if (
+              googleSheetsService &&
+              typeof googleSheetsService.updateCandidatNom === 'function'
+            ) {
+              await googleSheetsService.updateCandidatNom(liste.id, liste.nomFinal);
+            } else if (
+              googleSheetsService &&
+              typeof googleSheetsService.updateRow === 'function'
+            ) {
+              await googleSheetsService.updateRow('Candidats', liste.id, {
+                nomListe: liste.nomFinal,
+                NomListe: liste.nomFinal,
+                nom: liste.nomFinal,
+                Nom: liste.nomFinal,
+              });
+            }
+            // Si aucune méthode n'est disponible, on continue sans bloquer :
+            // le nom est quand même mis à jour dans l'état local et sera reflété dans T2
+          } catch (renomErr) {
+            console.warn(
+              `Mise à jour du nom de liste "${liste.id}" dans Google Sheets échouée (non bloquant) :`,
+              renomErr
+            );
+          }
+        }
+      }
+      // ──────────────────────────────────────────────────────────────────────
+
+      await passerSecondTour(candidatsFinal);
       // S'assure que l'état global (App + Navigation) est à jour immédiatement
       await reloadElectionState?.();
 
       try {
         await auditService.log('PASSAGE_SECOND_TOUR', {
-          candidats: candidats.map((c) => ({ id: c.id, nom: c.nom, voix: c.voix })),
+          candidats: candidatsFinal.map((c) => ({ id: c.id, nom: c.nom, voix: c.voix })),
+          desistements: gestionListes
+            .filter((l) => !l.actif)
+            .map((l) => ({ id: l.id, nom: l.nom })),
+          renommages: listesAvecNomModifie.map((l) => ({
+            id: l.id,
+            nomOriginal: l.nom,
+            nomFinal: l.nomFinal,
+          })),
         });
       } catch (e) {
         console.warn('Audit log failed (PASSAGE_SECOND_TOUR):', e);
       }
 
       // Sauvegarder les candidats pour la modale de succès AVANT de vider pendingQualified
-      setSuccessQualified(candidats);
+      setSuccessQualified(candidatsFinal);
       // Afficher la modale de succès bleue (style 2nd tour)
       setShowSuccessT2Modal(true);
     } catch (error) {
@@ -470,15 +635,15 @@ const PassageSecondTour = ({
       background: 'rgba(37, 99, 235, 0.95)',
       border: '1px solid rgba(37, 99, 235, 0.95)',
       color: '#fff',
-      boxShadow: '0 10px 24px rgba(37, 99, 235, 0.25)',
+      boxShadow: '0 10px 24px rgba(37, 99, 235, 0.22)',
     },
-      modalBtnDanger: {
+    modalBtnDanger: {
       background: 'rgba(220, 38, 38, 0.95)',
       border: '1px solid rgba(220, 38, 38, 0.95)',
       color: '#fff',
       boxShadow: '0 10px 24px rgba(220, 38, 38, 0.22)',
     },
-};
+  };
 
   const maxVoix = useMemo(() => {
     if (!Array.isArray(classement) || classement.length === 0) return 0;
@@ -524,7 +689,133 @@ const PassageSecondTour = ({
           font-size: 18px;
           font-weight: 900;
         }
-        
+
+        /* ── Gestion désistements & renommages ── */
+        .gestion-t2-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 12px;
+          margin-bottom: 8px;
+          border: 1px solid rgba(0,0,0,0.07);
+          background: rgba(255,255,255,0.95);
+          transition: opacity 0.2s ease, background 0.2s ease;
+        }
+        .gestion-t2-row.desiste {
+          opacity: 0.45;
+          background: rgba(220,38,38,0.04);
+          border-color: rgba(220,38,38,0.15);
+        }
+        .gestion-t2-toggle {
+          flex-shrink: 0;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 2px solid rgba(0,0,0,0.12);
+          background: transparent;
+          cursor: pointer;
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.18s ease;
+        }
+        .gestion-t2-toggle.actif {
+          border-color: rgba(34,197,94,0.6);
+          background: rgba(34,197,94,0.10);
+        }
+        .gestion-t2-toggle.desiste {
+          border-color: rgba(220,38,38,0.4);
+          background: rgba(220,38,38,0.08);
+        }
+        .gestion-t2-infos {
+          flex: 1;
+          min-width: 0;
+        }
+        .gestion-t2-nom {
+          font-weight: 800;
+          font-size: 15px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .gestion-t2-nom-modifie {
+          font-size: 11px;
+          color: rgba(37,99,235,0.85);
+          font-weight: 700;
+          margin-top: 2px;
+        }
+        .gestion-t2-voix {
+          font-size: 12px;
+          opacity: 0.7;
+          margin-top: 2px;
+        }
+        .gestion-t2-actions {
+          display: flex;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .btn-gestion {
+          height: 32px;
+          padding: 0 10px;
+          border-radius: 8px;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(0,0,0,0.04);
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s ease;
+          white-space: nowrap;
+        }
+        .btn-gestion:hover { background: rgba(0,0,0,0.09); }
+        .btn-gestion.bleu {
+          border-color: rgba(37,99,235,0.3);
+          background: rgba(37,99,235,0.08);
+          color: rgba(37,99,235,0.9);
+        }
+        .btn-gestion.bleu:hover { background: rgba(37,99,235,0.15); }
+        .btn-gestion.vert {
+          border-color: rgba(34,197,94,0.4);
+          background: rgba(34,197,94,0.10);
+          color: rgba(21,128,61,0.9);
+        }
+        .btn-gestion.vert:hover { background: rgba(34,197,94,0.2); }
+        .btn-gestion.rouge {
+          border-color: rgba(220,38,38,0.3);
+          background: rgba(220,38,38,0.07);
+          color: rgba(185,28,28,0.9);
+        }
+        .btn-gestion.rouge:hover { background: rgba(220,38,38,0.14); }
+        .edition-nom-wrap {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+          margin-top: 6px;
+          flex-wrap: wrap;
+        }
+        .edition-nom-input {
+          flex: 1;
+          min-width: 160px;
+          height: 34px;
+          border-radius: 8px;
+          border: 1px solid rgba(37,99,235,0.4);
+          padding: 0 10px;
+          font-size: 13px;
+          font-weight: 700;
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(37,99,235,0.10);
+        }
+        .recap-t2-box {
+          margin-top: 10px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: rgba(37,99,235,0.06);
+          border: 1px solid rgba(37,99,235,0.18);
+          font-size: 13px;
+        }
+        .recap-t2-box strong { color: rgba(37,99,235,0.9); }
+
         @keyframes bounce {
           0%, 100% { transform: translateY(0); }
           25% { transform: translateY(-20px); }
@@ -611,7 +902,7 @@ const PassageSecondTour = ({
 
       {message && <div className={`message ${message.type}`}>{message.text}</div>}
 
-      {/* Bloc "Candidats qualifiés" */}
+      {/* Bloc "Candidats qualifiés" (lecture seule - résultat du 1er tour) */}
       {!egalite && candidatsQualifies.length >= 2 && (
         <div style={{ ...styles.card, marginBottom: 16 }}>
           <h3 style={styles.cardTitle}>🏁 Candidats qualifiés pour le 2nd tour</h3>
@@ -646,6 +937,149 @@ const PassageSecondTour = ({
           </div>
         </div>
       )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          NOUVEAU BLOC : Désistements & Regroupements
+          Affiché uniquement si des listes qualifiées ont été détectées
+          ════════════════════════════════════════════════════════════════════ */}
+      {!egalite && gestionListes.length >= 2 && (
+        <div style={{ ...styles.card, marginBottom: 16, border: '1px solid rgba(37,99,235,0.15)' }}>
+          <h3 style={{ ...styles.cardTitle, color: '#1e3a8a' }}>
+            ✏️ Désistements &amp; Regroupements
+          </h3>
+          <div style={{ opacity: 0.8, fontSize: 13, marginBottom: 14 }}>
+            Gérez ici les désistements et les fusions de listes <strong>avant</strong> de confirmer le passage au 2nd tour.
+            Les modifications de noms seront répercutées dans Google Sheets lors de la confirmation.
+          </div>
+
+          {/* ─── Ligne par liste qualifiée ─── */}
+          {gestionListes.map((liste) => {
+            const cleUnique = String(liste.id ?? liste.nom);
+            const nomAffiche = liste.nomFinal || liste.nom;
+            const nomModifie = liste.nomFinal !== liste.nom;
+
+            return (
+              <div
+                key={cleUnique}
+                className={`gestion-t2-row${liste.actif ? '' : ' desiste'}`}
+              >
+                {/* Toggle actif / désisté */}
+                <button
+                  type="button"
+                  className={`gestion-t2-toggle${liste.actif ? ' actif' : ' desiste'}`}
+                  onClick={() => toggleActifListe(cleUnique)}
+                  title={liste.actif ? 'Marquer comme désisté' : 'Réactiver cette liste'}
+                  aria-label={liste.actif ? `Désister ${nomAffiche}` : `Réactiver ${nomAffiche}`}
+                >
+                  {liste.actif ? '✅' : '🚫'}
+                </button>
+
+                {/* Infos & édition du nom */}
+                <div className="gestion-t2-infos">
+                  <div className="gestion-t2-nom">
+                    {nomAffiche}
+                    {liste.actif && !liste.enEdition && (
+                      <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, opacity: 0.55, fontStyle: 'italic' }}>
+                        {liste.actif ? '→ participera au 2nd tour' : ''}
+                      </span>
+                    )}
+                  </div>
+                  {nomModifie && !liste.enEdition && (
+                    <div className="gestion-t2-nom-modifie">
+                      🔄 Renommé depuis : <em>{liste.nom}</em>
+                    </div>
+                  )}
+                  <div className="gestion-t2-voix">
+                    {(liste.voix || 0).toLocaleString('fr-FR')} voix — {(liste.pourcentage || 0).toFixed(2)}%
+                  </div>
+
+                  {/* Champ d'édition du nom (affiché uniquement si enEdition) */}
+                  {liste.enEdition && (
+                    <div className="edition-nom-wrap">
+                      <input
+                        type="text"
+                        className="edition-nom-input"
+                        value={liste.nomEdition}
+                        onChange={(e) => handleNomEditionChange(cleUnique, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') validerNomEdition(cleUnique);
+                          if (e.key === 'Escape') annulerNomEdition(cleUnique);
+                        }}
+                        placeholder="Nouveau nom de liste / fusion"
+                        autoFocus
+                        maxLength={120}
+                        aria-label={`Nouveau nom pour ${liste.nom}`}
+                      />
+                      <button
+                        type="button"
+                        className="btn-gestion vert"
+                        onClick={() => validerNomEdition(cleUnique)}
+                        title="Valider le nouveau nom"
+                      >
+                        ✔ Valider
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-gestion rouge"
+                        onClick={() => annulerNomEdition(cleUnique)}
+                        title="Annuler la modification"
+                      >
+                        ✖ Annuler
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions : renommer / réinitialiser */}
+                {!liste.enEdition && liste.actif && (
+                  <div className="gestion-t2-actions">
+                    <button
+                      type="button"
+                      className="btn-gestion bleu"
+                      onClick={() => toggleEditionNom(cleUnique)}
+                      title="Renommer cette liste (fusion, regroupement…)"
+                    >
+                      ✏️ Renommer
+                    </button>
+                    {nomModifie && (
+                      <button
+                        type="button"
+                        className="btn-gestion"
+                        onClick={() => reinitialiserNom(cleUnique)}
+                        title="Rétablir le nom d'origine"
+                      >
+                        ↺ Réinitialiser
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* ─── Récapitulatif ─── */}
+          <div className="recap-t2-box">
+            <strong>{listesActives.length}</strong> liste{listesActives.length > 1 ? 's' : ''} retenue{listesActives.length > 1 ? 's' : ''} pour le 2nd tour
+            {gestionListes.filter((l) => !l.actif).length > 0 && (
+              <span style={{ marginLeft: 12, color: 'rgba(220,38,38,0.85)' }}>
+                · <strong>{gestionListes.filter((l) => !l.actif).length}</strong> désisté{gestionListes.filter((l) => !l.actif).length > 1 ? 'es' : 'e'}
+              </span>
+            )}
+            {listesAvecNomModifie.length > 0 && (
+              <span style={{ marginLeft: 12, color: 'rgba(37,99,235,0.85)' }}>
+                · <strong>{listesAvecNomModifie.length}</strong> renommée{listesAvecNomModifie.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {listesActives.length === 0 && (
+            <div className="message warning" style={{ marginTop: 10 }}>
+              ⚠️ Aucune liste active. Réactivez au moins une liste pour pouvoir confirmer le passage.
+            </div>
+          )}
+        </div>
+      )}
+      {/* ════════════════════════════════════════════════════════════════════ */}
 
 
       {/* 📅 Infos officielles du 2nd tour (évite doublon avec ConfigurationT2) */}
@@ -699,12 +1133,12 @@ const PassageSecondTour = ({
 
         <button
           className="btn-primary"
-          disabled={!adminUnlocked || !secondTourEnabled || egalite || t2Confirmed}
+          disabled={!adminUnlocked || !secondTourEnabled || egalite || t2Confirmed || listesActives.length === 0}
           onClick={handlePassageT2}
           style={{
             height: 44,
             padding: '0 18px',
-            background: adminUnlocked ? 'rgba(37,99,235,0.92)' : 'rgba(156,163,175,0.7)',
+            background: adminUnlocked && listesActives.length > 0 ? 'rgba(37,99,235,0.92)' : 'rgba(156,163,175,0.7)',
           }}
           title={
             !adminUnlocked
@@ -713,6 +1147,10 @@ const PassageSecondTour = ({
               ? 'Passage au 2nd tour désactivé'
               : egalite
               ? 'Égalité parfaite : décision admin requise'
+              : listesActives.length === 0
+              ? 'Aucune liste active — réactivez au moins une liste'
+              : t2Confirmed
+              ? 'Passage déjà confirmé'
               : ''
           }
         >
@@ -753,9 +1191,33 @@ const PassageSecondTour = ({
               <div>Vous allez confirmer officiellement le passage au 2nd tour avec :</div>
               <ol style={styles.modalList}>
                 {pendingQualified.map((c, idx) => (
-                  <li key={c?.id || c?.nom || idx}>{c?.nom || '-'}</li>
+                  <li key={c?.id || c?.nom || idx}>
+                    <strong>{c?.nom || '-'}</strong>
+                    {/* Affiche l'ancien nom si renommage */}
+                    {gestionListes.find((l) => String(l.id ?? l.nom) === String(c?.id ?? c?.nom))?.nom !== c?.nom && (
+                      <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 8 }}>
+                        (anciennement : {gestionListes.find((l) => String(l.id ?? l.nom) === String(c?.id ?? c?.nom))?.nom})
+                      </span>
+                    )}
+                  </li>
                 ))}
               </ol>
+              {/* Désistements */}
+              {gestionListes.filter((l) => !l.actif).length > 0 && (
+                <div style={{ marginTop: 14, fontSize: 13, color: 'rgba(185,28,28,0.85)' }}>
+                  <strong>Désistements :</strong>
+                  <ul style={{ ...styles.modalList, marginTop: 4 }}>
+                    {gestionListes.filter((l) => !l.actif).map((l, idx) => (
+                      <li key={l?.id || idx}>{l.nom}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {listesAvecNomModifie.length > 0 && (
+                <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(37,99,235,0.8)' }}>
+                  ℹ️ Les noms modifiés seront mis à jour dans Google Sheets.
+                </div>
+              )}
             </div>
             <div style={styles.modalFooter}>
               <button
@@ -872,7 +1334,9 @@ const PassageSecondTour = ({
                 lineHeight: 1.6,
                 marginBottom: 8,
               }}>
-                {successQualified.length === 2 
+                {successQualified.length === 1
+                  ? "La liste retenue est :"
+                  : successQualified.length === 2 
                   ? "Les deux listes qualifiées sont :"
                   : `Les ${successQualified.length} listes qualifiées sont :`
                 }

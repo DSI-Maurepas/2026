@@ -12,10 +12,10 @@ export const ACCESS_CONFIG = Object.freeze({
   BV_SUFFIX: "@2026",
 
   // Accès "global" (tout voir / tout faire sauf Administration + Passage Tour)
-  GLOBAL_PASSWORD: "V!ct0ire@2026",
+  GLOBAL_PASSWORD: "@dm!n@2026",
 
   // Mot de passe Administration (compat V3)
-  ADMIN_PASSWORD: "ADMIN@2026",
+  ADMIN_PASSWORD: "@dm!n@M0rep@s1",
 
   // Accès Informations (lecture seule)
   INFO_PASSWORD: "Info@2026",

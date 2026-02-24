@@ -25,3 +25,10 @@ echo "⚠️ PUSH FORCE vers origin/main..."
 git push origin main --force
 
 echo "✅ Mise à jour distante TERMINÉE."
+
+
+________________________________________________________________________________
+
+
+
+cd /c/dev/elections-municipales/src && git add . && git commit -m "Update" && git push origin main --force-with-lease
