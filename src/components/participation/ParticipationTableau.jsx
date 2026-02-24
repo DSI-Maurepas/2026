@@ -116,6 +116,12 @@ const ParticipationTableau = ({ electionState }) => {
 
         <div className="tableau-vertical-container">
           <table className="participation-table participation-table--vertical">
+            {/* ⚠️ CORRECTION : colgroup aligne les largeurs de thead et tbody (méthode HTML native) */}
+            <colgroup>
+              <col style={{ width: '100px' }} />
+              <col style={{ width: '120px' }} />
+              <col style={{ width: 'auto' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th className="hour-col-vertical">Heure</th>
@@ -178,6 +184,13 @@ const ParticipationTableau = ({ electionState }) => {
   font-weight: 600;
 }
 
+.participation-table--vertical th.hour-col-vertical { width: 100px; }
+.participation-table--vertical th.votants-col-vertical { width: 120px; text-align: center; }
+.participation-table--vertical th.percent-col-vertical { text-align: center; }
+
+.participation-table--vertical td.number { text-align: center; }
+.participation-table--vertical td.percent { text-align: center; }
+
 .participation-table--vertical td {
   padding: 10px 12px;
   border-bottom: 1px solid #e0e0e0;
@@ -221,6 +234,14 @@ const ParticipationTableau = ({ electionState }) => {
 
       <div className="tableau-scroll">
         <table className="participation-table participation-table--compact">
+          {/* ⚠️ CORRECTION : colgroup garantit l'alignement en-tête / colonnes (méthode HTML native) */}
+          <colgroup>
+            <col style={{ width: '130px' }} />
+            <col style={{ width: '92px' }} />
+            {HOURS.map((h) => (
+              <col key={`col-${h}`} style={{ width: '62px' }} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
               <th className="bureau-col">Bureau</th>
