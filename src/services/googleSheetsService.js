@@ -15,7 +15,7 @@ import { SHEET_NAMES } from '../utils/constants';
 
 class GoogleSheetsService {
   constructor() {
-    this.spreadsheetId = import.meta.env.VITE_SPREADSHEET_ID;
+    this.spreadsheetId = import.meta.env.VITE_GOOGLE_SPREADSHEET_ID;
     this.apiUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
 
     this._inflight = new Map(); // key -> Promise
