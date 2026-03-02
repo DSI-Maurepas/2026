@@ -19,6 +19,12 @@ export default function LoginPage() {
   }, [isAuthenticated, navigate]);
 
 const handleSignIn = async () => {
+	  // TEMP DEBUG - à supprimer après test
+  console.log('BV_SUFFIX:', import.meta.env.VITE_BV_SUFFIX);
+  console.log('GLOBAL_PWD:', import.meta.env.VITE_GLOBAL_PASSWORD);
+  console.log('ADMIN_PWD:', import.meta.env.VITE_ADMIN_PASSWORD);
+  console.log('INFO_PWD:', import.meta.env.VITE_INFO_PASSWORD);
+  // ... suite du code existant
   try {
     setLoading(true);
     setError(null);
