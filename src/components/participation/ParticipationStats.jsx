@@ -285,8 +285,12 @@ const ParticipationStats = ({ electionState, isBureauVote = false }) => {
         </div>
 
         <div className="stat-card stat-card--abstentions">
-          <div className="stat-value">{(stats.totalInscrits - stats.totalVotants).toLocaleString('fr-FR')}</div>
-          <div className="stat-label">Abstentions (dernier état)</div>
+          <div className="stat-value">
+            {progressionMoyennePctParHeure != null
+              ? `${progressionMoyennePctParHeure.toFixed(2)}%`
+              : '—'}
+          </div>
+          <div className="stat-label">Progression moy./heure</div>
         </div>
       </div>
 
@@ -409,18 +413,7 @@ const ParticipationStats = ({ electionState, isBureauVote = false }) => {
             </div>
 
 
-{/* ADMIN : progression moyenne communale en points de % par heure */}
-{!isBureauVote && progressionMoyennePctParHeure != null && (
-  <div className="metric-card">
-    <div className="metric-head">
-      <span className="metric-emoji">📊</span>
-      <span className="metric-title">Progression moyenne</span>
-    </div>
-    <div className="metric-value">
-      <strong>{progressionMoyennePctParHeure.toFixed(2)}%</strong>/heure
-    </div>
-  </div>
-)}
+{/* Tuile Progression moyenne déplacée dans le bloc KPI en remplacement des Abstentions */}
 
             {false && (
 <div className="metric-card">

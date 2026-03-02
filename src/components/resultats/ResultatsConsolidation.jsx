@@ -393,6 +393,18 @@ const ResultatsConsolidation = ({ electionState}) => {
           grid-template-columns: 1fr;
           gap: 14px;
         }
+        /* Grille 3 colonnes égales : Écart + Procurations + Exprimés */
+        .resultats-consolidation .stats-grid-3-equal {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+          margin-bottom: 14px;
+        }
+        @media (max-width: 900px) {
+          .resultats-consolidation .stats-grid-3-equal {
+            grid-template-columns: 1fr;
+          }
+        }
         .resultats-consolidation .stats-card {
           padding: 20px 24px;
           border-radius: 18px;
@@ -465,7 +477,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.11) 0%, rgba(134, 239, 172, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              📋 Inscrits {isBureau ? '(votre bureau)' : ''}
+              {isBureau ? `📋 Inscrits pour le BV${bureauId}` : '📋 Inscrits'}
             </div>
             <div className="stats-card-value">
               {(Number(totaux.inscrits) || 0).toLocaleString('fr-FR')}
@@ -488,7 +500,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.11) 0%, rgba(147, 197, 253, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              ✅ Participation {isBureau ? '(votre bureau)' : ''}
+              {isBureau ? `✅ Participation pour le BV${bureauId}` : '✅ Participation'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxParticipation).toFixed(2)}%
@@ -504,7 +516,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.11) 0%, rgba(192, 132, 252, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              📈 Écart entre liste 1 et 2
+              {isBureau ? `📈 Écart liste 1/2 pour le BV${bureauId}` : '📈 Écart entre liste 1 et 2'}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
               <div className="stats-card-value">
@@ -524,7 +536,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.11) 0%, rgba(203, 213, 225, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              📄 Taux de blancs
+              {isBureau ? `📄 Taux de blancs pour le BV${bureauId}` : '📄 Taux de blancs'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxBlancs).toFixed(2)}%
@@ -540,7 +552,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.11) 0%, rgba(248, 113, 113, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              🚫 Taux de nuls
+              {isBureau ? `🚫 Taux de nuls pour le BV${bureauId}` : '🚫 Taux de nuls'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxNuls).toFixed(2)}%
@@ -555,7 +567,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.11) 0%, rgba(251, 146, 60, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              ❌ Abstentions
+              {isBureau ? `❌ Abstentions pour le BV${bureauId}` : '❌ Abstentions'}
             </div>
             <div className="stats-card-value">
               {totalAbstentions.toLocaleString('fr-FR')}
@@ -578,7 +590,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.11) 0%, rgba(134, 239, 172, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              📋 Inscrits {isBureau ? '(votre bureau)' : ''}
+              {isBureau ? `📋 Inscrits pour le BV${bureauId}` : '📋 Inscrits'}
             </div>
             <div className="stats-card-value">
               {(Number(totaux.inscrits) || 0).toLocaleString('fr-FR')}
@@ -601,7 +613,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.11) 0%, rgba(147, 197, 253, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              ✅ Participation {isBureau ? '(votre bureau)' : ''}
+              {isBureau ? `✅ Participation pour le BV${bureauId}` : '✅ Participation'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxParticipation).toFixed(2)}%
@@ -617,7 +629,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.11) 0%, rgba(251, 146, 60, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              ❌ Abstentions
+              {isBureau ? `❌ Abstentions pour le BV${bureauId}` : '❌ Abstentions'}
             </div>
             <div className="stats-card-value">
               {totalAbstentions.toLocaleString('fr-FR')}
@@ -639,7 +651,7 @@ const ResultatsConsolidation = ({ electionState}) => {
                background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.11) 0%, rgba(192, 132, 252, 0.07) 100%)'
              }}>
                <div className="stats-card-label">
-                 📈 Écart liste 1 / 2
+                 {`📈 Écart liste 1/2 pour le BV${bureauId}`}
                </div>
                <div className="stats-card-value">
                  {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'}
@@ -672,7 +684,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.11) 0%, rgba(203, 213, 225, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              📄 Taux de blancs
+              {isBureau ? `📄 Taux de blancs pour le BV${bureauId}` : '📄 Taux de blancs'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxBlancs).toFixed(2)}%
@@ -688,7 +700,7 @@ const ResultatsConsolidation = ({ electionState}) => {
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.11) 0%, rgba(248, 113, 113, 0.07) 100%)'
           }}>
             <div className="stats-card-label">
-              🚫 Taux de nuls
+              {isBureau ? `🚫 Taux de nuls pour le BV${bureauId}` : '🚫 Taux de nuls'}
             </div>
             <div className="stats-card-value">
               {clampPct(tauxNuls).toFixed(2)}%
@@ -699,10 +711,10 @@ const ResultatsConsolidation = ({ electionState}) => {
           </div>
         </div>
 
-        {/* ===== Troisième ligne : 1 bloc pleine largeur (Masqué pour BV qui l'a déjà au dessus) ===== */}
+        {/* ===== Troisième ligne : Écart (2/3) + Exprimés (1/3) — masqué pour BV ===== */}
         {!isBureau && (
-          <div className="stats-grid-1">
-            {/* Écart 1er/2ème (Format large) */}
+          <div className="stats-grid-3-equal">
+            {/* Écart 1er/2ème (1/3 de la ligne) */}
             <div className="stats-card" style={{
               border: '2px solid rgba(168, 85, 247, 0.55)',
               background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.11) 0%, rgba(192, 132, 252, 0.07) 100%)'
@@ -710,13 +722,47 @@ const ResultatsConsolidation = ({ electionState}) => {
               <div className="stats-card-label">
                 📈 Écart entre liste 1 et 2
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <div className="stats-card-value">
-                  {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'} voix
-                </div>
-                <div className="stats-card-meta" style={{ fontSize: '1.1rem' }}>
-                  {ecartLabel}
-                </div>
+              <div className="stats-card-value">
+                {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'} voix
+              </div>
+              <div className="stats-card-meta" style={{ fontSize: '0.78rem', lineHeight: 1.3, marginTop: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {ecartLabel}
+              </div>
+            </div>
+
+            {/* Procurations (1/3 de la ligne) */}
+            <div className="stats-card" style={{
+              border: '2px solid rgba(245, 158, 11, 0.55)',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.11) 0%, rgba(252, 211, 77, 0.07) 100%)'
+            }}>
+              <div className="stats-card-label">
+                📋 Procurations
+              </div>
+              <div className="stats-card-value">
+                {resultats.reduce((sum, r) => sum + (Number(r.procurations) || 0), 0).toLocaleString('fr-FR')}
+              </div>
+              <div className="stats-card-meta">
+                {totaux.votants > 0
+                  ? `${((resultats.reduce((s, r) => s + (Number(r.procurations) || 0), 0) / totaux.votants) * 100).toFixed(2)}% des votants`
+                  : '—'}
+              </div>
+            </div>
+
+            {/* Exprimés (1/3 de la ligne) */}
+            <div className="stats-card" style={{
+              border: '2px solid rgba(20, 184, 166, 0.55)',
+              background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.11) 0%, rgba(94, 234, 212, 0.07) 100%)'
+            }}>
+              <div className="stats-card-label">
+                🗳️ Suffrages exprimés
+              </div>
+              <div className="stats-card-value">
+                {(Number(totaux.exprimes) || 0).toLocaleString('fr-FR')}
+              </div>
+              <div className="stats-card-meta">
+                {totaux.inscrits > 0
+                  ? `${((totaux.exprimes / totaux.inscrits) * 100).toFixed(2)}% des inscrits`
+                  : '—'}
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/elections-2026/', //elections-2026
+  base: '/2026/', //2026
   build: {
     outDir: 'dist',
     sourcemap: false,

@@ -35,12 +35,8 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_GOOGLE_SPREADSHEET_ID: ${{ secrets.VITE_GOOGLE_SPREADSHEET_ID }}
-          VITE_BV_SUFFIX: ${{ secrets.VITE_BV_SUFFIX }}
-          VITE_GLOBAL_PASSWORD: ${{ secrets.VITE_GLOBAL_PASSWORD }}
-          VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
-          VITE_INFO_PASSWORD: ${{ secrets.VITE_INFO_PASSWORD }}
+          VITE_GOOGLE_CLIENT_ID: "702016125879-8t5lau13b7mvifl4ttp2drh2v6871ad4.apps.googleusercontent.com"
+          VITE_SPREADSHEET_ID: "1k0ZHelPxIUdgSXbUekhWGIt49Sjrq_Y4IgEB9K1FZP0"
 
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3

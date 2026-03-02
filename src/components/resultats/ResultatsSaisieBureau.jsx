@@ -1676,7 +1676,7 @@ useEffect(() => {
                   opacity: adminValidated ? 0.4 : (canLock || isLocked ? 1 : 0.5),
                   color: adminValidated ? '#9ca3af' : (isLocked ? '#475569' : (canLock ? '#f59e0b' : '#9ca3af'))
                 }}>
-                  {adminValidated ? 'Admin validé' : (isLocked ? `Verrouillé` : `Verrouiller ${selectedBureauId ? 'BV'+selectedBureauId : ''}`)}
+                  {adminValidated ? 'Admin validé' : (isLocked ? `Verrouillé` : `Verrouiller ${selectedBureauId || ''}`)}
                 </div>
               </div>
             )}

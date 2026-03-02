@@ -1,60 +1,32 @@
 // src/config/authConfig.js
 // Source unique des codes d'accès applicatifs (BV / Global / Admin)
 //
-// ⚠️ IMPORTANT : les codes sont chargés depuis les variables d'environnement (.env.local).
-// Ne jamais committer .env.local sur GitHub.
+// ⚠️ IMPORTANT : les codes sont volontairement simples (usage interne "jour J").
 // Ne jamais afficher les codes/mots de passe dans l'UI.
-//
-// Variables requises dans .env.local :
-//   VITE_BV_SUFFIX=
-//   VITE_GLOBAL_PASSWORD=
-//   VITE_ADMIN_PASSWORD=
-//   VITE_INFO_PASSWORD=
 
 export const ACCESS_CONFIG = Object.freeze({
   // Codes bureaux (BV1..BV13)
   BV_PREFIX: "BV",
   BV_MIN: 1,
   BV_MAX: 13,
-  BV_SUFFIX: import.meta.env.VITE_BV_SUFFIX,
+  BV_SUFFIX: "@2026",
 
   // Accès "global" (tout voir / tout faire sauf Administration + Passage Tour)
-  GLOBAL_PASSWORD: import.meta.env.VITE_GLOBAL_PASSWORD,
+  GLOBAL_PASSWORD: "@dm!n@2026",
 
   // Mot de passe Administration (compat V3)
-  ADMIN_PASSWORD: import.meta.env.VITE_ADMIN_PASSWORD,
+  ADMIN_PASSWORD: "@dm!n@M0rep@s1",
 
   // Accès Informations (lecture seule)
-  INFO_PASSWORD: import.meta.env.VITE_INFO_PASSWORD,
+  INFO_PASSWORD: "Info@2026",
 });
-
-/**
- * Vérifie que toutes les variables d'environnement requises sont présentes.
- * À appeler au démarrage de l'application pour détecter une config incomplète.
- */
-export function validateEnvConfig() {
-  const required = [
-    "VITE_BV_SUFFIX",
-    "VITE_GLOBAL_PASSWORD",
-    "VITE_ADMIN_PASSWORD",
-    "VITE_INFO_PASSWORD",
-  ];
-  const missing = required.filter((key) => !import.meta.env[key]);
-  if (missing.length > 0) {
-    console.error(
-      `[authConfig] Variables d'environnement manquantes : ${missing.join(", ")}. Vérifiez votre .env.local.`
-    );
-  }
-  return missing.length === 0;
-}
 
 /**
  * Parse un code saisi et retourne le profil applicatif correspondant.
  * Formats attendus :
- * - BVX{SUFFIX} (X = BV_MIN..BV_MAX, SUFFIX = VITE_BV_SUFFIX)
- * - mot de passe global (GLOBAL) = VITE_GLOBAL_PASSWORD
- * - mot de passe admin (ADMIN)   = VITE_ADMIN_PASSWORD
- * - mot de passe info (INFO)     = VITE_INFO_PASSWORD
+ * - BVX@2026 (X = 1..13)
+ * - V!ct0ire@2026 (GLOBAL)
+ * - mot de passe admin (ADMIN)
  *
  * @param {string} code
  * @returns {{role:'BV'|'GLOBAL'|'ADMIN'|'INFO', bureauId?:number}|null}
@@ -74,24 +46,23 @@ export function parseAccessCode(code) {
     return { role: "ADMIN" };
   }
 
-  // Informations (lecture seule)
-  if (trimmed === ACCESS_CONFIG.INFO_PASSWORD) {
-    return { role: "INFO" };
-  }
 
-  // BVx@2026 : parsing SANS regex (plus robuste, zéro ambiguïté)
+
+// Informations (lecture seule)
+if (trimmed === ACCESS_CONFIG.INFO_PASSWORD) {
+  return { role: "INFO" };
+}
+
+  // BVx@Elections2026 : parsing SANS regex (plus robuste, zéro ambiguïté)
   const upper = trimmed.toUpperCase();
   const prefix = ACCESS_CONFIG.BV_PREFIX.toUpperCase();
-  const suffix = ACCESS_CONFIG.BV_SUFFIX;
-  if (suffix && upper.startsWith(prefix) && trimmed.endsWith(suffix)) {
+  const suffix = ACCESS_CONFIG.BV_SUFFIX; // suffix est case-sensitive côté '@Elections2026' => on compare sans changer
+  if (upper.startsWith(prefix) && trimmed.endsWith(suffix)) {
     const numberPart = trimmed.slice(prefix.length, trimmed.length - suffix.length);
     const bureauId = parseInt(numberPart, 10);
-    if (
-      Number.isFinite(bureauId) &&
-      bureauId >= ACCESS_CONFIG.BV_MIN &&
-      bureauId <= ACCESS_CONFIG.BV_MAX
-    ) {
+    if (Number.isFinite(bureauId) && bureauId >= ACCESS_CONFIG.BV_MIN && bureauId <= ACCESS_CONFIG.BV_MAX) {
       // On accepte BV en maj/min sur le préfixe, mais suffix exact.
+      // (ex: bv1@Elections2026 OK, BV1@Elections2026 OK)
       return { role: "BV", bureauId };
     }
   }
@@ -125,12 +96,7 @@ export function canAccessPage(auth, pageKey) {
   }
 
   if (role === "BV") {
-    const allowed = new Set([
-      "participation_saisie",
-      "resultats_saisie_bureau",
-      "participation",
-      "resultats",
-    ]);
+    const allowed = new Set(["participation_saisie", "resultats_saisie_bureau", "participation", "resultats"]);
     return allowed.has(pageKey);
   }
 
@@ -146,6 +112,7 @@ export function isGlobal(auth) {
 export function isAdmin(auth) {
   return auth?.role === "ADMIN";
 }
+
 export function isInfo(auth) {
   return auth?.role === "INFO";
 }

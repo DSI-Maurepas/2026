@@ -737,7 +737,7 @@ case "info-participation":
               </div>
               <div className="info-block info-block--access">
                 <div className="info-label">Session</div>
-                <div className="info-value">INFO</div>
+                <div className="info-value">Tableau de centralisation</div>
               </div>
             </div>
           </div>

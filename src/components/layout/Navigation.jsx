@@ -235,7 +235,7 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
 
           <div className="info-block info-block--access">
             <div className="info-label">Session</div>
-            <div className="info-value">{accessAuth?.role || "—"}{accessAuth?.role === "BV" ? ` (🗳️ BV${accessAuth?.bureauId})` : ""}</div>
+            <div className="info-value">{accessAuth?.role === "BV" ? `🗳️ Bureau de vote ${String(accessAuth?.bureauId || '').replace(/^BV/i, '')}` : accessAuth?.role === "GLOBAL" ? "ADMIN BUREAUX" : accessAuth?.role === "INFO" ? "Tableau de centralisation" : (accessAuth?.role || "—")}</div>
           </div>
         </div>
       </div>
