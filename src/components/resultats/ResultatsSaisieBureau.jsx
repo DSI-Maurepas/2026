@@ -1252,7 +1252,6 @@ useEffect(() => {
                         textAlign: 'center',
                         fontSize: 11,
                         fontWeight: 700,
-                        boxShadow: bureau.isLocked ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
                         transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         cursor: isAdmin ? 'pointer' : 'default',
                         display: 'flex',
