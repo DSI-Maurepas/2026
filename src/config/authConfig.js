@@ -17,9 +17,9 @@ function _loadBvPasswords() {
   const raw = import.meta.env.VITE_BV_PASSWORDS;
   if (!raw) return null;
   try {
-    // Nettoyage : retire les guillemets simples ou doubles encadrants
-    // (Vite peut les inclure selon l'OS et le shell)
+    console.log('RAW VITE_BV_PASSWORDS:', JSON.stringify(raw));
     const cleaned = String(raw).trim().replace(/^['"]|['"]$/g, '');
+    console.log('CLEANED:', JSON.stringify(cleaned));
     const parsed = JSON.parse(cleaned);
     if (typeof parsed === "object" && parsed !== null) return parsed;
     return null;
