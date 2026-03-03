@@ -18,20 +18,18 @@ function _loadBvPasswords() {
   if (!raw) return null;
   try {
     let cleaned = String(raw).trim();
-    // Déséchappe les guillemets internes \" → "
     cleaned = cleaned.replace(/\\"/g, '"');
-    // Retire les guillemets simples ou doubles encadrants
     cleaned = cleaned.replace(/^['"]|['"]$/g, '').trim();
-    // Retire les espaces et sauts de ligne superflus
     cleaned = cleaned.replace(/\s+/g, '');
-    // Reconstitue les accolades si elles ont été supprimées
     if (!cleaned.startsWith('{')) cleaned = '{' + cleaned;
     if (!cleaned.endsWith('}')) cleaned = cleaned + '}';
+    // DEBUG - à supprimer après test
+    console.log('AVANT PARSE:', cleaned);
     const parsed = JSON.parse(cleaned);
     if (typeof parsed === "object" && parsed !== null) return parsed;
     return null;
-  } catch {
-    console.error("[authConfig] VITE_BV_PASSWORDS : JSON invalide. Vérifiez votre .env.local.");
+  } catch (e) {
+    console.error("[authConfig] VITE_BV_PASSWORDS : JSON invalide.", e.message, '| Valeur:', cleaned);
     return null;
   }
 }
