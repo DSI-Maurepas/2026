@@ -17,9 +17,13 @@ function _loadBvPasswords() {
   const raw = import.meta.env.VITE_BV_PASSWORDS;
   if (!raw) return null;
   try {
-    console.log('RAW VITE_BV_PASSWORDS:', JSON.stringify(raw));
-    const cleaned = String(raw).trim().replace(/^['"]|['"]$/g, '');
-    console.log('CLEANED:', JSON.stringify(cleaned));
+    // Étape 1 : retire les guillemets simples ou doubles encadrants
+    let cleaned = String(raw).trim().replace(/^['"]|['"]$/g, '');
+    // Étape 2 : déséchappe les guillemets internes \" → "
+    cleaned = cleaned.replace(/\\"/g, '"');
+    // Étape 3 : retire les espaces/sauts de ligne superflus
+    cleaned = cleaned.replace(/\s+/g, '');
+    console.log('CLEANED FINAL:', cleaned); // à supprimer après test
     const parsed = JSON.parse(cleaned);
     if (typeof parsed === "object" && parsed !== null) return parsed;
     return null;
