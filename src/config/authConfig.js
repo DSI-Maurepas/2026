@@ -23,7 +23,7 @@ function _loadBvPasswords() {
     if (typeof parsed === "object" && parsed !== null) return parsed;
     return null;
   } catch (e) {
-    console.error("[authConfig] VITE_BV_PASSWORDS invalide.", e.message, '| Valeur:', cleaned);
+    console.error("[authConfig] VITE_BV_PASSWORDS invalide.", e.message, '| Vérifiez le format JSON.');
     return null;
   }
 }
