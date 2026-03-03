@@ -2386,7 +2386,7 @@ async loadExcelJS() {
       }
     })();
 
-    const rowsHtml = candAgg.map((c, idx) => {
+      const rowsHtml = candAgg.filter(c => (c.voix ?? 0) > 0).map((c, idx) => {
       const rawNom = String(c.nom ?? '').trim();
       const nomUp = rawNom.toUpperCase();
       const nom = nomUp.startsWith('LISTE ') ? nomUp : (nomUp ? `LISTE ${nomUp}` : '');
