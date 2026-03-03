@@ -16,20 +16,23 @@
 function _loadBvPasswords() {
   const raw = import.meta.env.VITE_BV_PASSWORDS;
   if (!raw) return null;
+  let cleaned = '';
   try {
-    let cleaned = String(raw).trim();
+    cleaned = String(raw).trim();
+    // Déséchappe les guillemets internes \" → "
     cleaned = cleaned.replace(/\\"/g, '"');
+    // Retire les guillemets simples ou doubles encadrants
     cleaned = cleaned.replace(/^['"]|['"]$/g, '').trim();
+    // Retire les espaces et sauts de ligne superflus
     cleaned = cleaned.replace(/\s+/g, '');
-    if (!cleaned.startsWith('{')) cleaned = '{' + cleaned;
+    // Reconstitue le JSON valide
+    if (!cleaned.startsWith('{')) cleaned = '{"' + cleaned;
     if (!cleaned.endsWith('}')) cleaned = cleaned + '}';
-    // DEBUG - à supprimer après test
-    console.log('AVANT PARSE:', cleaned);
     const parsed = JSON.parse(cleaned);
     if (typeof parsed === "object" && parsed !== null) return parsed;
     return null;
   } catch (e) {
-    console.error("[authConfig] VITE_BV_PASSWORDS : JSON invalide.", e.message, '| Valeur:', cleaned);
+    console.error("[authConfig] VITE_BV_PASSWORDS invalide.", e.message, '| Valeur:', cleaned);
     return null;
   }
 }
