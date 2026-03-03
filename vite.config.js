@@ -44,7 +44,6 @@ export default defineConfig(({ mode }) => {
           // Découpage du code pour améliorer le chargement initial
           manualChunks: {
             vendor: ['react', 'react-dom'],
-            charts: ['recharts'], // Si vous utilisez recharts pour les stats
             excel: ['xlsx'],      // Si vous utilisez xlsx pour les exports
           },
         },
