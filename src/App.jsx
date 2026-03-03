@@ -54,7 +54,7 @@ function AccessGate({ onAuthenticated }) {
     <div style={{ padding: 40, maxWidth: 460, margin: "80px auto" }}>
       <h2>Accès sécurisé</h2>
       <p style={{ marginTop: 8, opacity: 0.85 }}>
-        Saisissez votre code d'accès. (Exemples : BV1, BV2, … ou admin.)
+        Saisissez votre code d'accès.
       </p>
       <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
         <input
