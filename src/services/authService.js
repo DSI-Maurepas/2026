@@ -4,12 +4,10 @@
 // + SÉCURITÉ : Protection CSRF via paramètre 'state'
 
 import { GOOGLE_SHEETS, LOCAL_STORAGE_KEYS } from '../utils/constants';
-import { ACCESS_CONFIG, parseAccessCode } from '../config/authConfig.js';
+import { parseAccessCode } from '../config/authConfig.js';
 
 // --- Accès applicatif (BV / Global / Admin) ---
 const ACCESS_STORAGE_KEY = 'elections_access_v1';
-// --- Auth Admin (mot de passe local) ---
-const ADMIN_STORAGE_KEY = 'elections_admin_auth_v1';
 // --- Sécurité OAuth ---
 const OAUTH_STATE_KEY = 'oauth_state_pending';
 
@@ -86,8 +84,8 @@ class AuthService {
   _validateState(receivedState) {
     const storedState = sessionStorage.getItem(OAUTH_STATE_KEY);
     // Nettoyage immédiat pour éviter la réutilisation (Replay Attack)
-    sessionStorage.removeItem(OAUTH_STATE_KEY); 
-    
+    sessionStorage.removeItem(OAUTH_STATE_KEY);
+
     if (!storedState || !receivedState) return false;
     return storedState === receivedState;
   }
@@ -124,11 +122,11 @@ class AuthService {
         };
 
         // 4. Envoi de la requête avec le paramètre state
-        // prompt: '' force la connexion silencieuse si possible, 
+        // prompt: '' force la connexion silencieuse si possible,
         // ou 'select_account' pour forcer le choix
-        this.tokenClient.requestAccessToken({ 
+        this.tokenClient.requestAccessToken({
           prompt: '',
-          state: stateToken // <--- Ajout du paramètre d'état
+          state: stateToken,
         });
 
       } catch (error) {
@@ -216,7 +214,6 @@ class AuthService {
 
     // Rafraîchir si expire dans moins de 5 minutes
     if (timeUntilExpiry < 5 * 60 * 1000) {
-      console.log("Token proche expiration, rafraîchissement...");
       await this.signIn();
     }
   }
@@ -245,33 +242,6 @@ class AuthService {
 
   getUserEmail() {
     return localStorage.getItem(LOCAL_STORAGE_KEYS.USER_EMAIL) || 'utilisateur@inconnu.com';
-  }
-
-  // =========================
-  // Auth Administration (mot de passe local)
-  // =========================
-
-  adminSignIn(password) {
-    const ok = typeof password === 'string' && password === ACCESS_CONFIG.ADMIN_PASSWORD;
-    if (ok) {
-      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ ok: true, ts: Date.now() }));
-    }
-    return ok;
-  }
-
-  adminSignOut() {
-    localStorage.removeItem(ADMIN_STORAGE_KEY);
-  }
-
-  isAdminSignedIn() {
-    try {
-      const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw);
-      return !!parsed?.ok;
-    } catch {
-      return false;
-    }
   }
 }
 
@@ -304,7 +274,6 @@ export function logoutAccess() {
 
 export function clearAllSessions() {
   logoutAccess();
-  localStorage.removeItem(ADMIN_STORAGE_KEY);
   try {
     authService.signOut();
   } catch {
@@ -313,9 +282,9 @@ export function clearAllSessions() {
 }
 
 // Helpers
-export function isBV(auth) { return auth?.role === 'BV'; }
+export function isBV(auth)     { return auth?.role === 'BV';     }
 export function isGlobal(auth) { return auth?.role === 'GLOBAL'; }
-export function isAdmin(auth) { return auth?.role === 'ADMIN'; }
+export function isAdmin(auth)  { return auth?.role === 'ADMIN';  }
 
 // Singleton
 const authService = new AuthService();
