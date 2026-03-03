@@ -35,6 +35,7 @@ dist-ssr
 Archives/
 srcold/
 files/
+INFOS/
 
 # Environment variables
 .env
@@ -44,6 +45,7 @@ files/
 .env.test.local
 .env.production.local
 *.local
+*.-- .env
 
 # Build
 build/
