@@ -34,6 +34,12 @@ const SiegesMunicipal = ({ electionState}) => {
   }, [seatsMunicipal, state.tourActuel]);
 
   useEffect(() => {
+    // ── Réinitialisation après purge manuelle des onglets Google Sheets ──
+    // Si la source primaire est vide (purge détectée), on autorise une re-persistance
+    if (seatsMunicipalTour.length === 0) {
+      persistedRef.current = false;
+    }
+
     if (seatsMunicipalTour.length > 0) {
       const recalcules = calculService
         .calculerSiegesMunicipauxDepuisListes(seatsMunicipalTour, totalSieges)

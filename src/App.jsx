@@ -41,13 +41,6 @@ function AccessGate({ onAuthenticated }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-	 // TEMP DEBUG - à supprimer après test
-  console.log('ENV CHECK:', {
-    bv: import.meta.env.VITE_BV_SUFFIX?.slice(0,3),
-    global: import.meta.env.VITE_GLOBAL_PASSWORD?.slice(0,3),
-    admin: import.meta.env.VITE_ADMIN_PASSWORD?.slice(0,3),
-    info: import.meta.env.VITE_INFO_PASSWORD?.slice(0,3),
-  });
     const auth = loginWithCode(code);
     if (!auth) {
       setError("Code invalide");

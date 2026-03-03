@@ -36,6 +36,7 @@ Archives/
 srcold/
 files/
 INFOS/
+*push_github.sh
 
 # Environment variables
 .env

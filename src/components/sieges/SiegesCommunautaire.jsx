@@ -56,6 +56,12 @@ const SiegesCommunautaire = ({ electionState }) => {
   }, [seatsCommunity]);
 
   useEffect(() => {
+    // ── Réinitialisation après purge manuelle des onglets Google Sheets ──
+    // Si la source primaire est vide (purge détectée), on autorise une re-persistance
+    if (seatsCommunityRows.length === 0) {
+      persistedRef.current = false;
+    }
+
     // 1) Si Seats_Community est renseigné : on l'utilise comme source de VOIX, puis on calcule
     if (seatsCommunityRows.length > 0) {
       const computed = calculService
