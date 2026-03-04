@@ -32,6 +32,7 @@ const Informations = React.lazy(() => import("./components/informations/Informat
 const InformationsParticipation = React.lazy(() => import("./components/informations/InformationsParticipation"));
 
 import { canAccessPage } from "./config/authConfig";
+import { SHEET_NAMES } from "./utils/constants";
 
 // CSS: tout est centralisé dans styles/App.css (chargé par main.jsx)
 
@@ -104,6 +105,7 @@ export default function App() {
   const [showTour1ActiveSuccess, setShowTour1ActiveSuccess] = useState(false);
   const [showTour2ActiveSuccess, setShowTour2ActiveSuccess] = useState(false);
   const [unlockCount, setUnlockCount] = useState(0);
+  const [recalculingSieges, setRecalculingSieges] = useState(false);
 
   const showToast = ({ type = "info", title = "", message = "", durationMs = 4000 }) => {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -659,6 +661,56 @@ case "info-participation":
 
                 </div>
                 {/* FIN LIGNE AVEC 3 BLOCS */}
+
+                {/* === BLOC RECALCUL SIÈGES === */}
+                <div className="card" style={{ border: '2px solid #7c3aed', background: '#faf5ff', marginBottom: 24 }}>
+                  <h2 style={{ color: '#6d28d9', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    🔄 Recalcul des Sièges
+                  </h2>
+                  <p style={{ color: '#555', marginBottom: 16 }}>
+                    Vide les onglets <strong>Seats_Municipal</strong> et <strong>Seats_Community</strong> dans Google Sheets,
+                    puis force le recalcul depuis les candidats et résultats actuels.
+                    À utiliser après un changement de liste ou de données de test.
+                  </p>
+                  <button
+                    className="btn btn-primary"
+                    disabled={recalculingSieges}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', fontSize: '1em', fontWeight: 600, background: '#7c3aed', borderColor: '#7c3aed' }}
+                    onClick={async () => {
+                      const ok = await uiService.confirm({
+                        title: '🔄 Recalcul des sièges',
+                        message: 'Cette action va vider les onglets Seats_Municipal et Seats_Community.\n\nLes sièges seront recalculés automatiquement depuis les candidats et résultats actuels.\n\nConfirmer ?',
+                        confirmText: '🔄 Recalculer',
+                        cancelText: 'Annuler',
+                      });
+                      if (!ok) return;
+                      setRecalculingSieges(true);
+                      try {
+                        await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_MUNICIPAL);
+                        await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_COMMUNITY);
+                        await auditService.log('ADMIN_RECALCUL_SIEGES', {
+                          action: 'CLEAR_SEATS_MUNICIPAL_AND_COMMUNITY',
+                        });
+                        uiService.toast('success', {
+                          title: '✅ Sièges réinitialisés',
+                          message: 'Allez sur la page Sièges pour déclencher le recalcul automatique.',
+                        });
+                      } catch (e) {
+                        console.error('Erreur recalcul sièges:', e);
+                        uiService.toast('error', {
+                          title: 'Erreur',
+                          message: 'Recalcul échoué : ' + (e?.message || e),
+                        });
+                      } finally {
+                        setRecalculingSieges(false);
+                      }
+                    }}
+                  >
+                    {recalculingSieges ? '⏳ Réinitialisation en cours…' : '🔄 Réinitialiser et recalculer les sièges'}
+                  </button>
+                </div>
+                {/* FIN BLOC RECALCUL SIÈGES */}
+
                 <ConfigBureaux />
                 <ConfigCandidats />
                 <AuditLog />
