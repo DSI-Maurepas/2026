@@ -374,15 +374,21 @@ async sleep(ms) {
 
     switch (sheetName) {
       case 'Bureaux':
+        // Mapping par en-têtes (robuste aux ajouts de colonnes comme VicePresident)
         return rows.map(row => ({
-          id: row[0] || '',
-          nom: row[1] || '',
-          adresse: row[2] || '',
-          president: row[3] || '',
-          secretaire: row[4] || '',
-          secretaireSuppleant: row[5] || '',
-          inscrits: parseInt(row[6]) || 0,
-          actif: row[7] === 'TRUE' || row[7] === true
+          id:                  _str(row, 'ID', 0, '') || _str(row, 'Id', 0, ''),
+          nom:                 _str(row, 'Nom', 1, ''),
+          adresse:             _str(row, 'Adresse', 2, ''),
+          president:           _str(row, 'President', 3, ''),
+          vicePresident:       _str(row, 'VicePresident', 4, ''),
+          secretaire:          _str(row, 'Secretaire', 5, ''),
+          secretaireSuppleant: _str(row, 'SecretaireSuppleant', 6, ''),
+          inscrits:            _int(row, 'Inscrits', 7, 0),
+          actif:               (() => {
+            const i = _idx('Actif', 8);
+            const v = (i !== undefined && i !== null) ? row[i] : undefined;
+            return v === 'TRUE' || v === true || v === 1;
+          })()
         }));
 
       case 'Candidats':
