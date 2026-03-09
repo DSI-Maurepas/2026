@@ -1,33 +1,150 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useGoogleSheets } from "../../hooks/useGoogleSheets";
+import googleSheetsService from "../../services/googleSheetsService";
 
 /**
  * Admin - Bureaux
- * Version "anti-sticky": 1ère colonne figée via 2 tableaux synchronisés (ne dépend pas de position:sticky).
+ * Version éditable : lecture seule par défaut, basculement en écriture via bouton.
+ * Sauvegarde cellule par cellule sur blur.
  */
 const ConfigBureaux = () => {
   const { data: bureaux, load, loading } = useGoogleSheets("Bureaux");
 
-  const leftRef = useRef(null);
+  const leftRef  = useRef(null);
   const rightRef = useRef(null);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const [editMode,  setEditMode]  = useState(false);
+  const [editData,  setEditData]  = useState({});
+  const [savingKey, setSavingKey] = useState(null);
+  const [feedback,  setFeedback]  = useState(null); // { type: 'success'|'error', msg }
+
+  useEffect(() => { load(); }, [load]);
 
   const rows = useMemo(() => (Array.isArray(bureaux) ? bureaux : []), [bureaux]);
 
+  // ── Synchronisation scroll vertical ──────────────────────────────────────
   const syncScroll = (source) => {
     const l = leftRef.current;
     const r = rightRef.current;
     if (!l || !r) return;
     if (source === "right") l.scrollTop = r.scrollTop;
-    if (source === "left") r.scrollTop = l.scrollTop;
+    if (source === "left")  r.scrollTop = l.scrollTop;
   };
+
+  // ── Entrer en mode édition ────────────────────────────────────────────────
+  const enterEditMode = () => {
+    const init = {};
+    rows.forEach(b => {
+      init[b.id] = {
+        nom:        b.nom        ?? '',
+        adresse:    b.adresse    ?? '',
+        president:  b.president  ?? '',
+        secretaire: b.secretaire ?? '',
+        inscrits:   b.inscrits   ?? '',
+        _rowIndex:  b.rowIndex,
+      };
+    });
+    setEditData(init);
+    setEditMode(true);
+    setFeedback(null);
+  };
+
+  const exitEditMode = () => {
+    setEditMode(false);
+    setEditData({});
+    setFeedback(null);
+  };
+
+  // ── Mise à jour locale ────────────────────────────────────────────────────
+  const handleChange = (bureauId, field, value) => {
+    setEditData(prev => ({
+      ...prev,
+      [bureauId]: { ...prev[bureauId], [field]: value }
+    }));
+  };
+
+  // ── Sauvegarde sur blur ───────────────────────────────────────────────────
+  const handleBlur = async (bureauId, field) => {
+    if (!editMode) return;
+    const key = `${bureauId}_${field}`;
+    setSavingKey(key);
+    try {
+      const d = editData[bureauId];
+      const rowData = {
+        id:         bureauId,
+        nom:        d.nom,
+        adresse:    d.adresse,
+        president:  d.president,
+        secretaire: d.secretaire,
+        inscrits:   Number(d.inscrits) || 0,
+      };
+      await googleSheetsService.updateRow('Bureaux', d._rowIndex, rowData);
+      setFeedback({ type: 'success', msg: `${bureauId} — ${field} sauvegardé` });
+      await load();
+    } catch (e) {
+      console.error('[ConfigBureaux] Erreur sauvegarde:', e);
+      setFeedback({ type: 'error', msg: `Erreur : ${e?.message || e}` });
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  // ── Style cellule éditable ────────────────────────────────────────────────
+  const inputStyle = (bureauId, field) => ({
+    width: '100%',
+    padding: '4px 6px',
+    border: `1.5px solid ${savingKey === `${bureauId}_${field}` ? '#f59e0b' : '#93c5fd'}`,
+    borderRadius: 4,
+    fontSize: 13,
+    background: savingKey === `${bureauId}_${field}` ? '#fef9c3' : '#fff',
+    outline: 'none',
+    boxSizing: 'border-box',
+  });
 
   return (
     <div className="config-bureaux">
-      <h3>📍 Configuration des bureaux de vote</h3>
+      {/* ── En-tête ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+        <h3 style={{ margin: 0 }}>📍 Configuration des bureaux de vote</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {feedback && (
+            <span style={{
+              fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 6,
+              background: feedback.type === 'success' ? '#d1fae5' : '#fee2e2',
+              color:      feedback.type === 'success' ? '#065f46' : '#991b1b',
+            }}>
+              {feedback.type === 'success' ? '✅' : '❌'} {feedback.msg}
+            </span>
+          )}
+          <button
+            onClick={() => editMode ? exitEditMode() : enterEditMode()}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', borderRadius: 8, border: 'none',
+              background: editMode
+                ? 'linear-gradient(135deg, #64748b, #475569)'
+                : 'linear-gradient(135deg, #1e3c72, #2a5298)',
+              color: '#fff', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}
+          >
+            <span>{editMode ? '🔒' : '✏️'}</span>
+            <span>{editMode ? 'Verrouiller (lecture seule)' : 'Modifier les bureaux'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Badge mode ── */}
+      <div style={{ marginBottom: 10 }}>
+        <span style={{
+          fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+          background: editMode ? '#fef9c3' : '#d1fae5',
+          color:      editMode ? '#92400e' : '#065f46',
+          border: `1px solid ${editMode ? '#fde68a' : '#6ee7b7'}`,
+        }}>
+          {editMode ? '✏️ MODE ÉDITION — sauvegarde automatique à chaque sortie de cellule' : '👁 LECTURE SEULE'}
+        </span>
+      </div>
 
       {loading ? (
         <p>Chargement...</p>
@@ -37,9 +154,7 @@ const ConfigBureaux = () => {
           <div className="split-table-left" ref={leftRef} onScroll={() => syncScroll("left")}>
             <table className="admin-table split">
               <thead>
-                <tr>
-                  <th>ID</th>
-                </tr>
+                <tr><th>ID</th></tr>
               </thead>
               <tbody>
                 {rows.map((b) => (
@@ -53,7 +168,7 @@ const ConfigBureaux = () => {
             </table>
           </div>
 
-          {/* Tableau scrollable horizontal */}
+          {/* Tableau scrollable */}
           <div className="split-table-right" ref={rightRef} onScroll={() => syncScroll("right")}>
             <table className="admin-table split">
               <thead>
@@ -66,17 +181,70 @@ const ConfigBureaux = () => {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((b) => (
-                  <tr key={b.id}>
-                    <td>
-                      <strong>{b.nom}</strong>
-                    </td>
-                    <td>{b.adresse}</td>
-                    <td>{b.president}</td>
-                    <td>{b.secretaire}</td>
-                    <td>{b.inscrits}</td>
-                  </tr>
-                ))}
+                {rows.map((b) => {
+                  const d = editData[b.id] || {};
+                  return (
+                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}>
+                      {/* Nom */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'nom')}
+                            value={d.nom ?? ''}
+                            onChange={e => handleChange(b.id, 'nom', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'nom')}
+                          />
+                        ) : <strong>{b.nom}</strong>}
+                      </td>
+                      {/* Adresse */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'adresse')}
+                            value={d.adresse ?? ''}
+                            onChange={e => handleChange(b.id, 'adresse', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'adresse')}
+                          />
+                        ) : b.adresse}
+                      </td>
+                      {/* Président */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'president')}
+                            value={d.president ?? ''}
+                            onChange={e => handleChange(b.id, 'president', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'president')}
+                          />
+                        ) : b.president}
+                      </td>
+                      {/* Secrétaire */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'secretaire')}
+                            value={d.secretaire ?? ''}
+                            onChange={e => handleChange(b.id, 'secretaire', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'secretaire')}
+                          />
+                        ) : b.secretaire}
+                      </td>
+                      {/* Inscrits */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={{ ...inputStyle(b.id, 'inscrits'), width: 80, textAlign: 'right' }}
+                            type="text"
+                            inputMode="numeric"
+                            value={d.inscrits ?? ''}
+                            onChange={e => handleChange(b.id, 'inscrits', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'inscrits')}
+                          />
+                        ) : b.inscrits}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
