@@ -12,7 +12,7 @@ const formatDateFR = (isoDate) => {
   if (isNaN(d.getTime())) return isoDate;
   return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
 };
-import auditService from './auditService';
+import { googleSheetsService, auditService } from '.';
 // ⚡ Import dynamique : xlsx (~2 Mo) n'est chargé qu'au premier export
 let _XLSX = null;
 async function getXLSX() {
@@ -21,7 +21,6 @@ async function getXLSX() {
   }
   return _XLSX;
 }
-import googleSheetsService from './googleSheetsService';
 import calculService from './calculService';
 
 class ExportService {
@@ -326,9 +325,10 @@ default:
         'Taux procurations (%)': votants > 0 ? Number(((procurations / votants) * 100).toFixed(2)) : 0,
       };
 
-      // Ajouter les voix par candidat
+      // Ajouter les voix par candidat (seulement ceux avec voix > 0 au global)
       candidats.forEach(c => {
-        row[c.nomListe] = r.voix[c.listeId] || 0;
+        const v = r.voix[c.listeId] || 0;
+        if (v > 0) row[c.nomListe] = v;
       });
 
       row['Saisi par'] = r.saisiPar;
@@ -828,10 +828,16 @@ const data = (auditData || [])
         };
 
         const voixMap = r?.voix || r?.voixParCandidat || r?.VoixParCandidat || {};
-        // Colonnes par candidat : on utilise le nom de liste (plus lisible) et on garde l'ID en préfixe
+        // Colonnes par candidat : on exclut les candidats dont le total de voix sur tous les bureaux est 0
+        const allResultats = Array.isArray(resultats) ? resultats : [];
         for (const c of cands) {
           const id = c?.listeId ?? c?.ListeID ?? c?.id;
           const label = c?.nomListe ?? c?.NomListe ?? id;
+          const totalVoix = allResultats.reduce((sum, bureau) => {
+            const vm = bureau?.voix || bureau?.voixParCandidat || bureau?.VoixParCandidat || {};
+            return sum + toNum(vm?.[id] ?? vm?.[label] ?? bureau?.[id] ?? bureau?.[label] ?? 0);
+          }, 0);
+          if (totalVoix === 0) continue; // on ignore ce candidat
           const col = `${id} — ${label}`;
           row[col] = toNum(voixMap?.[id] ?? voixMap?.[label] ?? r?.[id] ?? r?.[label] ?? 0);
         }
@@ -1049,7 +1055,7 @@ const data = (auditData || [])
       voix: l.voix,
       pctExprimes: totalExprimes > 0 ? (l.voix / totalExprimes) * 100 : 0,
       pctInscrits: totalInscrits > 0 ? (l.voix / totalInscrits) * 100 : 0
-    })).sort((a, b) => b.voix - a.voix);
+    })).filter(l => l.voix > 0).sort((a, b) => b.voix - a.voix);
 
     return {
       totalInscrits,
@@ -1955,7 +1961,18 @@ const data = (auditData || [])
   async exportAfficheResultatsXLSX(resultats, candidats, tour) {
     if (tour === undefined) tour = 1;
     const toNum = (v) => { const n = Number(String(v ?? '').replace(/\s/g, '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
-    const cands = (Array.isArray(candidats) ? candidats : []).filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false)).slice(0, 6);
+    // Calcul des voix totales par liste pour filtrer celles à 0
+    const _voixTotales = {};
+    (Array.isArray(resultats) ? resultats : []).forEach(r => {
+      (Array.isArray(candidats) ? candidats : []).forEach(c => {
+        const lid = c?.listeId ?? c?.id ?? '';
+        _voixTotales[lid] = (_voixTotales[lid] || 0) + (Number(r?.voix?.[lid] ?? 0));
+      });
+    });
+    const cands = (Array.isArray(candidats) ? candidats : [])
+      .filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false))
+      .filter(c => (_voixTotales[c?.listeId ?? c?.id ?? ''] || 0) > 0)
+      .slice(0, 6);
     const resByBureau = new Map();
     (Array.isArray(resultats) ? resultats : []).forEach(r => { const bid = String(r?.bureauId ?? r?.BureauID ?? r?.Bureau ?? '').trim(); if (bid) resByBureau.set(bid, r); });
     const dateFR = formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2']);
@@ -1997,7 +2014,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
 
     const escXml = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     let xml = SHEET1_TPL;
-    xml = xml.replace('{{DATE_LIGNE}}', `Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78403'}) &#8212; ${escXml(tourLabel)} &#8212; ${escXml(dateFR)}`);
+    xml = xml.replace('{{DATE_LIGNE}}', `Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78383'}) &#8212; ${escXml(tourLabel)} &#8212; ${escXml(dateFR)}`);
     const candCols = ['H','J','L','N','P','R'];
     candCols.forEach((col, idx) => {
       const nom = cands[idx] ? escXml(cands[idx].nomListe ?? `Candidat ${idx+1}`) : `Candidat ${idx+1}`;
@@ -2040,7 +2057,18 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
   async openAfficheResultatsForPrint(resultats, candidats, tour) {
     if (tour === undefined) tour = 1;
     const toNum = (v) => { const n = Number(String(v ?? '').replace(/\s/g, '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
-    const cands = (Array.isArray(candidats) ? candidats : []).filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false)).slice(0, 6);
+    // Calcul des voix totales par liste pour filtrer celles à 0
+    const _voixTotales = {};
+    (Array.isArray(resultats) ? resultats : []).forEach(r => {
+      (Array.isArray(candidats) ? candidats : []).forEach(c => {
+        const lid = c?.listeId ?? c?.id ?? '';
+        _voixTotales[lid] = (_voixTotales[lid] || 0) + (Number(r?.voix?.[lid] ?? 0));
+      });
+    });
+    const cands = (Array.isArray(candidats) ? candidats : [])
+      .filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false))
+      .filter(c => (_voixTotales[c?.listeId ?? c?.id ?? ''] || 0) > 0)
+      .slice(0, 6);
     const resByBureau = new Map();
     (Array.isArray(resultats) ? resultats : []).forEach(r => { const bid = String(r?.bureauId ?? r?.BureauID ?? r?.Bureau ?? '').trim(); if (bid) resByBureau.set(bid, r); });
     const dateFR = formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2']);
@@ -2087,7 +2115,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       const p=totEx>0?`${(v/totEx*100).toFixed(2)}\u00a0%`:'';
       return `<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${v}</td>` +`<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${p}</td>`;
     }).join('');
-    const commune = ELECTION_CONFIG.COMMUNE_CODE || '78403';
+    const commune = ELECTION_CONFIG.COMMUNE_CODE || '78383';
     const html = [
       `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">`,
       `<title>Affiche R\u00e9sultats \u2014 Maurepas \u2014 ${this.escapeHtml(tourLabel)}</title>`,
@@ -2386,10 +2414,10 @@ async loadExcelJS() {
       }
     })();
 
-      const rowsHtml = candAgg.filter(c => (c.voix ?? 0) > 0).map((c, idx) => {
+    const rowsHtml = candAgg.filter(c => (c.voix ?? 0) > 0).map((c, idx) => {
       const rawNom = String(c.nom ?? '').trim();
       const nomUp = rawNom.toUpperCase();
-      const nom = nomUp.startsWith('LISTE ') ? nomUp : (nomUp ? `LISTE ${nomUp}` : '');
+      const nom = nomUp.startsWith('LISTE ') ? nomUp.slice(6).trim() : nomUp;
       const voix = String(c.voix ?? 0);
       const pct = `${(c.pct ?? 0).toFixed(2)} %`.replace('.', ',');
       return `
@@ -2445,7 +2473,7 @@ async loadExcelJS() {
         <div class="title">MAUREPAS (Yvelines)</div>
         <div class="subtitle">Élections Municipales</div>
         <div class="subtitle">2026</div>
-        <div class="subtitle2">Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78403'}) — ${tour === 1 ? '1er Tour' : '2nd Tour'} — ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</div>
+        <div class="subtitle2">Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78383'}) — ${tour === 1 ? '1er Tour' : '2nd Tour'} — ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</div>
       </div>
     </div>
 
