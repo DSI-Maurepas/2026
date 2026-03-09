@@ -372,7 +372,7 @@ useEffect(() => {
     const list = Array.isArray(bureaux) ? bureaux : [];
     const normalized = normalizeBureauId(selectedBureauId);
     const b = list.find((x) => normalizeBureauId(x?.id ?? '') === normalized) || null;
-    if (!b) return { nom: selectedBureauId || '—', president: '—', secretaire: '—' };
+    if (!b) return { nom: selectedBureauId || '—', president: '—', vicePresident: '—', secretaire: '—' };
 
     const nom = String(b?.nom ?? b?.libelle ?? b?.bureau ?? b?.id ?? selectedBureauId ?? '—');
 
@@ -383,6 +383,15 @@ useEffect(() => {
           b?.presidentNom ??
           b?.president_prenomNom ??
           b?.pres ??
+          ''
+      ).trim() || '—';
+
+    const vicePresident =
+      String(
+        b?.vicePresident ??
+          b?.vice_president ??
+          b?.vicePresidentNom ??
+          b?.adjoint ??
           ''
       ).trim() || '—';
 
@@ -402,7 +411,7 @@ useEffect(() => {
           ''
       ).trim() || '—';
 
-    return { nom, president, secretaire, suppleant };
+    return { nom, president, vicePresident, secretaire, suppleant };
   }, [bureaux, selectedBureauId]);
 
   const controles = useMemo(() => {
@@ -1572,6 +1581,7 @@ useEffect(() => {
               <div style={{ fontSize: 14, lineHeight: 1.35 }}>
                 <div><strong>Bureau :</strong> {bureauMeta.nom}</div>
                 <div><strong>Président :</strong> {bureauMeta.president}</div>
+                <div><strong>Vice-Président :</strong> {bureauMeta.vicePresident}</div>
                 <div><strong>Secrétaire :</strong> {bureauMeta.secretaire}</div>
                 <div><strong>Suppléant(e) :</strong> {bureauMeta.suppleant}</div>
               </div>
