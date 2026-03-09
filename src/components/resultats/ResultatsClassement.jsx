@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import useGoogleSheets from '../../hooks/useGoogleSheets';
 import { getAuthState, isBV } from '../../services/authService';
 
-const COLORS = ['#2563eb', '#16a34a', '#f97316', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b'];
+// Couleurs de secours uniquement si le candidat n'a pas de couleur configurée
+const COLORS_FALLBACK = ['#2563eb', '#16a34a', '#f97316', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b'];
 
 const n = (v) => {
   const num = Number(String(v ?? '').replace(',', '.').replace(/\s/g, ''));
@@ -56,15 +57,19 @@ const ResultatsClassement = ({ electionState }) => {
         const v = voixObj[id] ?? voixObj[`${id}_Voix`] ?? voixObj[`${id}Voix`];
         return acc + n(v);
       }, 0);
-      return { id, name: getCandidateName(c, idx), totalVoix };
+      // Couleur configurée par l'admin dans ConfigCandidats, fallback sur palette
+      const couleur = (c?.couleur && String(c.couleur).trim()) ? String(c.couleur).trim() : null;
+      return { id, name: getCandidateName(c, idx), totalVoix, couleur };
     });
 
     const sorted = totals
       .slice()
       .sort((a, b) => b.totalVoix - a.totalVoix)
-      .map((c) => ({
+      .map((c, idx) => ({
         ...c,
         pct: totalExprimes > 0 ? (c.totalVoix / totalExprimes) * 100 : 0,
+        // Couleur admin prioritaire, fallback sur palette par rang
+        color: c.couleur || COLORS_FALLBACK[idx % COLORS_FALLBACK.length],
       }));
 
     return sorted;
@@ -97,7 +102,7 @@ const ResultatsClassement = ({ electionState }) => {
       }}>
         {top2OrQualifies.map((candidat, index) => {
           const rank = classement.findIndex(c => c.id === candidat.id) + 1;
-          const color = COLORS[(rank - 1) % COLORS.length];
+          const color = candidat.color;
           
           // Logique de qualification selon le tour
           const isQualifie = isTour1 
@@ -222,7 +227,7 @@ const ResultatsClassement = ({ electionState }) => {
           }}>
             {others.map((candidat) => {
               const rank = classement.findIndex(c => c.id === candidat.id) + 1;
-              const color = COLORS[(rank - 1) % COLORS.length];
+              const color = candidat.color;
               return (
                 <div
                   key={`${candidat.id}-${rank}`}
