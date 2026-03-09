@@ -12,7 +12,8 @@ const formatDateFR = (isoDate) => {
   if (isNaN(d.getTime())) return isoDate;
   return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
 };
-import { googleSheetsService, auditService } from '.';
+import googleSheetsService from './googleSheetsService';
+import auditService from './auditService';
 // ⚡ Import dynamique : xlsx (~2 Mo) n'est chargé qu'au premier export
 let _XLSX = null;
 async function getXLSX() {
@@ -2014,7 +2015,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
 
     const escXml = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     let xml = SHEET1_TPL;
-    xml = xml.replace('{{DATE_LIGNE}}', `Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78383'}) &#8212; ${escXml(tourLabel)} &#8212; ${escXml(dateFR)}`);
+    xml = xml.replace('{{DATE_LIGNE}}', `Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78403'}) &#8212; ${escXml(tourLabel)} &#8212; ${escXml(dateFR)}`);
     const candCols = ['H','J','L','N','P','R'];
     candCols.forEach((col, idx) => {
       const nom = cands[idx] ? escXml(cands[idx].nomListe ?? `Candidat ${idx+1}`) : `Candidat ${idx+1}`;
@@ -2115,7 +2116,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       const p=totEx>0?`${(v/totEx*100).toFixed(2)}\u00a0%`:'';
       return `<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${v}</td>` +`<td style="font-weight:800;font-size:14pt;padding-top:12px;padding-bottom:12px;">${p}</td>`;
     }).join('');
-    const commune = ELECTION_CONFIG.COMMUNE_CODE || '78383';
+    const commune = ELECTION_CONFIG.COMMUNE_CODE || '78403';
     const html = [
       `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">`,
       `<title>Affiche R\u00e9sultats \u2014 Maurepas \u2014 ${this.escapeHtml(tourLabel)}</title>`,
@@ -2473,7 +2474,7 @@ async loadExcelJS() {
         <div class="title">MAUREPAS (Yvelines)</div>
         <div class="subtitle">Élections Municipales</div>
         <div class="subtitle">2026</div>
-        <div class="subtitle2">Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78383'}) — ${tour === 1 ? '1er Tour' : '2nd Tour'} — ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</div>
+        <div class="subtitle2">Maurepas (${ELECTION_CONFIG.COMMUNE_CODE || '78403'}) — ${tour === 1 ? '1er Tour' : '2nd Tour'} — ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</div>
       </div>
     </div>
 
