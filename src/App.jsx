@@ -392,11 +392,11 @@ case "info-participation":
             {renderAuthGate()}
             {isAuthenticated && (
               <>
-                {/* === LIGNE AVEC 4 BLOCS : GESTION TOURS + FORCER T2 + DÉVERROUILLAGE T1 + T2 === */}
+                {/* === LIGNE AVEC 5 BLOCS : GESTION TOURS + FORCER T2 + DÉVERROUILLAGE T1 + T2 + RECALCUL === */}
                 <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
 
                   {/* BLOC 1 : GESTION DES TOURS — info seulement */}
-                  <div style={{ flex: '2 1 0' }}>
+                  <div style={{ flex: '1.5 1 0' }}>
                     <div className="card" style={{ border: '2px solid #e74c3c', background: '#fdf2f2', height: '100%' }}>
                       <h2 style={{ color: '#c0392b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                         🔄 Gestion des Tours
@@ -665,48 +665,47 @@ case "info-participation":
                     </div>
                   </div>
 
-                </div>
-                {/* FIN LIGNE AVEC 4 BLOCS */}
+                  {/* BLOC 5 : RECALCUL SIÈGES */}
+                  <div style={{ flex: '1 1 0' }}>
+                    <div className="card" style={{ border: '2px solid #7c3aed', background: '#faf5ff', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
+                      <h2 style={{ color: '#6d28d9', margin: 0, fontSize: '1em', textAlign: 'center', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        🔄 Recalcul<br />des Sièges
+                      </h2>
+                      <p style={{ color: '#777', fontSize: 12, textAlign: 'center', margin: 0, lineHeight: 1.4 }}>
+                        Vide <strong>Seats_Municipal</strong> et <strong>Seats_Community</strong> pour forcer le recalcul.
+                      </p>
+                      <button
+                        className="btn btn-primary"
+                        disabled={recalculingSieges}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 12, fontWeight: 600, background: '#7c3aed', borderColor: '#7c3aed', textAlign: 'center', whiteSpace: 'normal', lineHeight: 1.3 }}
+                        onClick={async () => {
+                          const ok = await uiService.confirm({
+                            title: '🔄 Recalcul des sièges',
+                            message: 'Cette action va vider les onglets Seats_Municipal et Seats_Community.\n\nLes sièges seront recalculés automatiquement depuis les candidats et résultats actuels.\n\nConfirmer ?',
+                            confirmText: '🔄 Recalculer',
+                            cancelText: 'Annuler',
+                          });
+                          if (!ok) return;
+                          setRecalculingSieges(true);
+                          try {
+                            await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_MUNICIPAL);
+                            await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_COMMUNITY);
+                            await auditService.log('ADMIN_RECALCUL_SIEGES', { action: 'CLEAR_SEATS_MUNICIPAL_AND_COMMUNITY' });
+                            uiService.toast('success', { title: '✅ Sièges réinitialisés', message: 'Allez sur la page Sièges pour déclencher le recalcul.' });
+                          } catch (e) {
+                            uiService.toast('error', { title: 'Erreur', message: 'Recalcul échoué : ' + (e?.message || e) });
+                          } finally {
+                            setRecalculingSieges(false);
+                          }
+                        }}
+                      >
+                        {recalculingSieges ? '⏳ En cours…' : '🔄 Réinitialiser'}
+                      </button>
+                    </div>
+                  </div>
 
-                {/* === BLOC RECALCUL SIÈGES === */}
-                <div className="card" style={{ border: '2px solid #7c3aed', background: '#faf5ff', marginBottom: 24 }}>
-                  <h2 style={{ color: '#6d28d9', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    🔄 Recalcul des Sièges
-                  </h2>
-                  <p style={{ color: '#555', marginBottom: 16 }}>
-                    Vide les données <strong>Seats_Municipal</strong> et <strong>Seats_Community</strong> du stockage local,
-                    puis force le recalcul depuis les candidats et résultats actuels.
-                    À utiliser après un changement de liste ou de données de test.
-                  </p>
-                  <button
-                    className="btn btn-primary"
-                    disabled={recalculingSieges}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', fontSize: '1em', fontWeight: 600, background: '#7c3aed', borderColor: '#7c3aed' }}
-                    onClick={async () => {
-                      const ok = await uiService.confirm({
-                        title: '🔄 Recalcul des sièges',
-                        message: 'Cette action va vider les onglets Seats_Municipal et Seats_Community.\n\nLes sièges seront recalculés automatiquement depuis les candidats et résultats actuels.\n\nConfirmer ?',
-                        confirmText: '🔄 Recalculer',
-                        cancelText: 'Annuler',
-                      });
-                      if (!ok) return;
-                      setRecalculingSieges(true);
-                      try {
-                        await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_MUNICIPAL);
-                        await googleSheetsService.clearSheet(SHEET_NAMES.SEATS_COMMUNITY);
-                        await auditService.log('ADMIN_RECALCUL_SIEGES', { action: 'CLEAR_SEATS_MUNICIPAL_AND_COMMUNITY' });
-                        uiService.toast('success', { title: '✅ Sièges réinitialisés', message: 'Allez sur la page Sièges pour déclencher le recalcul automatique.' });
-                      } catch (e) {
-                        uiService.toast('error', { title: 'Erreur', message: 'Recalcul échoué : ' + (e?.message || e) });
-                      } finally {
-                        setRecalculingSieges(false);
-                      }
-                    }}
-                  >
-                    {recalculingSieges ? '⏳ Réinitialisation en cours…' : '🔄 Réinitialiser et recalculer les sièges'}
-                  </button>
                 </div>
-                {/* FIN BLOC RECALCUL SIÈGES */}
+                {/* FIN LIGNE AVEC 5 BLOCS */}
 
                 <ConfigBureaux />
                 <ConfigCandidats />
