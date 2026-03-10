@@ -122,16 +122,24 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
     const n = parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 0) return;
 
+    // ── Validation : votants ≤ inscrits ──────────────────────────
+    const inscrits = parseInt(row?.inscrits ?? 0, 10);
+    if (Number.isFinite(inscrits) && inscrits > 0 && n > inscrits) {
+      const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10))
+        ? String(row[key]) : '';
+      setInputs((prev) => ({ ...prev, [key]: current }));
+      setValidationError({ type: 'inscrits', current: n, inscrits });
+      return;
+    }
+
     // ── Validation cumulative : H doit être ≥ H-1 ──────────────────
     const keyIndex = HOURS.findIndex((h) => h.key === key);
     if (keyIndex > 0) {
       const prevKey = HOURS[keyIndex - 1].key;
       const prevVal = parseInt(inputs[prevKey] ?? row?.[prevKey] ?? 0, 10);
       if (Number.isFinite(prevVal) && n < prevVal) {
-        // Annuler la saisie : remettre la valeur actuelle en sheets
         const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10))
-          ? String(row[key])
-          : '';
+          ? String(row[key]) : '';
         setInputs((prev) => ({ ...prev, [key]: current }));
         setValidationError({
           current: n,
@@ -165,11 +173,7 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
         value: n,
       });
 
-      // reload state global éventuel (dashboard / badges)
-      try {
-        await reloadElectionState?.();
-      } catch (_) {}
-      // reload row (source de vérité sheets)
+      // reload row (source de vérité sheets) - silencieux (pas de spinner)
       await loadParticipationRow(selectedBureauId);
     } finally {
       setSavingKey(null);
@@ -197,13 +201,21 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
           }}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 8 }}>⚠️</div>
             <div style={{ fontWeight: 800, fontSize: 16, color: accentColor, textAlign: 'center', marginBottom: 12 }}>
-              Saisie invalide — Valeur trop faible
+              {validationError.type === 'inscrits' ? 'Saisie invalide — Dépassement inscrits' : 'Saisie invalide — Valeur trop faible'}
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.6, background: accentLight, borderRadius: 10, padding: '12px 16px', border: `1px solid ${accentBorder}` }}>
-              La valeur saisie <strong>{validationError.current}</strong> est inférieure
-              au cumul de l'heure précédente ({validationError.prevLabel} = <strong>{validationError.prevVal}</strong>).
-              <br/>
-              <span style={{ opacity: 0.8 }}>Les votants sont cumulés : la valeur doit être ≥ {validationError.prevVal}.</span>
+              {validationError.type === 'inscrits' ? (
+                <>
+                  La valeur saisie <strong>{validationError.current}</strong> dépasse le nombre d'inscrits (<strong>{validationError.inscrits}</strong>).
+                  <br/><span style={{ opacity: 0.8 }}>Les votants ne peuvent pas dépasser les inscrits.</span>
+                </>
+              ) : (
+                <>
+                  La valeur saisie <strong>{validationError.current}</strong> est inférieure
+                  au cumul de l'heure précédente ({validationError.prevLabel} = <strong>{validationError.prevVal}</strong>).
+                  <br/><span style={{ opacity: 0.8 }}>Les votants sont cumulés : la valeur doit être ≥ {validationError.prevVal}.</span>
+                </>
+              )}
             </div>
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               <button

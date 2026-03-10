@@ -150,6 +150,12 @@ export default function App() {
   }, []);
 
   const isAuthenticated = useMemo(() => Boolean(authToken), [authToken]);
+  // ADMIN et GLOBAL voient le contenu sans OAuth
+  const canViewContent = useMemo(() =>
+    isAuthenticated ||
+    accessAuth?.role === 'ADMIN' ||
+    accessAuth?.role === 'GLOBAL',
+  [isAuthenticated, accessAuth]);
 
   // ⚠️ CORRECTION : Détecter si l'utilisateur est un BV
   const isBureauVote = useMemo(() => isBV(accessAuth), [accessAuth]);
@@ -279,7 +285,7 @@ export default function App() {
         return (
           <>
             {renderAuthGate()}
-            {isAuthenticated && (
+            {canViewContent && (
               <>
                 {/* ⚠️ CORRECTION : Layout côte à côte pour BV avec STYLE INLINE */}
                 {isBureauVote ? (
@@ -323,7 +329,7 @@ export default function App() {
         return (
           <>
             {renderAuthGate()}
-            {isAuthenticated && (
+            {canViewContent && (
               <>
                 {/* 1. Tableau des bureaux + Formulaire de saisie */}
                 <ResultatsSaisieBureau electionState={safeElectionState} />

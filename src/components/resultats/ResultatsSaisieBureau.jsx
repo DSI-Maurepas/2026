@@ -420,17 +420,20 @@ useEffect(() => {
     const nuls = coerceInt(inputsMain.nuls);
     const exprimes = coerceInt(inputsMain.exprimes);
 
-    const ctrl1Ok = votants === (blancs + nuls + exprimes);
-
     let sommeVoix = 0;
     for (const c of candidatsActifs) {
       const key = String(c?.listeId ?? '').trim();
       if (!key) continue;
       sommeVoix += coerceInt(inputsVoix[key]);
     }
-    const ctrl2Ok = sommeVoix === exprimes;
 
-    return { votants, blancs, nuls, exprimes, sommeVoix, ctrl1Ok, ctrl2Ok };
+    // Si tout est à 0 : aucune donnée saisie → contrôles rouges obligatoirement
+    const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
+
+    const ctrl1Ok = hasData && votants === (blancs + nuls + exprimes);
+    const ctrl2Ok = hasData && sommeVoix === exprimes;
+
+    return { votants, blancs, nuls, exprimes, sommeVoix, ctrl1Ok, ctrl2Ok, hasData };
   }, [candidatsActifs, inputsMain, inputsVoix]);
 
   // Vérifier si tous les champs sont remplis
@@ -448,7 +451,13 @@ useEffect(() => {
   }, [inputsMain, inputsVoix, candidatsActifs]);
 
   // Le bouton est activable si : tous champs remplis + ctrl1 OK + ctrl2 OK + pas encore verrouillé
-  const canLock = allFieldsFilled && controles.ctrl1Ok && controles.ctrl2Ok && !isLocked;
+  const votantsExceedsInscrits = useMemo(() => {
+    const inscrits = getInscritsForBureau(selectedBureauId);
+    const votants = coerceInt(inputsMain.votants);
+    return inscrits > 0 && votants > inscrits;
+  }, [selectedBureauId, inputsMain.votants, getInscritsForBureau]);
+
+  const canLock = allFieldsFilled && controles.ctrl1Ok && controles.ctrl2Ok && !isLocked && !votantsExceedsInscrits;
 
   // Fonction de verrouillage
   const handleLockBureau = useCallback(async () => {
@@ -1478,9 +1487,15 @@ useEffect(() => {
                   width: '100%', 
                   padding: 6,
                   background: (isLocked && !isAdmin) ? '#f0f0f0' : '#fff',
+                  borderColor: votantsExceedsInscrits ? '#ef4444' : undefined,
                   cursor: (isLocked && !isAdmin) ? 'not-allowed' : 'text'
                 }}
               />
+              {votantsExceedsInscrits && (
+                <div style={{ fontSize: 11, color: '#ef4444', marginTop: 2, fontWeight: 600 }}>
+                  ⚠️ Dépasse les inscrits ({getInscritsForBureau(selectedBureauId)})
+                </div>
+              )}
             </div>
 
             {/* PROCURATIONS */}
