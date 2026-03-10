@@ -181,15 +181,15 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
         setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], votants: '' } }));
         isSavingRef.current = null; setSavingCell(null); return;
       }
-      if (field === 'procurations' && votants > 0 && coerceInt(d.procurations) > votants) {
+      if (field === 'procurations' && coerceInt(d.procurations) > votants) {
         setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], procurations: '' } }));
         isSavingRef.current = null; setSavingCell(null); return;
       }
-      if (field === 'blancs' && votants > 0 && coerceInt(d.blancs) > votants) {
+      if (field === 'blancs' && coerceInt(d.blancs) > votants) {
         setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], blancs: '' } }));
         isSavingRef.current = null; setSavingCell(null); return;
       }
-      if (field === 'nuls' && votants > 0 && coerceInt(d.nuls) > votants) {
+      if (field === 'nuls' && coerceInt(d.nuls) > votants) {
         setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], nuls: '' } }));
         isSavingRef.current = null; setSavingCell(null); return;
       }
