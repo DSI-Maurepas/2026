@@ -93,7 +93,7 @@ const ConfigBureaux = () => {
   };
 
   // ── Style cellule éditable ────────────────────────────────────────────────
-  const tdStyle = { padding: '8px', verticalAlign: 'middle' };
+  const tdStyle = { padding: '8px 10px', verticalAlign: 'middle', borderBottom: '1px solid #e2e8f0' };
 
   const inputStyle = (bureauId, field) => ({
     width: '100%',
@@ -154,7 +154,7 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', borderRadius: 10, overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
           <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: 50 }} />
@@ -182,7 +182,7 @@ const ConfigBureaux = () => {
                 {rows.map((b) => {
                   const d = editData[b.id] || {};
                   return (
-                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined, borderBottom: '1px solid #e5e7eb' }}>
+                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}>
                       {/* ID */}
                       <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
                       {/* Nom */}
