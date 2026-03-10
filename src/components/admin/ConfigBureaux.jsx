@@ -154,7 +154,7 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <div style={{ overflowX: 'auto', borderRadius: 10, overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+        <div style={{ overflowX: 'auto' }}>
           <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: 50 }} />
@@ -167,15 +167,15 @@ const ConfigBureaux = () => {
               <col style={{ width: 70 }} />
             </colgroup>
             <thead>
-              <tr style={{ background: '#1e3a5f', color: '#fff' }}>
-                <th style={{ textAlign: 'center', padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>ID</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Nom</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Adresse</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Président(e)</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Vice-Président(e)</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Secrétaire</th>
-                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Suppléant(e)</th>
-                <th style={{ textAlign: 'right', padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Inscrits</th>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Président(e)</th>
+                <th>Vice-Président(e)</th>
+                <th>Secrétaire</th>
+                <th>Suppléant(e)</th>
+                <th style={{ textAlign: "right" }}>Inscrits</th>
               </tr>
             </thead>
               <tbody>
