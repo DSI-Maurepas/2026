@@ -318,15 +318,6 @@ export default function App() {
                 {/* 1. Tableau des bureaux + Formulaire de saisie */}
                 <ResultatsSaisieBureau electionState={safeElectionState} />
 
-                {/* 2. Vision générale (admin et global uniquement) */}
-                {!isBureauVote && (
-                  <ErrorBoundary>
-                    <React.Suspense fallback={null}>
-                      <ResultatsVisionGenerale tourActuel={safeElectionState.tourActuel} />
-                    </React.Suspense>
-                  </ErrorBoundary>
-                )}
-
                 {/* 3. Feuille officielle de résultats (profil BV uniquement) */}
                 {isBureauVote && (
                   <FeuilleResultatsBV electionState={safeElectionState} />
