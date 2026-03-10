@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import googleSheetsService from '../../services/googleSheetsService';
 import auditService from '../../services/auditService';
 import { getAuthState, isBV } from '../../services/authService';
-import ParticipationSaisieGlobale from './ParticipationSaisieGlobale';
 
 const HOURS = [
   { key: 'votants09h', label: '09h' },
@@ -30,54 +29,45 @@ const normalizeBureauId = (value) => {
 
 const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
   const auth = useMemo(() => getAuthState(), []);
-
-  // ── Profils admin / global → grille complète tous bureaux ──────────
-  if (!isBV(auth)) {
-    return (
-      <ParticipationSaisieGlobale
-        electionState={electionState}
-        reloadElectionState={reloadElectionState}
-      />
-    );
-  }
-
-  // ── Profil BV → formulaire mono-bureau (comportement inchangé) ──────
-  return (
-    <BVSaisieForm
-      electionState={electionState}
-      reloadElectionState={reloadElectionState}
-      auth={auth}
-    />
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────
-// Formulaire mono-bureau — réservé aux profils BV (extrait du composant
-// original afin de ne pas en changer le comportement)
-// ─────────────────────────────────────────────────────────────────────
-const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
   // ⚠️ CORRECTION : préfixe "BV" conservé pour cohérence avec les onglets Google Sheets (BV1..BV13)
-  const forcedBureauId = `BV${auth.bureauId}`;
+  const forcedBureauId = isBV(auth) ? `BV${auth.bureauId}` : null;
 
   const tourActuel = electionState?.tourActuel || 1;
   const participationSheet = tourActuel === 2 ? 'Participation_T2' : 'Participation_T1';
 
-  const [row, setRow] = useState(null);
-  const [inputs, setInputs] = useState({});
+  const [bureaux, setBureaux] = useState([]);
+  const [selectedBureauId, setSelectedBureauId] = useState(forcedBureauId || '');
+  const [row, setRow] = useState(null); // ligne participation (objet) avec rowIndex
+  const [inputs, setInputs] = useState({}); // buffer de saisie (string) pour éviter validations pendant frappe
   const [loading, setLoading] = useState(false);
+  const isInitialLoad = React.useRef(true); // true = premier chargement (affiche spinner), false = rechargement silencieux
   const [savingKey, setSavingKey] = useState(null);
-  const [validationError, setValidationError] = useState(null);
+  const [validationError, setValidationError] = useState(null); // {current, prevLabel, prevVal}
+
+  const loadBureaux = useCallback(async () => {
+    const list = await googleSheetsService.getData('Bureaux');
+    setBureaux(Array.isArray(list) ? list : []);
+  }, []);
 
   const loadParticipationRow = useCallback(
     async (bureauId) => {
-      if (!bureauId) { setRow(null); setInputs({}); return; }
-      setLoading(true);
+      if (!bureauId) {
+        setRow(null);
+        setInputs({});
+        return;
+      }
+      if (isInitialLoad.current) setLoading(true);
       try {
         const rows = await googleSheetsService.getData(participationSheet);
+
+        // Robust match: "1" == "BV1" == "BV 1"
         const current = (Array.isArray(rows) ? rows : []).find(
           (r) => normalizeBureauId(r?.bureauId ?? '') === normalizeBureauId(bureauId)
         );
+
         setRow(current || null);
+
+        // init buffer inputs
         const next = {};
         HOURS.forEach((h) => {
           const v = current ? current[h.key] ?? 0 : 0;
@@ -86,37 +76,75 @@ const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
         setInputs(next);
       } finally {
         setLoading(false);
+        isInitialLoad.current = false;
       }
     },
     [participationSheet]
   );
 
-  useEffect(() => { loadParticipationRow(forcedBureauId); }, [forcedBureauId, loadParticipationRow]);
+  useEffect(() => {
+    loadBureaux();
+  }, [loadBureaux]);
+
+  // BV : bureau imposé
+  useEffect(() => {
+    if (forcedBureauId) setSelectedBureauId(forcedBureauId);
+  }, [forcedBureauId]);
+
+  // Recharger la ligne participation quand bureau/tour change
+  useEffect(() => {
+    isInitialLoad.current = true; // nouveau bureau = afficher le spinner
+    loadParticipationRow(selectedBureauId);
+  }, [selectedBureauId, loadParticipationRow]);
+
+  const bureauOptions = useMemo(() => {
+    // Le service filtre déjà côté BV (et on a corrigé getData pour retourner filtered)
+    return bureaux
+      .filter((b) => b?.actif !== false)
+      .map((b) => ({
+        id: String(b.id ?? '').trim(),
+        label: `BV ${String(b.id ?? '').trim()} — ${b.nom}${b.inscrits ? ` (${b.inscrits} inscrits)` : ''}`,
+      }));
+  }, [bureaux]);
 
   const handleChange = (key, value) => {
+    // Buffer : pas de validation bloquante pendant la frappe
     setInputs((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleBlur = async (key) => {
-    if (!row || !forcedBureauId) return;
+    if (!row || !selectedBureauId) return;
+
     const raw = inputs[key];
+    // autoriser vide (ne pas écraser par 0 si l'utilisateur efface puis sort)
     if (raw === '') return;
+
     const n = parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 0) return;
 
+    // ── Validation cumulative : H doit être ≥ H-1 ──────────────────
     const keyIndex = HOURS.findIndex((h) => h.key === key);
     if (keyIndex > 0) {
       const prevKey = HOURS[keyIndex - 1].key;
       const prevVal = parseInt(inputs[prevKey] ?? row?.[prevKey] ?? 0, 10);
       if (Number.isFinite(prevVal) && n < prevVal) {
-        const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10)) ? String(row[key]) : '';
+        // Annuler la saisie : remettre la valeur actuelle en sheets
+        const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10))
+          ? String(row[key])
+          : '';
         setInputs((prev) => ({ ...prev, [key]: current }));
-        setValidationError({ current: n, prevLabel: HOURS[keyIndex - 1].label, prevVal });
+        setValidationError({
+          current: n,
+          prevLabel: HOURS[keyIndex - 1].label,
+          prevVal,
+        });
         return;
       }
     }
 
     const updated = { ...row, [key]: n };
+
+    // Timestamp si colonne présente
     if (Object.prototype.hasOwnProperty.call(row, 'timestamp')) {
       updated.timestamp = new Date().toISOString();
     }
@@ -124,21 +152,32 @@ const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
     try {
       setSavingKey(key);
       await googleSheetsService.updateRow(participationSheet, row.rowIndex, updated);
+
+      // Notify other components (Consolidation/Stats) to refresh without full page reload
       try {
         window.dispatchEvent(new CustomEvent('sheets:changed', { detail: { sheetName: participationSheet } }));
       } catch (_) {}
+
       auditService?.log?.('PARTICIPATION_UPDATE', {
-        sheet: participationSheet, bureauId: forcedBureauId, field: key, value: n,
+        sheet: participationSheet,
+        bureauId: selectedBureauId,
+        field: key,
+        value: n,
       });
-      try { await reloadElectionState?.(); } catch (_) {}
-      await loadParticipationRow(forcedBureauId);
+
+      // reload state global éventuel (dashboard / badges)
+      try {
+        await reloadElectionState?.();
+      } catch (_) {}
+      // reload row (source de vérité sheets)
+      await loadParticipationRow(selectedBureauId);
     } finally {
       setSavingKey(null);
     }
   };
 
-  const accentColor  = tourActuel === 2 ? '#1d4ed8' : '#166534';
-  const accentLight  = tourActuel === 2 ? '#dbeafe' : '#dcfce7';
+  const accentColor = tourActuel === 2 ? '#1d4ed8' : '#166534';
+  const accentLight = tourActuel === 2 ? '#dbeafe' : '#dcfce7';
   const accentBorder = tourActuel === 2 ? '#93c5fd' : '#86efac';
 
   return (
@@ -149,12 +188,12 @@ const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
             background: '#fff', borderRadius: 16, padding: '28px 32px',
             maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,.25)',
-            border: `2px solid ${accentBorder}`,
+            border: `2px solid ${accentBorder}`
           }}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 8 }}>⚠️</div>
             <div style={{ fontWeight: 800, fontSize: 16, color: accentColor, textAlign: 'center', marginBottom: 12 }}>
@@ -172,7 +211,7 @@ const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
                 style={{
                   background: accentColor, color: '#fff', border: 'none',
                   borderRadius: 10, padding: '10px 28px', fontWeight: 800,
-                  fontSize: 14, cursor: 'pointer',
+                  fontSize: 14, cursor: 'pointer'
                 }}
               >
                 Corriger la saisie
@@ -186,45 +225,75 @@ const BVSaisieForm = ({ electionState, reloadElectionState, auth }) => {
 
       <div className="form-group">
         <label>Bureau de vote :</label>
-        <div className="bureau-select bureau-select--locked">{forcedBureauId}</div>
+        {forcedBureauId ? (
+          <div className="bureau-select bureau-select--locked">{forcedBureauId}</div>
+        ) : (
+          <select className="bureau-select" value={selectedBureauId} onChange={(e) => setSelectedBureauId(e.target.value)}>
+            <option value="">-- Sélectionner un bureau --</option>
+            {bureauOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {loading ? (
+      {!selectedBureauId ? (
+        <div className="info-message">Sélectionnez un bureau de vote pour saisir la participation.</div>
+      ) : loading ? (
         <div className="info-message">Chargement…</div>
       ) : !row ? (
         <div className="warning-message">
-          Aucune ligne trouvée dans <b>{participationSheet}</b> pour le bureau <b>{forcedBureauId}</b>. (Vérifie que la
+          Aucune ligne trouvée dans <b>{participationSheet}</b> pour le bureau <b>{selectedBureauId}</b>. (Vérifie que la
           feuille contient bien une ligne par bureau avec la colonne BureauID.)
         </div>
       ) : (
         <div className="participation-grid">
+
           <style>{`
+            /* Presentation only - no impact on behaviour */
             .participation-grid table tbody tr { height: 44px; }
             .participation-grid .hour-cell { width: 70px; white-space: nowrap; font-variant-numeric: tabular-nums; }
             .participation-grid .participation-input {
-              width: 100%; max-width: 260px; height: 32px; padding: 6px 10px;
-              border-radius: 10px; border: 1px solid var(--color-gray-300);
-              font-size: var(--font-size-base); line-height: 1; margin: 0;
+              width: 100%;
+              max-width: 260px;
+              height: 32px;
+              padding: 6px 10px;
+              border-radius: 10px;
+              border: 1px solid var(--color-gray-300);
+              font-size: var(--font-size-base);
+              line-height: 1;
+              margin: 0;
             }
             .participation-grid .participation-input:focus {
-              outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+              outline: none;
+              border-color: var(--color-primary);
+              box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
             }
             .participation-grid .hint {
-              margin-top: 10px; font-size: var(--font-size-sm); line-height: 1.4;
-              color: var(--color-gray-700); max-width: 520px; white-space: normal;
+              margin-top: 10px;
+              font-size: var(--font-size-sm);
+              line-height: 1.4;
+              color: var(--color-gray-700);
+              max-width: 520px;
+              white-space: normal;
             }
           `}</style>
+
           <table className="table">
             <thead>
-              <tr><th>Heure</th><th>Votants cumulés</th></tr>
+              <tr>
+                <th>Heure</th>
+                <th>Votants cumulés</th>
+              </tr>
             </thead>
             <tbody>
               {HOURS.map((h) => (
                 <tr key={h.key}>
                   <td className="hour-cell">{h.label}</td>
                   <td>
-                    <input
-                      className="participation-input"
+                    <input className="participation-input"
                       type="text"
                       inputMode="numeric"
                       pattern="\d*"
