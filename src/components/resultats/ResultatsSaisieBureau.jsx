@@ -341,6 +341,15 @@ useEffect(() => {
   }, [buildRowData, reloadResultats, resultatsSheet, row, selectedBureauId, tourActuel]);
 
   const onBlurMain = async (field) => {
+    // Blocage votants > inscrits : remettre '' et ne pas sauvegarder
+    if (field === 'votants') {
+      const inscrits = getInscritsForBureau(selectedBureauId);
+      const votants = parseInt(inputsMain.votants, 10);
+      if (inscrits > 0 && Number.isFinite(votants) && votants > inscrits) {
+        setInputsMain((prev) => ({ ...prev, votants: '' }));
+        return; // pas de sauvegarde
+      }
+    }
     try {
       await saveCurrentRow(field);
     } catch (e) {

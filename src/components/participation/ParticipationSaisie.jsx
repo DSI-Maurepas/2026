@@ -125,9 +125,7 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
     // ── Validation : votants ≤ inscrits ──────────────────────────
     const inscrits = parseInt(row?.inscrits ?? 0, 10);
     if (Number.isFinite(inscrits) && inscrits > 0 && n > inscrits) {
-      const current = Number.isFinite(parseInt(String(row?.[key] ?? ''), 10))
-        ? String(row[key]) : '';
-      setInputs((prev) => ({ ...prev, [key]: current }));
+      setInputs((prev) => ({ ...prev, [key]: '' })); // remet à vide
       setValidationError({ type: 'inscrits', current: n, inscrits });
       return;
     }
