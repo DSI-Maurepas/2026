@@ -342,32 +342,35 @@ useEffect(() => {
 
   const onBlurMain = async (field) => {
     // ── Validations de cohérence avant sauvegarde ─────────────────
-    const votants = parseInt(inputsMain.votants, 10) || 0;
+    const inscrits = getInscritsForBureau(selectedBureauId);
+    const rawVotants = parseInt(inputsMain.votants, 10);
+    // plafond réel = inscrits (même si votants est lui-même invalide)
+    const votantsVal = Number.isFinite(rawVotants) ? rawVotants : 0;
+    const plafondVotants = inscrits > 0 ? Math.min(votantsVal, inscrits) : votantsVal;
 
     if (field === 'votants') {
-      const inscrits = getInscritsForBureau(selectedBureauId);
-      if (inscrits > 0 && Number.isFinite(parseInt(inputsMain.votants, 10)) && parseInt(inputsMain.votants, 10) > inscrits) {
+      if (inscrits > 0 && Number.isFinite(rawVotants) && rawVotants > inscrits) {
         setInputsMain((prev) => ({ ...prev, votants: '' }));
         return;
       }
     }
     if (field === 'procurations') {
       const val = parseInt(inputsMain.procurations, 10);
-      if (Number.isFinite(val) && votants > 0 && val > votants) {
+      if (Number.isFinite(val) && val > plafondVotants) {
         setInputsMain((prev) => ({ ...prev, procurations: '' }));
         return;
       }
     }
     if (field === 'blancs') {
       const val = parseInt(inputsMain.blancs, 10);
-      if (Number.isFinite(val) && votants > 0 && val > votants) {
+      if (Number.isFinite(val) && val > plafondVotants) {
         setInputsMain((prev) => ({ ...prev, blancs: '' }));
         return;
       }
     }
     if (field === 'nuls') {
       const val = parseInt(inputsMain.nuls, 10);
-      if (Number.isFinite(val) && votants > 0 && val > votants) {
+      if (Number.isFinite(val) && val > plafondVotants) {
         setInputsMain((prev) => ({ ...prev, nuls: '' }));
         return;
       }
