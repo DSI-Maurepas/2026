@@ -90,11 +90,16 @@ const ResultatsValidation = ({ electionState}) => {
           ? Object.values(voixObj).reduce((acc, v) => acc + (Number(v) || 0), 0)
           : 0;
 
-        if (votants > inscrits) errors.push('Votants > inscrits');
-        if (blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
-        // Contrôle "Somme des voix = Exprimés" (affiché dans le bloc de saisie bureau) => doit remonter ici
-        if (voixObj && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
-        if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
+        // Si tout est à 0 : bureau déclaré mais vide → erreur
+        const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
+        if (!hasData) {
+          errors.push('Aucune donnée saisie (tout à 0)');
+        } else {
+          if (votants > inscrits) errors.push('Votants > inscrits');
+          if (blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
+          if (voixObj && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
+          if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
+        }
       }
 
       const status = !declared
