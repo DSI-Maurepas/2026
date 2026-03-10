@@ -20,6 +20,7 @@ const ResultatsValidation = React.lazy(() => import("./components/resultats/Resu
 const ResultatsClassement = React.lazy(() => import("./components/resultats/ResultatsClassement"));
 const FeuilleResultatsBV = React.lazy(() => import("./components/resultats/FeuilleResultatsBV"));
 const ResultatsVisionGenerale = React.lazy(() => import("./components/resultats/ResultatsVisionGenerale"));
+const ParticipationSaisieGlobale = React.lazy(() => import("./components/participation/ParticipationSaisieGlobale"));
 const PassageSecondTour = React.lazy(() => import("./components/secondTour/PassageSecondTour"));
 const ConfigurationT2 = React.lazy(() => import("./components/secondTour/ConfigurationT2"));
 const SiegesMunicipal = React.lazy(() => import("./components/sieges/SiegesMunicipal"));
@@ -305,6 +306,15 @@ export default function App() {
                   </>
                 )}
                 <ParticipationStats electionState={safeElectionState} isBureauVote={isBureauVote} />
+
+                {/* Tableau vision globale participation (admin et global uniquement) */}
+                {!isBureauVote && (
+                  <ErrorBoundary>
+                    <React.Suspense fallback={null}>
+                      <ParticipationSaisieGlobale electionState={safeElectionState} reloadElectionState={loadState} />
+                    </React.Suspense>
+                  </ErrorBoundary>
+                )}
               </>
             )}
           </>
@@ -317,6 +327,15 @@ export default function App() {
               <>
                 {/* 1. Tableau des bureaux + Formulaire de saisie */}
                 <ResultatsSaisieBureau electionState={safeElectionState} />
+
+                {/* 2. Vision générale (admin et global uniquement) */}
+                {!isBureauVote && (
+                  <ErrorBoundary>
+                    <React.Suspense fallback={null}>
+                      <ResultatsVisionGenerale tourActuel={safeElectionState.tourActuel} />
+                    </React.Suspense>
+                  </ErrorBoundary>
+                )}
 
                 {/* 3. Feuille officielle de résultats (profil BV uniquement) */}
                 {isBureauVote && (
