@@ -1,6 +1,7 @@
 // src/components/participation/ParticipationSaisieGlobale.jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { googleSheetsService, auditService } from '../../services';
+import googleSheetsService from '../../services/googleSheetsService';
+import auditService from '../../services/auditService';
 
 const HOURS = [
   { key: 'votants09h', label: '09h' },
