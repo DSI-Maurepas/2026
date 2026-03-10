@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useGoogleSheets } from "../../hooks/useGoogleSheets";
 import googleSheetsService from "../../services/googleSheetsService";
 
@@ -10,8 +10,7 @@ import googleSheetsService from "../../services/googleSheetsService";
 const ConfigBureaux = () => {
   const { data: bureaux, load, loading } = useGoogleSheets("Bureaux");
 
-  const leftRef  = useRef(null);
-  const rightRef = useRef(null);
+
 
   const [editMode,  setEditMode]  = useState(false);
   const [editData,  setEditData]  = useState({});
@@ -99,7 +98,7 @@ const ConfigBureaux = () => {
     padding: '4px 6px',
     border: `1.5px solid ${savingKey === `${bureauId}_${field}` ? '#f59e0b' : '#93c5fd'}`,
     borderRadius: 4,
-    fontSize: 13,
+    fontSize: 12,
     background: savingKey === `${bureauId}_${field}` ? '#fef9c3' : '#fff',
     outline: 'none',
     boxSizing: 'border-box',
@@ -153,44 +152,39 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <div className="split-table split-table--no-vscroll">
-          {/* Colonne figée */}
-          <div className="split-table-left" ref={leftRef} onScroll={() => syncScroll("left")}>
-            <table className="admin-table split">
-              <thead>
-                <tr><th>ID</th></tr>
-              </thead>
-              <tbody>
-                {rows.map((b) => (
-                  <tr key={b.id}>
-                    <td className="split-sticky-cell">
-                      <strong>{b.id}</strong>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Tableau scrollable */}
-          <div className="split-table-right" ref={rightRef} onScroll={() => syncScroll("right")}>
-            <table className="admin-table split">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Adresse</th>
-                  <th>Président(e)</th>
-                  <th>Vice-Président(e)</th>
-                  <th>Secrétaire</th>
-                  <th>Suppléant(e)</th>
-                  <th>Inscrits</th>
-                </tr>
-              </thead>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
+            <colgroup>
+              <col style={{ width: 50 }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: 70 }} />
+              <col style={{ width: 90 }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'center' }}>ID</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Président(e)</th>
+                <th>Vice-Président(e)</th>
+                <th>Secrétaire</th>
+                <th>Suppléant(e)</th>
+                <th style={{ textAlign: 'right' }}>Inscrits</th>
+                <th style={{ textAlign: 'center' }}>Actions</th>
+              </tr>
+            </thead>
               <tbody>
                 {rows.map((b) => {
                   const d = editData[b.id] || {};
                   return (
                     <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}>
+                      {/* ID */}
+                      <td style={{ textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
                       {/* Nom */}
                       <td>
                         {editMode ? (
@@ -270,12 +264,22 @@ const ConfigBureaux = () => {
                           />
                         ) : b.inscrits}
                       </td>
+                      {/* Actions */}
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: 12, whiteSpace: 'nowrap' }}
+                          onClick={() => editMode ? exitEditMode() : enterEditMode()}
+                          type="button"
+                        >
+                          {editMode ? '🔒 Terminer' : '✏️ Modifier'}
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          </div>
         </div>
       )}
     </div>
