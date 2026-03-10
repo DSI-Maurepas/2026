@@ -400,9 +400,7 @@ case "info-participation":
                     <div className="card" style={{ border: '2px solid #e74c3c', background: '#fdf2f2', height: '100%' }}>
                       <h2 style={{ color: '#c0392b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                         🔄 Gestion des Tours
-                        <span style={{ marginLeft: 8, fontSize: '0.75em', fontWeight: 400, color: '#888' }}>
-                          — Tour {safeElectionState.tourActuel}
-                        </span>
+
                       </h2>
                       <p style={{ marginBottom: 0, color: '#555' }}>
                         Tour actuel : <strong style={{ fontSize: '1.2em', color: safeElectionState.tourActuel === 1 ? '#2563eb' : '#dc2626' }}>
