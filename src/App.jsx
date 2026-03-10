@@ -307,20 +307,16 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    <ParticipationSaisie electionState={safeElectionState} reloadElectionState={loadState} />
+                    {/* Tableau vision globale EN PREMIER pour admin/global */}
+                    <ErrorBoundary>
+                      <React.Suspense fallback={null}>
+                        <ParticipationSaisieGlobale electionState={safeElectionState} reloadElectionState={loadState} />
+                      </React.Suspense>
+                    </ErrorBoundary>
                     <ParticipationTableau electionState={safeElectionState} />
                   </>
                 )}
                 <ParticipationStats electionState={safeElectionState} isBureauVote={isBureauVote} />
-
-                {/* Tableau vision globale participation (admin et global uniquement) */}
-                {!isBureauVote && (
-                  <ErrorBoundary>
-                    <React.Suspense fallback={null}>
-                      <ParticipationSaisieGlobale electionState={safeElectionState} reloadElectionState={loadState} />
-                    </React.Suspense>
-                  </ErrorBoundary>
-                )}
               </>
             )}
           </>
