@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGoogleSheets } from '../../hooks/useGoogleSheets';
-import { googleSheetsService } from '../../services';
+import googleSheetsService from '../../services/googleSheetsService';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const normalizeBureauId = (v) => {
