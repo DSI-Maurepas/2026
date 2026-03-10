@@ -154,8 +154,8 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
+        <div style={{ borderRadius: 10, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1px solid #e2e8f0' }}>
+          <table className="admin-table split" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, marginBottom: 0 }}>
             <colgroup>
               <col style={{ width: 50 }} />
               <col style={{ width: '13%' }} />
