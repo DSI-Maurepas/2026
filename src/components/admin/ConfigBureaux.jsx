@@ -36,12 +36,14 @@ const ConfigBureaux = () => {
     const init = {};
     rows.forEach(b => {
       init[b.id] = {
-        nom:        b.nom        ?? '',
-        adresse:    b.adresse    ?? '',
-        president:  b.president  ?? '',
-        secretaire: b.secretaire ?? '',
-        inscrits:   b.inscrits   ?? '',
-        _rowIndex:  b.rowIndex,
+        nom:                 b.nom                 ?? '',
+        adresse:             b.adresse             ?? '',
+        president:           b.president           ?? '',
+        vicePresident:       b.vicePresident       ?? '',
+        secretaire:          b.secretaire          ?? '',
+        secretaireSuppleant: b.secretaireSuppleant ?? b.SecretaireSuppleant ?? '',
+        inscrits:            b.inscrits            ?? '',
+        _rowIndex:           b.rowIndex,
       };
     });
     setEditData(init);
@@ -71,12 +73,14 @@ const ConfigBureaux = () => {
     try {
       const d = editData[bureauId];
       const rowData = {
-        id:         bureauId,
-        nom:        d.nom,
-        adresse:    d.adresse,
-        president:  d.president,
-        secretaire: d.secretaire,
-        inscrits:   Number(d.inscrits) || 0,
+        id:                  bureauId,
+        nom:                 d.nom,
+        adresse:             d.adresse,
+        president:           d.president,
+        vicePresident:       d.vicePresident       ?? '',
+        secretaire:          d.secretaire,
+        secretaireSuppleant: d.secretaireSuppleant ?? '',
+        inscrits:            Number(d.inscrits) || 0,
       };
       await googleSheetsService.updateRow('Bureaux', d._rowIndex, rowData);
       setFeedback({ type: 'success', msg: `${bureauId} — ${field} sauvegardé` });
@@ -175,8 +179,10 @@ const ConfigBureaux = () => {
                 <tr>
                   <th>Nom</th>
                   <th>Adresse</th>
-                  <th>Président</th>
+                  <th>Président(e)</th>
+                  <th>Vice-Président(e)</th>
                   <th>Secrétaire</th>
+                  <th>Suppléant(e)</th>
                   <th>Inscrits</th>
                 </tr>
               </thead>
@@ -218,6 +224,17 @@ const ConfigBureaux = () => {
                           />
                         ) : b.president}
                       </td>
+                      {/* Vice-Président(e) */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'vicePresident')}
+                            value={d.vicePresident ?? ''}
+                            onChange={e => handleChange(b.id, 'vicePresident', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'vicePresident')}
+                          />
+                        ) : (b.vicePresident || '—')}
+                      </td>
                       {/* Secrétaire */}
                       <td>
                         {editMode ? (
@@ -228,6 +245,17 @@ const ConfigBureaux = () => {
                             onBlur={() => handleBlur(b.id, 'secretaire')}
                           />
                         ) : b.secretaire}
+                      </td>
+                      {/* Suppléant(e) */}
+                      <td>
+                        {editMode ? (
+                          <input
+                            style={inputStyle(b.id, 'secretaireSuppleant')}
+                            value={d.secretaireSuppleant ?? ''}
+                            onChange={e => handleChange(b.id, 'secretaireSuppleant', e.target.value)}
+                            onBlur={() => handleBlur(b.id, 'secretaireSuppleant')}
+                          />
+                        ) : (b.secretaireSuppleant || b.SecretaireSuppleant || '—')}
                       </td>
                       {/* Inscrits */}
                       <td>

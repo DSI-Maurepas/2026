@@ -392,16 +392,19 @@ case "info-participation":
             {renderAuthGate()}
             {isAuthenticated && (
               <>
-                {/* === LIGNE AVEC 3 BLOCS : GESTION TOURS + DÉVERROUILLAGE T1 + T2 === */}
+                {/* === LIGNE AVEC 4 BLOCS : GESTION TOURS + FORCER T2 + DÉVERROUILLAGE T1 + T2 === */}
                 <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-                  
-                  {/* BLOC 1 : GESTION DES TOURS (2/3 de largeur) */}
+
+                  {/* BLOC 1 : GESTION DES TOURS — info seulement */}
                   <div style={{ flex: '2 1 0' }}>
                     <div className="card" style={{ border: '2px solid #e74c3c', background: '#fdf2f2', height: '100%' }}>
                       <h2 style={{ color: '#c0392b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                         🔄 Gestion des Tours
+                        <span style={{ marginLeft: 8, fontSize: '0.75em', fontWeight: 400, color: '#888' }}>
+                          — Tour {safeElectionState.tourActuel}
+                        </span>
                       </h2>
-                      <p style={{ marginBottom: 16, color: '#555' }}>
+                      <p style={{ marginBottom: 0, color: '#555' }}>
                         Tour actuel : <strong style={{ fontSize: '1.2em', color: safeElectionState.tourActuel === 1 ? '#2563eb' : '#dc2626' }}>
                           Tour {safeElectionState.tourActuel}
                         </strong>
@@ -412,66 +415,63 @@ case "info-participation":
                           <span style={{ marginLeft: 12, color: '#e67e22' }}>🔒 Tour 2 verrouillé</span>
                         )}
                       </p>
-                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        {safeElectionState.tourActuel === 2 && (
-                          <button
-                            className="btn btn-warning"
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: '1em', fontWeight: 600 }}
-                            onClick={async () => {
-                              const ok = await uiService.confirm({
-                                title: '⚠️ Retour au Tour 1',
-                                message: 'Voulez-vous vraiment revenir au Tour 1 ?\n\nLes données du Tour 2 seront conservées mais le tour actif sera le Tour 1.',
-                                confirmText: 'Oui, revenir au Tour 1',
-                                cancelText: 'Annuler'
-                              });
-                              if (!ok) return;
-                              try {
-                                await revenirPremierTour();
-                                setShowTour1ActiveSuccess(true);
-                                setTimeout(() => {
-                                  setShowTour1ActiveSuccess(false);
-                                  window.location.reload();
-                                }, 10000);
-                              } catch (e) {
-                                uiService.toast('error', { title: 'Erreur', message: 'Retour Tour 1 échoué : ' + (e?.message || e) });
-                              }
-                            }}
-                          >
-                            ⬅️ Retour au Tour 1
-                          </button>
-                        )}
-                        {safeElectionState.tourActuel === 1 && (
-                          <button
-                            className="btn btn-danger"
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: '1em', fontWeight: 600 }}
-                            onClick={async () => {
-                              const ok = await uiService.confirm({
-                                title: '⚠️ Passage au Tour 2',
-                                message: 'Voulez-vous vraiment passer au Tour 2 ?\n\nCette action changera le tour actif de l\'élection.',
-                                confirmText: 'Oui, passer au Tour 2',
-                                cancelText: 'Annuler'
-                              });
-                              if (!ok) return;
-                              try {
-                                await passerSecondTour();
-                                setShowTour2ActiveSuccess(true);
-                                setTimeout(() => {
-                                  setShowTour2ActiveSuccess(false);
-                                  window.location.reload();
-                                }, 10000);
-                              } catch (e) {
-                                uiService.toast('error', { title: 'Erreur', message: 'Passage Tour 2 échoué : ' + (e?.message || e) });
-                              }
-                            }}
-                          >
-                            ➡️ Forcer passage Tour 2
-                          </button>
-                        )}
-                      </div>
                     </div>
                   </div>
 
-                  {/* BLOC 2 : DÉVERROUILLAGE TOUR 1 (1/6 de largeur) */}
+                  {/* BLOC 2 : FORCER PASSAGE T2 / RETOUR T1 */}
+                  <div style={{ flex: '1 1 0' }}>
+                    <div className="card" style={{ border: '2px solid #e74c3c', background: '#fdf2f2', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {safeElectionState.tourActuel === 2 ? (
+                        <button
+                          className="btn btn-warning"
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: '1em', fontWeight: 600 }}
+                          onClick={async () => {
+                            const ok = await uiService.confirm({
+                              title: '⚠️ Retour au Tour 1',
+                              message: 'Voulez-vous vraiment revenir au Tour 1 ?\n\nLes données du Tour 2 seront conservées mais le tour actif sera le Tour 1.',
+                              confirmText: 'Oui, revenir au Tour 1',
+                              cancelText: 'Annuler'
+                            });
+                            if (!ok) return;
+                            try {
+                              await revenirPremierTour();
+                              setShowTour1ActiveSuccess(true);
+                              setTimeout(() => { setShowTour1ActiveSuccess(false); window.location.reload(); }, 10000);
+                            } catch (e) {
+                              uiService.toast('error', { title: 'Erreur', message: 'Retour Tour 1 échoué : ' + (e?.message || e) });
+                            }
+                          }}
+                        >
+                          ⬅️ Retour au Tour 1
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-danger"
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: '1em', fontWeight: 600 }}
+                          onClick={async () => {
+                            const ok = await uiService.confirm({
+                              title: '⚠️ Passage au Tour 2',
+                              message: 'Voulez-vous vraiment passer au Tour 2 ?\n\nCette action changera le tour actif de l\'élection.',
+                              confirmText: 'Oui, passer au Tour 2',
+                              cancelText: 'Annuler'
+                            });
+                            if (!ok) return;
+                            try {
+                              await passerSecondTour();
+                              setShowTour2ActiveSuccess(true);
+                              setTimeout(() => { setShowTour2ActiveSuccess(false); window.location.reload(); }, 10000);
+                            } catch (e) {
+                              uiService.toast('error', { title: 'Erreur', message: 'Passage Tour 2 échoué : ' + (e?.message || e) });
+                            }
+                          }}
+                        >
+                          ➡️ Forcer passage Tour 2
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* BLOC 3 : DÉVERROUILLAGE TOUR 1 (1/6 de largeur) */}
                   <div style={{ flex: '1 1 0' }}>
                     <div 
                       className="card"
@@ -568,7 +568,7 @@ case "info-participation":
                     </div>
                   </div>
 
-                  {/* BLOC 3 : DÉVERROUILLAGE TOUR 2 (1/6 de largeur) */}
+                  {/* BLOC 4 : DÉVERROUILLAGE TOUR 2 (1/6 de largeur) */}
                   <div style={{ flex: '1 1 0' }}>
                     <div 
                       className="card"
@@ -666,7 +666,7 @@ case "info-participation":
                   </div>
 
                 </div>
-                {/* FIN LIGNE AVEC 3 BLOCS */}
+                {/* FIN LIGNE AVEC 4 BLOCS */}
 
                 {/* === BLOC RECALCUL SIÈGES === */}
                 <div className="card" style={{ border: '2px solid #7c3aed', background: '#faf5ff', marginBottom: 24 }}>
@@ -697,7 +697,6 @@ case "info-participation":
                         await auditService.log('ADMIN_RECALCUL_SIEGES', { action: 'CLEAR_SEATS_MUNICIPAL_AND_COMMUNITY' });
                         uiService.toast('success', { title: '✅ Sièges réinitialisés', message: 'Allez sur la page Sièges pour déclencher le recalcul automatique.' });
                       } catch (e) {
-                        console.error('Erreur recalcul sièges:', e);
                         uiService.toast('error', { title: 'Erreur', message: 'Recalcul échoué : ' + (e?.message || e) });
                       } finally {
                         setRecalculingSieges(false);
