@@ -205,6 +205,8 @@ export default function App() {
       } else if (accessAuth?.role === "BV") {
         // BV reste sur participation (la page gère l'état non connecté via renderAuthGate)
         setCurrentPage("participation");
+      } else if (accessAuth?.role === "ADMIN" || accessAuth?.role === "GLOBAL") {
+        // ADMIN et GLOBAL peuvent naviguer sans OAuth : renderAuthGate() s'affiche dans la page
       } else {
         setCurrentPage("dashboard");
       }
