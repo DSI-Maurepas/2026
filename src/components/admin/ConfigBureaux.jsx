@@ -93,6 +93,8 @@ const ConfigBureaux = () => {
   };
 
   // ── Style cellule éditable ────────────────────────────────────────────────
+  const tdStyle = { padding: '8px', verticalAlign: 'middle' };
+
   const inputStyle = (bureauId, field) => ({
     width: '100%',
     padding: '4px 6px',
@@ -152,13 +154,8 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <style>{`
-          .admin-bureaux-table td { padding: 8px; vertical-align: middle; }
-          .admin-bureaux-table tr:nth-child(even) { background: #f8fafc; }
-          .admin-bureaux-table tr:hover { background: #eff6ff !important; }
-        `}</style>
         <div style={{ overflowX: 'auto' }}>
-          <table className="admin-table admin-bureaux-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
+          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: 50 }} />
               <col style={{ width: '13%' }} />
@@ -187,7 +184,7 @@ const ConfigBureaux = () => {
                   return (
                     <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined, borderBottom: '1px solid #e5e7eb' }}>
                       {/* ID */}
-                      <td style={{ textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
                       {/* Nom */}
                       <td>
                         {editMode ? (
