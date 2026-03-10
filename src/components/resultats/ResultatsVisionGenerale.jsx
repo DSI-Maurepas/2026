@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGoogleSheets } from '../../hooks/useGoogleSheets';
-import googleSheetsService from '../../services/googleSheetsService';
+import { googleSheetsService } from '../../services';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const normalizeBureauId = (v) => {
@@ -40,10 +40,10 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
   const { data: candidats, load: loadCandidats } = useGoogleSheets('Candidats');
   const { data: resultats, load: loadResultats } = useGoogleSheets(resultatsSheet);
 
-  const [editMode,   setEditMode]   = useState(false);
-  const [editData,   setEditData]   = useState({});   // { BV1: { inscrits, votants, ... voix: {} }, ... }
-  const [showModal,  setShowModal]  = useState(false);
-  const [savingCell, setSavingCell] = useState(null); // 'BV1_votants' etc.
+  const [editMode,    setEditMode]    = useState(false);
+  const [editData,    setEditData]    = useState({});   // { BV1: { inscrits, votants, ... voix: {} }, ... }
+  const [showModal,   setShowModal]   = useState(false);
+  const [savingCell,  setSavingCell]  = useState(null); // 'BV1_votants' etc.
 
   const isSavingRef = useRef(false);
 
@@ -101,11 +101,11 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
 
   // ── Contrôles par bureau ───────────────────────────────────────────────
   const getControles = useCallback((bureauId) => {
-    const votants  = coerceInt(getVal(bureauId, 'votants'));
-    const blancs   = coerceInt(getVal(bureauId, 'blancs'));
-    const nuls     = coerceInt(getVal(bureauId, 'nuls'));
-    const exprimes = coerceInt(getVal(bureauId, 'exprimes'));
-    const ctrl1Ok  = (votants > 0) && (votants === blancs + nuls + exprimes);
+    const votants   = coerceInt(getVal(bureauId, 'votants'));
+    const blancs    = coerceInt(getVal(bureauId, 'blancs'));
+    const nuls      = coerceInt(getVal(bureauId, 'nuls'));
+    const exprimes  = coerceInt(getVal(bureauId, 'exprimes'));
+    const ctrl1Ok   = (votants > 0) && (votants === blancs + nuls + exprimes);
 
     let sommeVoix = 0;
     candidatsActifs.forEach(c => {
@@ -118,21 +118,22 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
 
   // ── Basculement en mode édition ────────────────────────────────────────
   const enterEditMode = useCallback(() => {
+    // Initialiser editData depuis resultatsMap
     const init = {};
     bureauxList.forEach(b => {
       const r = resultatsMap[b.id] || {};
       init[b.id] = {
-        inscrits:     r.inscrits     ?? '',
-        votants:      r.votants      ?? '',
+        inscrits:     r.inscrits    ?? '',
+        votants:      r.votants     ?? '',
         procurations: r.procurations ?? '',
-        blancs:       r.blancs       ?? '',
-        nuls:         r.nuls         ?? '',
-        exprimes:     r.exprimes     ?? '',
+        blancs:       r.blancs      ?? '',
+        nuls:         r.nuls        ?? '',
+        exprimes:     r.exprimes    ?? '',
         voix:         { ...(r.voix || {}) },
         _rowIndex:    r.rowIndex,
-        _saisiPar:    r.saisiPar     ?? '',
-        _validePar:   r.validePar    ?? '',
-        _timestamp:   r.timestamp    ?? '',
+        _saisiPar:    r.saisiPar    ?? '',
+        _validePar:   r.validePar   ?? '',
+        _timestamp:   r.timestamp   ?? '',
         _bureauId:    b.id,
       };
     });
@@ -171,23 +172,45 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       const d = editData[bureauId];
       if (!d) return;
 
+      // ── Validations de cohérence ───────────────────────────────────────
+      const bureau = bureauxList.find(b => b.id === bureauId);
+      const inscrits  = Number(bureau?.inscrits) || 0;
+      const votants   = coerceInt(d.votants);
+
+      if (field === 'votants' && inscrits > 0 && votants > inscrits) {
+        setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], votants: '' } }));
+        isSavingRef.current = null; setSavingCell(null); return;
+      }
+      if (field === 'procurations' && votants > 0 && coerceInt(d.procurations) > votants) {
+        setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], procurations: '' } }));
+        isSavingRef.current = null; setSavingCell(null); return;
+      }
+      if (field === 'blancs' && votants > 0 && coerceInt(d.blancs) > votants) {
+        setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], blancs: '' } }));
+        isSavingRef.current = null; setSavingCell(null); return;
+      }
+      if (field === 'nuls' && votants > 0 && coerceInt(d.nuls) > votants) {
+        setEditData(prev => ({ ...prev, [bureauId]: { ...prev[bureauId], nuls: '' } }));
+        isSavingRef.current = null; setSavingCell(null); return;
+      }
+
       const voix = {};
       candidatsActifs.forEach(c => {
         voix[c.listeId] = coerceInt(d.voix?.[c.listeId]);
       });
 
       const rowData = {
-        bureauId:     d._bureauId,
-        inscrits:     coerceInt(d.inscrits),
-        votants:      coerceInt(d.votants),
+        bureauId:    d._bureauId,
+        inscrits:    coerceInt(d.inscrits),
+        votants:     coerceInt(d.votants),
         procurations: coerceInt(d.procurations),
-        blancs:       coerceInt(d.blancs),
-        nuls:         coerceInt(d.nuls),
-        exprimes:     coerceInt(d.exprimes),
+        blancs:      coerceInt(d.blancs),
+        nuls:        coerceInt(d.nuls),
+        exprimes:    coerceInt(d.exprimes),
         voix,
-        saisiPar:     d._saisiPar,
-        validePar:    d._validePar,
-        timestamp:    d._timestamp,
+        saisiPar:    d._saisiPar,
+        validePar:   d._validePar,
+        timestamp:   d._timestamp,
       };
 
       const rIdx = d._rowIndex;
@@ -247,23 +270,12 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
     return rows;
   }, [candidatsActifs]);
 
-  // ── Style cellule ──────────────────────────────────────────────────────
-  const cellStyle = (bg, editing, isRo = false) => ({
-    padding: '5px 8px',
-    borderBottom: '1px solid #f1f5f9',
-    borderRight: '1px solid #f1f5f9',
-    textAlign: 'center',
-    background: bg,
-    fontSize: 13,
-    transition: 'background 0.15s',
-    cursor: isRo ? 'default' : (editing ? 'text' : 'default'),
-  });
-
   // ── Rendu cellule valeur ───────────────────────────────────────────────
   const renderCell = useCallback((bureauId, rowDef) => {
     if (rowDef.isCtrl) {
       const { ctrl1Ok, ctrl2Ok } = getControles(bureauId);
       const ok = rowDef.isCtrl === 'ctrl1' ? ctrl1Ok : ctrl2Ok;
+      // Si pas de données : gris
       const hasData = !!resultatsMap[bureauId];
       if (!hasData) return (
         <td key={bureauId} style={cellStyle('#f9fafb', false)}>
@@ -311,6 +323,17 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       </td>
     );
   }, [editMode, getVal, getControles, handleCellChange, handleCellBlur, resultatsMap, savingCell]);
+
+  const cellStyle = (bg, editing, isRo = false) => ({
+    padding: '5px 8px',
+    borderBottom: '1px solid #f1f5f9',
+    borderRight: '1px solid #f1f5f9',
+    textAlign: 'center',
+    background: bg,
+    fontSize: 13,
+    transition: 'background 0.15s',
+    cursor: isRo ? 'default' : (editing ? 'text' : 'default'),
+  });
 
   // ── Rendu ──────────────────────────────────────────────────────────────
   return (
@@ -461,6 +484,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
             {rowDefs.map((rowDef, rowIdx) => {
               const isCtrlRow = !!rowDef.isCtrl;
               const isListRow = !!rowDef.listeId;
+              // Séparateur visuel entre ctrl1 et listes
               const topBorder = (rowIdx > 0 && rowDefs[rowIdx - 1]?.isCtrl) ? '2px solid #cbd5e1' : undefined;
 
               return (
@@ -469,15 +493,22 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
                   className={isCtrlRow ? 'ctrl-row' : isListRow ? 'list-row' : ''}
                   style={topBorder ? { borderTop: topBorder } : undefined}
                 >
+                  {/* Colonne sticky — label */}
                   <td className="sticky-col" style={{
-                    background: isCtrlRow ? '#f1f5f9' : isListRow ? '#f0fdf4' : (rowDef.readOnly ? '#f8fafc' : '#fff'),
+                    background: isCtrlRow
+                      ? '#f1f5f9'
+                      : isListRow
+                      ? '#f0fdf4'
+                      : (rowDef.readOnly ? '#f8fafc' : '#fff'),
                     fontSize: isCtrlRow ? 11 : isListRow ? 12 : 12,
                   }}>
-                    {isCtrlRow
-                      ? <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.label}</span>
-                      : rowDef.label
-                    }
+                    {isCtrlRow ? (
+                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.label}</span>
+                    ) : (
+                      rowDef.label
+                    )}
                   </td>
+                  {/* Colonnes bureaux */}
                   {bureauxList.map(b => renderCell(b.id, rowDef))}
                 </tr>
               );
