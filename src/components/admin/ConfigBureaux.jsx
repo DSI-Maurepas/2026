@@ -152,37 +152,40 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
+        <style>{`
+          .admin-bureaux-table td { padding: 8px; vertical-align: middle; }
+          .admin-bureaux-table tr:nth-child(even) { background: #f8fafc; }
+          .admin-bureaux-table tr:hover { background: #eff6ff !important; }
+        `}</style>
         <div style={{ overflowX: 'auto' }}>
-          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
+          <table className="admin-table admin-bureaux-table" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: 50 }} />
-              <col style={{ width: '12%' }} />
               <col style={{ width: '13%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '12%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '13%' }} />
               <col style={{ width: 70 }} />
-              <col style={{ width: 90 }} />
             </colgroup>
             <thead>
-              <tr>
-                <th style={{ textAlign: 'center' }}>ID</th>
-                <th>Nom</th>
-                <th>Adresse</th>
-                <th>Président(e)</th>
-                <th>Vice-Président(e)</th>
-                <th>Secrétaire</th>
-                <th>Suppléant(e)</th>
-                <th style={{ textAlign: 'right' }}>Inscrits</th>
-                <th style={{ textAlign: 'center' }}>Actions</th>
+              <tr style={{ background: '#1e3a5f', color: '#fff' }}>
+                <th style={{ textAlign: 'center', padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>ID</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Nom</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Adresse</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Président(e)</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Vice-Président(e)</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Secrétaire</th>
+                <th style={{ padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Suppléant(e)</th>
+                <th style={{ textAlign: 'right', padding: '10px 8px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>Inscrits</th>
               </tr>
             </thead>
               <tbody>
                 {rows.map((b) => {
                   const d = editData[b.id] || {};
                   return (
-                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}>
+                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined, borderBottom: '1px solid #e5e7eb' }}>
                       {/* ID */}
                       <td style={{ textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
                       {/* Nom */}
@@ -264,17 +267,7 @@ const ConfigBureaux = () => {
                           />
                         ) : b.inscrits}
                       </td>
-                      {/* Actions */}
-                      <td style={{ textAlign: 'center' }}>
-                        <button
-                          className="btn btn-secondary"
-                          style={{ padding: '4px 10px', fontSize: 12, whiteSpace: 'nowrap' }}
-                          onClick={() => editMode ? exitEditMode() : enterEditMode()}
-                          type="button"
-                        >
-                          {editMode ? '🔒 Terminer' : '✏️ Modifier'}
-                        </button>
-                      </td>
+
                     </tr>
                   );
                 })}
