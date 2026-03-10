@@ -1,7 +1,6 @@
 // src/components/participation/ParticipationSaisieGlobale.jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import googleSheetsService from '../../services/googleSheetsService';
-import auditService from '../../services/auditService';
+import { googleSheetsService, auditService } from '../../services';
 
 const HOURS = [
   { key: 'votants09h', label: '09h' },
@@ -98,6 +97,17 @@ const ParticipationSaisieGlobale = ({ electionState, reloadElectionState }) => {
 
     const n = parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 0) return;
+
+    // ── Validation : votants ≤ inscrits ──────────────────────────
+    const inscrits = Number(bureau.inscrits) || 0;
+    if (inscrits > 0 && n > inscrits) {
+      setErrors((prev) => ({
+        ...prev,
+        [bid]: { ...(prev[bid] || {}), [key]: `Votants (${n}) > inscrits (${inscrits})` },
+      }));
+      setInputs((prev) => ({ ...prev, [bid]: { ...prev[bid], [key]: '' } }));
+      return;
+    }
 
     const keyIndex = HOURS.findIndex((h) => h.key === key);
     if (keyIndex > 0) {

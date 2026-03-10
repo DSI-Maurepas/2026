@@ -341,13 +341,35 @@ useEffect(() => {
   }, [buildRowData, reloadResultats, resultatsSheet, row, selectedBureauId, tourActuel]);
 
   const onBlurMain = async (field) => {
-    // Blocage votants > inscrits : remettre '' et ne pas sauvegarder
+    // ── Validations de cohérence avant sauvegarde ─────────────────
+    const votants = parseInt(inputsMain.votants, 10) || 0;
+
     if (field === 'votants') {
       const inscrits = getInscritsForBureau(selectedBureauId);
-      const votants = parseInt(inputsMain.votants, 10);
-      if (inscrits > 0 && Number.isFinite(votants) && votants > inscrits) {
+      if (inscrits > 0 && Number.isFinite(parseInt(inputsMain.votants, 10)) && parseInt(inputsMain.votants, 10) > inscrits) {
         setInputsMain((prev) => ({ ...prev, votants: '' }));
-        return; // pas de sauvegarde
+        return;
+      }
+    }
+    if (field === 'procurations') {
+      const val = parseInt(inputsMain.procurations, 10);
+      if (Number.isFinite(val) && votants > 0 && val > votants) {
+        setInputsMain((prev) => ({ ...prev, procurations: '' }));
+        return;
+      }
+    }
+    if (field === 'blancs') {
+      const val = parseInt(inputsMain.blancs, 10);
+      if (Number.isFinite(val) && votants > 0 && val > votants) {
+        setInputsMain((prev) => ({ ...prev, blancs: '' }));
+        return;
+      }
+    }
+    if (field === 'nuls') {
+      const val = parseInt(inputsMain.nuls, 10);
+      if (Number.isFinite(val) && votants > 0 && val > votants) {
+        setInputsMain((prev) => ({ ...prev, nuls: '' }));
+        return;
       }
     }
     try {

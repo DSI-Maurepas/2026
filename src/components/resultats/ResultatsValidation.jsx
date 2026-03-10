@@ -98,6 +98,11 @@ const ResultatsValidation = ({ electionState}) => {
           if (votants > inscrits) errors.push('Votants > inscrits');
           if (blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
           if (voixObj && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
+          // Listes à 0 alors que des exprimés existent
+          if (voixObj && exprimes > 0) {
+            const listesAZero = Object.entries(voixObj).filter(([, v]) => (Number(v) || 0) === 0).map(([k]) => k);
+            if (listesAZero.length > 0) errors.push(`Listes à 0 : ${listesAZero.join(', ')}`);
+          }
           if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
         }
       }
