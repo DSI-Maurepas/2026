@@ -37,6 +37,18 @@ import { SHEET_NAMES } from "./utils/constants";
 
 // CSS: tout est centralisé dans styles/App.css (chargé par main.jsx)
 
+
+// ── ErrorBoundary pour isoler les crashs de composants ────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(e) { console.error('[ErrorBoundary]', e); }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
 function AccessGate({ onAuthenticated }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
@@ -308,7 +320,11 @@ export default function App() {
 
                 {/* 2. Vision générale (admin et global uniquement) */}
                 {!isBureauVote && (
-                  <ResultatsVisionGenerale tourActuel={safeElectionState.tourActuel} />
+                  <ErrorBoundary>
+                    <React.Suspense fallback={null}>
+                      <ResultatsVisionGenerale tourActuel={safeElectionState.tourActuel} />
+                    </React.Suspense>
+                  </ErrorBoundary>
                 )}
 
                 {/* 3. Feuille officielle de résultats (profil BV uniquement) */}
