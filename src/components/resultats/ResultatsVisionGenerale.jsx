@@ -53,6 +53,17 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
     loadResultats();
   }, [loadBureaux, loadCandidats, loadResultats]);
 
+  // ── Actualisation automatique quand ResultatsSaisieBureau sauvegarde ──
+  useEffect(() => {
+    const handleChange = (e) => {
+      if (e.detail?.sheetName === resultatsSheet) {
+        loadResultats();
+      }
+    };
+    window.addEventListener('sheets:changed', handleChange);
+    return () => window.removeEventListener('sheets:changed', handleChange);
+  }, [resultatsSheet, loadResultats]);
+
   // ── Bureaux ordonnés ───────────────────────────────────────────────────
   const bureauxList = useMemo(() => {
     const list = Array.isArray(bureaux) ? bureaux : [];

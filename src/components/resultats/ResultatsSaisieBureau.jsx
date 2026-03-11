@@ -318,6 +318,9 @@ useEffect(() => {
         });
       } catch (_) {}
 
+      // Notifier les autres composants (ex: ResultatsVisionGenerale) qu'une sauvegarde a eu lieu
+      try { window.dispatchEvent(new CustomEvent('sheets:changed', { detail: { sheetName: resultatsSheet } })); } catch (_) {}
+
       // reloadResultats() retourne le tableau frais directement (résultat de load()).
       // On l'utilise immédiatement pour alimenter appendedRowIndexRef SANS dépendre
       // du state React (qui n'est pas encore mis à jour dans la même frame async).
