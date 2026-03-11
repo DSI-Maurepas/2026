@@ -3,6 +3,7 @@ import { useGoogleSheets } from '../../hooks/useGoogleSheets';
 
 const ResultatsValidation = ({ electionState}) => {
   const { data: bureaux, load: loadBureaux } = useGoogleSheets('Bureaux');
+  const { data: candidats } = useGoogleSheets('Candidats');
   const { data: resultats, load: loadResultats } = useGoogleSheets(
     electionState.tourActuel === 1 ? 'Resultats_T1' : 'Resultats_T2'
   );
@@ -98,12 +99,17 @@ const ResultatsValidation = ({ electionState}) => {
           warnings.push('Aucune donnée saisie (tout à 0)');
         } else {
           // Voix des listes pas encore saisies → avertissement
-          if (voixObj && !voixSaisies && exprimes > 0) {
+          if (!voixSaisies && exprimes > 0) {
             warnings.push('Voix des listes non saisies');
           }
           // Listes à 0 quand d'autres listes ont des voix → avertissement
           if (voixObj && voixSaisies && exprimes > 0) {
-            const listesAZero = Object.entries(voixObj).filter(([, v]) => (Number(v) || 0) === 0).map(([k]) => k);
+            // Filtrer uniquement les listes actives pour ce tour
+            const tour = electionState?.tourActuel || 1;
+            const listesActives = Array.isArray(candidats)
+              ? candidats.filter(c => tour === 1 ? !!c.actifT1 : !!c.actifT2).map(c => c.listeId)
+              : Object.keys(voixObj);
+            const listesAZero = listesActives.filter(id => (Number(voixObj[id]) || 0) === 0);
             if (listesAZero.length > 0) warnings.push(`Listes à 0 : ${listesAZero.join(', ')}`);
           }
           if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
