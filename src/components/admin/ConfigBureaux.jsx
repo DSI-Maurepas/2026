@@ -101,6 +101,7 @@ const ConfigBureaux = () => {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     maxWidth: 0,
+    borderBottom: '1px solid #e2e8f0',
   };
 
   const inputStyle = (bureauId, field) => ({
@@ -164,7 +165,7 @@ const ConfigBureaux = () => {
       ) : (
         <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', border: '1px solid #e2e8f0' }}>
           <div style={{ overflowX: 'auto' }}>
-          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', minWidth: 900, fontSize: 13, marginBottom: 0, borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', tableLayout: 'fixed', minWidth: 900, fontSize: 13, marginBottom: 0, borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: 52 }} />
               <col style={{ width: 160 }} />
@@ -176,15 +177,15 @@ const ConfigBureaux = () => {
               <col style={{ width: 72 }} />
             </colgroup>
             <thead>
-              <tr style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)' }}>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>ID</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Nom</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Adresse</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Président(e)</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Vice-Président(e)</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Secrétaire</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Suppléant(e)</th>
-                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', textAlign: 'right', borderBottom: 'none' }}>Inscrits</th>
+              <tr>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>ID</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Nom</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Adresse</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Président(e)</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Vice-Président(e)</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Secrétaire</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Suppléant(e)</th>
+                <th style={{ background: '#1e3a5f', color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', textAlign: 'right', borderBottom: 'none' }}>Inscrits</th>
               </tr>
             </thead>
               <tbody>
