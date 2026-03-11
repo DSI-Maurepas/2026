@@ -467,8 +467,11 @@ useEffect(() => {
     // 3 états : ok (vert) / warning (orange = pas encore saisi) / error (rouge = valeur fausse)
     const ctrl1Ok      = hasData && votants === (blancs + nuls + exprimes);
     const ctrl1Warning = !hasData || (votants === 0); // rien saisi
-    const ctrl2Ok      = hasData && sommeVoix === exprimes;
-    const ctrl2Warning = sommeVoix === 0; // voix pas encore saisies (peut coexister avec ctrl1Ok)
+    const listesAZeroCount = voixObj ? Object.values(voixObj).filter(v => (Number(v) || 0) === 0).length : 0;
+    const hasListesAZero = sommeVoix > 0 && exprimes > 0 && listesAZeroCount > 0;
+    // ctrl2 : ok seulement si somme juste ET aucune liste à 0
+    const ctrl2Ok      = hasData && sommeVoix === exprimes && !hasListesAZero;
+    const ctrl2Warning = sommeVoix === 0 || hasListesAZero;
 
     return { votants, blancs, nuls, exprimes, sommeVoix, ctrl1Ok, ctrl1Warning, ctrl2Ok, ctrl2Warning, hasData };
   }, [candidatsActifs, inputsMain, inputsVoix]);
