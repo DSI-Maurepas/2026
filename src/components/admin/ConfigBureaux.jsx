@@ -93,7 +93,15 @@ const ConfigBureaux = () => {
   };
 
   // ── Style cellule éditable ────────────────────────────────────────────────
-  const tdStyle = { padding: '8px 10px', verticalAlign: 'middle', borderBottom: '1px solid #e2e8f0' };
+  const tdStyle = {
+    padding: '8px 8px',
+    verticalAlign: 'middle',
+    borderBottom: '1px solid #e2e8f0',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    maxWidth: 0,
+  };
 
   const inputStyle = (bureauId, field) => ({
     width: '100%',
@@ -154,35 +162,39 @@ const ConfigBureaux = () => {
       {loading ? (
         <p>Chargement...</p>
       ) : (
-        <div style={{ borderRadius: 10, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1px solid #e2e8f0' }}>
-          <table className="admin-table split" style={{ width: '100%', tableLayout: 'fixed', fontSize: 13, marginBottom: 0 }}>
+        <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', border: '1px solid #e2e8f0' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table className="admin-table" style={{ width: '100%', tableLayout: 'fixed', minWidth: 900, fontSize: 13, marginBottom: 0, borderCollapse: 'collapse' }}>
             <colgroup>
-              <col style={{ width: 50 }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: 70 }} />
+              <col style={{ width: 52 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 170 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 160 }} />
+              <col style={{ width: 150 }} />
+              <col style={{ width: 72 }} />
             </colgroup>
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Adresse</th>
-                <th>Président(e)</th>
-                <th>Vice-Président(e)</th>
-                <th>Secrétaire</th>
-                <th>Suppléant(e)</th>
-                <th style={{ textAlign: "right" }}>Inscrits</th>
+              <tr style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)' }}>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>ID</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Nom</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Adresse</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Président(e)</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Vice-Président(e)</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Secrétaire</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', borderBottom: 'none' }}>Suppléant(e)</th>
+                <th style={{ color: '#fff', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px', textAlign: 'right', borderBottom: 'none' }}>Inscrits</th>
               </tr>
             </thead>
               <tbody>
                 {rows.map((b) => {
                   const d = editData[b.id] || {};
                   return (
-                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}>
+                    <tr key={b.id} style={{ background: editMode ? '#fffbeb' : undefined }}
+                      onMouseEnter={e => { if (!editMode) e.currentTarget.style.background = '#f0f6ff'; }}
+                      onMouseLeave={e => { if (!editMode) e.currentTarget.style.background = ''; }}
+                    >
                       {/* ID */}
                       <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{b.id}</td>
                       {/* Nom */}
@@ -270,6 +282,7 @@ const ConfigBureaux = () => {
                 })}
               </tbody>
             </table>
+          </div>
         </div>
       )}
     </div>
