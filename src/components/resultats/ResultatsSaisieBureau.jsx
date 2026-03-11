@@ -465,7 +465,7 @@ useEffect(() => {
     const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
 
     // 3 états : ok (vert) / warning (orange = pas encore saisi) / error (rouge = valeur fausse)
-    const ctrl1Ok      = hasData && votants === (blancs + nuls + exprimes);
+    const ctrl1Ok      = hasData && votants > 0 && votants === (blancs + nuls + exprimes);
     const ctrl1Warning = !hasData || (votants === 0); // rien saisi
     // Listes à 0 : parmi les candidats actifs, combien ont 0 voix saisies
     const listesAZeroCount = candidatsActifs.filter(c => {

@@ -111,7 +111,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
     });
 
     const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
-    const ctrl1Ok      = hasData && (votants === blancs + nuls + exprimes);
+    const ctrl1Ok      = hasData && votants > 0 && (votants === blancs + nuls + exprimes);
     const ctrl1Warning = !hasData || votants === 0;
     const listesAZero = candidatsActifs.filter(c => coerceInt(getVal(bureauId, null, c.listeId)) === 0);
     const hasListesAZero = sommeVoix > 0 && exprimes > 0 && listesAZero.length > 0;

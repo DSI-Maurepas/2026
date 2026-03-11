@@ -116,6 +116,7 @@ const ResultatsValidation = ({ electionState}) => {
 
           // ── ERREURS : valeurs saisies mais mathématiquement fausses (rouge) ──
           if (votants > inscrits) errors.push('Votants > inscrits');
+          if (votants === 0 && (blancs > 0 || nuls > 0 || exprimes > 0)) errors.push('Votants = 0 mais blancs/nuls/exprimés renseignés');
           if (votants > 0 && blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
           if (voixObj && voixSaisies && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
         }
