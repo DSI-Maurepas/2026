@@ -90,20 +90,28 @@ const ResultatsValidation = ({ electionState}) => {
           ? Object.values(voixObj).reduce((acc, v) => acc + (Number(v) || 0), 0)
           : 0;
 
-        // Si tout est à 0 : bureau déclaré mais vide → erreur
         const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
+        const voixSaisies = sommeVoix > 0;
+
+        // ── AVERTISSEMENTS : données absentes ou incomplètes (orange) ──
         if (!hasData) {
-          errors.push('Aucune donnée saisie (tout à 0)');
+          warnings.push('Aucune donnée saisie (tout à 0)');
         } else {
-          if (votants > inscrits) errors.push('Votants > inscrits');
-          if (blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
-          if (voixObj && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
-          // Listes à 0 alors que des exprimés existent
-          if (voixObj && exprimes > 0) {
+          // Voix des listes pas encore saisies → avertissement
+          if (voixObj && !voixSaisies && exprimes > 0) {
+            warnings.push('Voix des listes non saisies');
+          }
+          // Listes à 0 quand d'autres listes ont des voix → avertissement
+          if (voixObj && voixSaisies && exprimes > 0) {
             const listesAZero = Object.entries(voixObj).filter(([, v]) => (Number(v) || 0) === 0).map(([k]) => k);
-            if (listesAZero.length > 0) errors.push(`Listes à 0 : ${listesAZero.join(', ')}`);
+            if (listesAZero.length > 0) warnings.push(`Listes à 0 : ${listesAZero.join(', ')}`);
           }
           if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
+
+          // ── ERREURS : valeurs saisies mais mathématiquement fausses (rouge) ──
+          if (votants > inscrits) errors.push('Votants > inscrits');
+          if (votants > 0 && blancs + nuls + exprimes !== votants) errors.push('Somme ≠ votants');
+          if (voixObj && voixSaisies && sommeVoix !== exprimes) errors.push('Somme des voix ≠ exprimés');
         }
       }
 
