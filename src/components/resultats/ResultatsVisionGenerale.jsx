@@ -111,10 +111,12 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
     });
 
     const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
-    const ctrl1Ok = hasData && (votants === blancs + nuls + exprimes);
-    const ctrl2Ok = hasData && (sommeVoix === exprimes);
+    const ctrl1Ok      = hasData && (votants === blancs + nuls + exprimes);
+    const ctrl1Warning = !hasData || votants === 0;
+    const ctrl2Ok      = hasData && (sommeVoix === exprimes);
+    const ctrl2Warning = sommeVoix === 0; // voix pas encore saisies
 
-    return { ctrl1Ok, ctrl2Ok, hasData };
+    return { ctrl1Ok, ctrl1Warning, ctrl2Ok, ctrl2Warning, hasData };
   }, [getVal, candidatsActifs]);
 
   // ── Basculement en mode édition ────────────────────────────────────────
@@ -274,8 +276,10 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
   // ── Rendu cellule valeur ───────────────────────────────────────────────
   const renderCell = useCallback((bureauId, rowDef) => {
     if (rowDef.isCtrl) {
-      const { ctrl1Ok, ctrl2Ok, hasData: hasCtrlData } = getControles(bureauId);
-      const ok = rowDef.isCtrl === 'ctrl1' ? ctrl1Ok : ctrl2Ok;
+      const { ctrl1Ok, ctrl1Warning, ctrl2Ok, ctrl2Warning } = getControles(bureauId);
+      const ok      = rowDef.isCtrl === 'ctrl1' ? ctrl1Ok      : ctrl2Ok;
+      const warning = rowDef.isCtrl === 'ctrl1' ? ctrl1Warning : ctrl2Warning;
+      const label   = rowDef.isCtrl === 'ctrl1' ? 'Champs principaux non saisis' : 'Voix des listes non saisies';
       // Si bureau absent de la feuille : gris
       const hasBureauData = !!resultatsMap[bureauId];
       if (!hasBureauData) return (
@@ -283,9 +287,9 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
           <span style={{ color: '#d1d5db', fontSize: 16 }}>—</span>
         </td>
       );
-      // Si tout à 0 : orange avertissement
-      if (!hasCtrlData) return (
-        <td key={bureauId} style={cellStyle('#fef3c7', false)} title="Aucune donnée saisie">
+      // Warning (orange) si pas encore saisi
+      if (!ok && warning) return (
+        <td key={bureauId} style={cellStyle('#fef3c7', false)} title={label}>
           <span style={{ fontSize: 16 }}>🟠</span>
         </td>
       );

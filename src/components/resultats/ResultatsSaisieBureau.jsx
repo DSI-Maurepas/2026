@@ -464,10 +464,13 @@ useEffect(() => {
     // Si tout est à 0 : aucune donnée saisie → contrôles rouges obligatoirement
     const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
 
-    const ctrl1Ok = hasData && votants === (blancs + nuls + exprimes);
-    const ctrl2Ok = hasData && sommeVoix === exprimes;
+    // 3 états : ok (vert) / warning (orange = pas encore saisi) / error (rouge = valeur fausse)
+    const ctrl1Ok      = hasData && votants === (blancs + nuls + exprimes);
+    const ctrl1Warning = !hasData || (votants === 0); // rien saisi
+    const ctrl2Ok      = hasData && sommeVoix === exprimes;
+    const ctrl2Warning = sommeVoix === 0; // voix pas encore saisies (peut coexister avec ctrl1Ok)
 
-    return { votants, blancs, nuls, exprimes, sommeVoix, ctrl1Ok, ctrl2Ok, hasData };
+    return { votants, blancs, nuls, exprimes, sommeVoix, ctrl1Ok, ctrl1Warning, ctrl2Ok, ctrl2Warning, hasData };
   }, [candidatsActifs, inputsMain, inputsVoix]);
 
   // Vérifier si tous les champs sont remplis
@@ -1638,16 +1641,16 @@ useEffect(() => {
 
             <div style={{
               flex: '1 1 280px',
-              background: !controles.hasData ? '#fef3c7' : controles.ctrl1Ok ? '#dcfce7' : '#fee2e2',
-              border: `1px solid ${!controles.hasData ? '#fde68a' : controles.ctrl1Ok ? '#86efac' : '#fca5a5'}`,
+              background: controles.ctrl1Ok ? '#dcfce7' : controles.ctrl1Warning ? '#fef3c7' : '#fee2e2',
+              border: `1px solid ${controles.ctrl1Ok ? '#86efac' : controles.ctrl1Warning ? '#fde68a' : '#fca5a5'}`,
               borderRadius: 10,
               padding: 10
             }}>
-              <div style={{ fontWeight: 800, marginBottom: 6, color: !controles.hasData ? '#92400e' : 'inherit' }}>
-                {!controles.hasData ? '⚠️' : controles.ctrl1Ok ? '✅' : '❌'} Contrôle ⬆️
+              <div style={{ fontWeight: 800, marginBottom: 6, color: controles.ctrl1Warning && !controles.ctrl1Ok ? '#92400e' : 'inherit' }}>
+                {controles.ctrl1Ok ? '✅' : controles.ctrl1Warning ? '⚠️' : '❌'} Contrôle ⬆️
               </div>
               <div style={{ fontSize: 14, lineHeight: 1.35 }}>
-                {!controles.hasData
+                {controles.ctrl1Warning && !controles.ctrl1Ok
                   ? <span style={{ color: '#92400e' }}>Aucune donnée saisie — veuillez remplir les champs avant validation.</span>
                   : <>Votants = Blancs + Nuls + Exprimés<br />
                     <strong>{controles.votants.toLocaleString('fr-FR')}</strong>
@@ -1664,17 +1667,17 @@ useEffect(() => {
 
             <div style={{
               flex: '1 1 280px',
-              background: !controles.hasData ? '#fef3c7' : controles.ctrl2Ok ? '#dcfce7' : '#fee2e2',
-              border: `1px solid ${!controles.hasData ? '#fde68a' : controles.ctrl2Ok ? '#86efac' : '#fca5a5'}`,
+              background: controles.ctrl2Ok ? '#dcfce7' : controles.ctrl2Warning ? '#fef3c7' : '#fee2e2',
+              border: `1px solid ${controles.ctrl2Ok ? '#86efac' : controles.ctrl2Warning ? '#fde68a' : '#fca5a5'}`,
               borderRadius: 10,
               padding: 10
             }}>
-              <div style={{ fontWeight: 800, marginBottom: 6, color: !controles.hasData ? '#92400e' : 'inherit' }}>
-                {!controles.hasData ? '⚠️' : controles.ctrl2Ok ? '✅' : '❌'} Contrôle ⬇️
+              <div style={{ fontWeight: 800, marginBottom: 6, color: controles.ctrl2Warning && !controles.ctrl2Ok ? '#92400e' : 'inherit' }}>
+                {controles.ctrl2Ok ? '✅' : controles.ctrl2Warning ? '⚠️' : '❌'} Contrôle ⬇️
               </div>
               <div style={{ fontSize: 14, lineHeight: 1.35 }}>
-                {!controles.hasData
-                  ? <span style={{ color: '#92400e' }}>Aucune donnée saisie — veuillez remplir les champs avant validation.</span>
+                {controles.ctrl2Warning && !controles.ctrl2Ok
+                  ? <span style={{ color: '#92400e' }}>Voix des listes non saisies — veuillez remplir les résultats par liste.</span>
                   : <>Somme des voix = Exprimés<br />
                     <strong>{controles.sommeVoix.toLocaleString('fr-FR')}</strong>
                     {' = '}
