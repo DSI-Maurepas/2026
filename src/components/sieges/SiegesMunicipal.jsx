@@ -30,7 +30,9 @@ const SiegesMunicipal = ({ electionState}) => {
         pctVoix: Number(r.pctVoix) || 0,
         eligible: !!r.eligible,
         _raw: r
-      }));
+      }))
+      // Dédupliquer par listeId (évite les doublons si la feuille Sheets contient plusieurs lignes)
+      .filter((r, idx, arr) => arr.findIndex(x => x.listeId === r.listeId) === idx);
   }, [seatsMunicipal, state.tourActuel]);
 
   useEffect(() => {
@@ -329,7 +331,7 @@ const SiegesMunicipal = ({ electionState}) => {
               </tr>
             ) : (
               <>
-                {sieges.map(s => (
+                {sieges.filter(s => (Number(s.voix) || 0) > 0).map(s => (
                   <tr key={s.candidatId || s.listeId}>
                     <td><strong>{s.nom || s.nomListe}</strong></td>
                     <td>{Number(s.voix || 0).toLocaleString('fr-FR')}</td>
@@ -343,7 +345,7 @@ const SiegesMunicipal = ({ electionState}) => {
                 {/* ⚠️ CORRECTION : Ligne de total */}
                 <tr style={{ fontWeight: 'bold', background: '#f5f5f5', borderTop: '2px solid #333' }}>
                   <td><strong>TOTAL</strong></td>
-                  <td>{sieges.reduce((sum, s) => sum + (Number(s.voix) || 0), 0).toLocaleString('fr-FR')}</td>
+                  <td>{sieges.filter(s => (Number(s.voix) || 0) > 0).reduce((sum, s) => sum + (Number(s.voix) || 0), 0).toLocaleString('fr-FR')}</td>
                   <td>100%</td>
                   <td className="sieges-number">{sieges.reduce((sum, s) => sum + (Number(s.siegesPrime) || 0), 0)}</td>
                   <td className="sieges-number">{sieges.reduce((sum, s) => sum + (Number(s.siegesProportionnels) || 0), 0)}</td>
