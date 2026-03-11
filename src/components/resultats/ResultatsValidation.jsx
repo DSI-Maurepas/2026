@@ -113,6 +113,8 @@ const ResultatsValidation = ({ electionState}) => {
             if (listesAZero.length > 0) warnings.push(`Listes à 0 : ${listesAZero.join(', ')}`);
           }
           if (exprimes === 0 && votants > 0) warnings.push('Aucun exprimé');
+          // Votants non saisis alors que des voix sont déjà saisies
+          if (votants === 0 && voixSaisies) warnings.push('Votants non saisis (voix déjà renseignées)');
 
           // ── ERREURS : valeurs saisies mais mathématiquement fausses (rouge) ──
           if (votants > inscrits) errors.push('Votants > inscrits');
