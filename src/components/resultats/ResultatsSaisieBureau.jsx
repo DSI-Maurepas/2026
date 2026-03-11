@@ -1638,37 +1638,49 @@ useEffect(() => {
 
             <div style={{
               flex: '1 1 280px',
-              background: controles.ctrl1Ok ? '#dcfce7' : '#fee2e2',
-              border: `1px solid ${controles.ctrl1Ok ? '#86efac' : '#fca5a5'}`,
+              background: !controles.hasData ? '#fef3c7' : controles.ctrl1Ok ? '#dcfce7' : '#fee2e2',
+              border: `1px solid ${!controles.hasData ? '#fde68a' : controles.ctrl1Ok ? '#86efac' : '#fca5a5'}`,
               borderRadius: 10,
               padding: 10
             }}>
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>✅ Contrôle ⬆️</div>
+              <div style={{ fontWeight: 800, marginBottom: 6, color: !controles.hasData ? '#92400e' : 'inherit' }}>
+                {!controles.hasData ? '⚠️' : controles.ctrl1Ok ? '✅' : '❌'} Contrôle ⬆️
+              </div>
               <div style={{ fontSize: 14, lineHeight: 1.35 }}>
-                Votants = Blancs + Nuls + Exprimés<br />
-                <strong>{controles.votants.toLocaleString('fr-FR')}</strong>
-                {' = '}
-                {controles.blancs.toLocaleString('fr-FR')}
-                {' + '}
-                {controles.nuls.toLocaleString('fr-FR')}
-                {' + '}
-                {controles.exprimes.toLocaleString('fr-FR')}
+                {!controles.hasData
+                  ? <span style={{ color: '#92400e' }}>Aucune donnée saisie — veuillez remplir les champs avant validation.</span>
+                  : <>Votants = Blancs + Nuls + Exprimés<br />
+                    <strong>{controles.votants.toLocaleString('fr-FR')}</strong>
+                    {' = '}
+                    {controles.blancs.toLocaleString('fr-FR')}
+                    {' + '}
+                    {controles.nuls.toLocaleString('fr-FR')}
+                    {' + '}
+                    {controles.exprimes.toLocaleString('fr-FR')}
+                  </>
+                }
               </div>
             </div>
 
             <div style={{
               flex: '1 1 280px',
-              background: controles.ctrl2Ok ? '#dcfce7' : '#fee2e2',
-              border: `1px solid ${controles.ctrl2Ok ? '#86efac' : '#fca5a5'}`,
+              background: !controles.hasData ? '#fef3c7' : controles.ctrl2Ok ? '#dcfce7' : '#fee2e2',
+              border: `1px solid ${!controles.hasData ? '#fde68a' : controles.ctrl2Ok ? '#86efac' : '#fca5a5'}`,
               borderRadius: 10,
               padding: 10
             }}>
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>✅ Contrôle ⬇️</div>
+              <div style={{ fontWeight: 800, marginBottom: 6, color: !controles.hasData ? '#92400e' : 'inherit' }}>
+                {!controles.hasData ? '⚠️' : controles.ctrl2Ok ? '✅' : '❌'} Contrôle ⬇️
+              </div>
               <div style={{ fontSize: 14, lineHeight: 1.35 }}>
-                Somme des voix = Exprimés<br />
-                <strong>{controles.sommeVoix.toLocaleString('fr-FR')}</strong>
-                {' = '}
-                {controles.exprimes.toLocaleString('fr-FR')}
+                {!controles.hasData
+                  ? <span style={{ color: '#92400e' }}>Aucune donnée saisie — veuillez remplir les champs avant validation.</span>
+                  : <>Somme des voix = Exprimés<br />
+                    <strong>{controles.sommeVoix.toLocaleString('fr-FR')}</strong>
+                    {' = '}
+                    {controles.exprimes.toLocaleString('fr-FR')}
+                  </>
+                }
               </div>
             </div>
 

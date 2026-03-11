@@ -105,15 +105,16 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
     const blancs    = coerceInt(getVal(bureauId, 'blancs'));
     const nuls      = coerceInt(getVal(bureauId, 'nuls'));
     const exprimes  = coerceInt(getVal(bureauId, 'exprimes'));
-    const ctrl1Ok   = (votants > 0) && (votants === blancs + nuls + exprimes);
-
     let sommeVoix = 0;
     candidatsActifs.forEach(c => {
       sommeVoix += coerceInt(getVal(bureauId, null, c.listeId));
     });
-    const ctrl2Ok = (exprimes > 0) && (sommeVoix === exprimes);
 
-    return { ctrl1Ok, ctrl2Ok };
+    const hasData = votants > 0 || blancs > 0 || nuls > 0 || exprimes > 0 || sommeVoix > 0;
+    const ctrl1Ok = hasData && (votants === blancs + nuls + exprimes);
+    const ctrl2Ok = hasData && (sommeVoix === exprimes);
+
+    return { ctrl1Ok, ctrl2Ok, hasData };
   }, [getVal, candidatsActifs]);
 
   // ── Basculement en mode édition ────────────────────────────────────────
@@ -273,13 +274,19 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
   // ── Rendu cellule valeur ───────────────────────────────────────────────
   const renderCell = useCallback((bureauId, rowDef) => {
     if (rowDef.isCtrl) {
-      const { ctrl1Ok, ctrl2Ok } = getControles(bureauId);
+      const { ctrl1Ok, ctrl2Ok, hasData: hasCtrlData } = getControles(bureauId);
       const ok = rowDef.isCtrl === 'ctrl1' ? ctrl1Ok : ctrl2Ok;
-      // Si pas de données : gris
-      const hasData = !!resultatsMap[bureauId];
-      if (!hasData) return (
+      // Si bureau absent de la feuille : gris
+      const hasBureauData = !!resultatsMap[bureauId];
+      if (!hasBureauData) return (
         <td key={bureauId} style={cellStyle('#f9fafb', false)}>
           <span style={{ color: '#d1d5db', fontSize: 16 }}>—</span>
+        </td>
+      );
+      // Si tout à 0 : orange avertissement
+      if (!hasCtrlData) return (
+        <td key={bureauId} style={cellStyle('#fef3c7', false)} title="Aucune donnée saisie">
+          <span style={{ fontSize: 16 }}>🟠</span>
         </td>
       );
       return (
