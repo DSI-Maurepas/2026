@@ -26,16 +26,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
 import googleSheetsService from '../../services/googleSheetsService';
 import { useGoogleSheets } from '../../hooks/useGoogleSheets';
 
@@ -95,6 +85,199 @@ const TH = ({ children, style = {} }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // Composant principal
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Graphique barres empilées SVG — sans dépendance externe
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StackedBarChart({ data, candidats }) {
+  const W = 760;
+  const H = 280;
+  const PAD = { top: 16, right: 20, bottom: 48, left: 44 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  // Calcul du max global (pour l'axe Y)
+  const maxVal = data.reduce((mx, d) => {
+    const sum = candidats.reduce((s, c) => s + (Number(d[c.listeId]) || 0), 0);
+    return Math.max(mx, sum);
+  }, 0);
+
+  const yMax = maxVal > 0 ? Math.ceil(maxVal / 100) * 100 : 100;
+  const nBars = data.length;
+  const barW = Math.floor(chartW / nBars * 0.6);
+  const gap  = Math.floor(chartW / nBars);
+
+  // Graduations Y
+  const yTicks = [];
+  const nTicks = 5;
+  for (let i = 0; i <= nTicks; i++) {
+    yTicks.push(Math.round((yMax / nTicks) * i));
+  }
+
+  const [tooltip, setTooltip] = React.useState(null);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        style={{ display: 'block', minWidth: 480 }}
+        aria-label="Graphique barres empilées dépouillements"
+      >
+        {/* ── Grille ── */}
+        {yTicks.map((t) => {
+          const y = PAD.top + chartH - (t / yMax) * chartH;
+          return (
+            <g key={t}>
+              <line
+                x1={PAD.left} y1={y}
+                x2={PAD.left + chartW} y2={y}
+                stroke="#e2e8f0" strokeWidth={1}
+              />
+              <text
+                x={PAD.left - 5} y={y + 4}
+                textAnchor="end" fontSize={9} fill="#94a3b8"
+              >
+                {t > 0 ? t.toLocaleString('fr-FR') : '0'}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* ── Axes ── */}
+        <line
+          x1={PAD.left} y1={PAD.top}
+          x2={PAD.left} y2={PAD.top + chartH}
+          stroke="#cbd5e1" strokeWidth={1}
+        />
+        <line
+          x1={PAD.left} y1={PAD.top + chartH}
+          x2={PAD.left + chartW} y2={PAD.top + chartH}
+          stroke="#cbd5e1" strokeWidth={1}
+        />
+
+        {/* ── Barres ── */}
+        {data.map((d, i) => {
+          const x = PAD.left + i * gap + Math.floor((gap - barW) / 2);
+          let yOffset = 0;
+          return (
+            <g key={d.name}>
+              {candidats.map((c) => {
+                const val = Number(d[c.listeId]) || 0;
+                if (val === 0) return null;
+                const barH = Math.max(1, (val / yMax) * chartH);
+                const y = PAD.top + chartH - yOffset - barH;
+                yOffset += barH;
+                return (
+                  <rect
+                    key={c.listeId}
+                    x={x} y={y}
+                    width={barW} height={barH}
+                    fill={c.couleur || '#94a3b8'}
+                    opacity={0.88}
+                    onMouseEnter={(e) =>
+                      setTooltip({
+                        x: e.clientX,
+                        y: e.clientY,
+                        label: `${c.listeId} @ ${d.name}`,
+                        val,
+                        color: c.couleur || '#94a3b8',
+                      })
+                    }
+                    onMouseLeave={() => setTooltip(null)}
+                    style={{ cursor: 'default' }}
+                  />
+                );
+              })}
+              {/* Label axe X */}
+              <text
+                x={x + barW / 2}
+                y={PAD.top + chartH + 14}
+                textAnchor="middle"
+                fontSize={10}
+                fill="#64748b"
+              >
+                {d.name}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* ── Label axe X ── */}
+        <text
+          x={PAD.left + chartW / 2}
+          y={H - 4}
+          textAnchor="middle"
+          fontSize={10}
+          fill="#94a3b8"
+        >
+          Bulletins dépouillés
+        </text>
+      </svg>
+
+      {/* ── Tooltip ── */}
+      {tooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            left: tooltip.x + 10,
+            top: tooltip.y - 30,
+            background: '#1e293b',
+            color: '#fff',
+            padding: '4px 10px',
+            borderRadius: 6,
+            fontSize: 12,
+            pointerEvents: 'none',
+            zIndex: 9999,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              width: 8, height: 8,
+              borderRadius: 2,
+              background: tooltip.color,
+              marginRight: 6,
+            }}
+          />
+          {tooltip.label} : <strong>{tooltip.val.toLocaleString('fr-FR')} voix</strong>
+        </div>
+      )}
+
+      {/* ── Légende ── */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px 18px',
+          marginTop: 10,
+          paddingLeft: PAD.left,
+        }}
+      >
+        {candidats.map((c) => (
+          <span key={c.listeId} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+            <span
+              style={{
+                width: 12, height: 12,
+                borderRadius: 2,
+                background: c.couleur || '#94a3b8',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ color: '#475569' }}>
+              <strong>{c.listeId}</strong>
+              {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function EnDirect({ electionState }) {
   const tourActuel = electionState?.tourActuel === 2 ? 2 : 1;
@@ -828,46 +1011,10 @@ export default function EnDirect({ electionState }) {
               Barres empilées par tranche de 100 dépouillements — couleur par
               liste
             </p>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart
-                data={chartData}
-                margin={{ top: 6, right: 24, left: 0, bottom: 30 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11 }}
-                  label={{
-                    value: 'Nombre de bulletins dépouillés',
-                    position: 'insideBottom',
-                    offset: -18,
-                    fontSize: 11,
-                    fill: '#64748b',
-                  }}
-                />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip
-                  formatter={(value, name) => [
-                    `${value.toLocaleString('fr-FR')} voix`,
-                    name,
-                  ]}
-                  contentStyle={{ fontSize: 12, borderRadius: 6 }}
-                />
-                <Legend
-                  iconType="square"
-                  wrapperStyle={{ fontSize: 11, paddingTop: 10 }}
-                />
-                {candidatsActifs.map((c) => (
-                  <Bar
-                    key={c.listeId}
-                    dataKey={c.listeId}
-                    name={`${c.listeId} — ${String(c.nomListe || '').replace(/^Liste /i, '')}`}
-                    stackId="a"
-                    fill={c.couleur || '#94a3b8'}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+  <StackedBarChart
+              data={chartData}
+              candidats={candidatsActifs}
+            />
           </div>
         </>
       )}
