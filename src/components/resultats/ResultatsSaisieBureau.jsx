@@ -1528,6 +1528,7 @@ useEffect(() => {
                 inputMode="numeric"
                 value={inputsMain.votants}
                 onChange={(e) => setInputsMain((prev) => ({ ...prev, votants: e.target.value }))}
+                onFocus={() => { if (inputsMain.votants === '0') setInputsMain((prev) => ({ ...prev, votants: '' })); }}
                 onBlur={() => onBlurMain('votants')}
                 disabled={isLocked && !isAdmin}
                 style={{ 
@@ -1553,6 +1554,7 @@ useEffect(() => {
                 inputMode="numeric"
                 value={inputsMain.procurations}
                 onChange={(e) => setInputsMain((prev) => ({ ...prev, procurations: e.target.value }))}
+                onFocus={() => { if (inputsMain.procurations === '0') setInputsMain((prev) => ({ ...prev, procurations: '' })); }}
                 onBlur={() => onBlurMain('procurations')}
                 disabled={isLocked && !isAdmin}
                 style={{
@@ -1572,6 +1574,7 @@ useEffect(() => {
                 inputMode="numeric"
                 value={inputsMain.blancs}
                 onChange={(e) => setInputsMain((prev) => ({ ...prev, blancs: e.target.value }))}
+                onFocus={() => { if (inputsMain.blancs === '0') setInputsMain((prev) => ({ ...prev, blancs: '' })); }}
                 onBlur={() => onBlurMain('blancs')}
                 disabled={isLocked && !isAdmin}
                 style={{ 
@@ -1591,6 +1594,7 @@ useEffect(() => {
                 inputMode="numeric"
                 value={inputsMain.nuls}
                 onChange={(e) => setInputsMain((prev) => ({ ...prev, nuls: e.target.value }))}
+                onFocus={() => { if (inputsMain.nuls === '0') setInputsMain((prev) => ({ ...prev, nuls: '' })); }}
                 onBlur={() => onBlurMain('nuls')}
                 disabled={isLocked && !isAdmin}
                 style={{ 
@@ -1613,6 +1617,7 @@ useEffect(() => {
                 inputMode="numeric"
                 value={inputsMain.exprimes}
                 onChange={isBureauVote ? undefined : (e) => setInputsMain((prev) => ({ ...prev, exprimes: e.target.value }))}
+                onFocus={isBureauVote ? undefined : () => { if (inputsMain.exprimes === '0') setInputsMain((prev) => ({ ...prev, exprimes: '' })); }}
                 onBlur={isBureauVote ? undefined : () => onBlurMain('exprimes')}
                 readOnly={isBureauVote}
                 disabled={isBureauVote || ((isLocked || adminValidated) && !isAdmin)}
@@ -1790,13 +1795,14 @@ useEffect(() => {
 
                 return (
                   <tr key={listeId || nomListe || Math.random().toString(16).slice(2)}>
-                    <td style={{ borderBottom: '1px solid #f0f0f0', padding: 6 }}>{listeId || '—'} {nomListe ? `— ${nomListe}` : ''}</td>
+                    <td style={{ borderBottom: '1px solid #f0f0f0', padding: 6 }}>{nomListe || '—'}</td>
                     <td style={{ borderBottom: '1px solid #f0f0f0', padding: 6 }}>
                       <input
                         type="text"
                         inputMode="numeric"
                         value={inputsVoix[listeId] ?? ''}
                         onChange={(e) => setInputsVoix((prev) => ({ ...prev, [listeId]: e.target.value }))}
+                        onFocus={() => { if ((inputsVoix[listeId] ?? '') === '0') setInputsVoix((prev) => ({ ...prev, [listeId]: '' })); }}
                         onBlur={() => onBlurVoix(listeId)}
                         disabled={(isLocked || adminValidated) && !isAdmin}
                         style={{

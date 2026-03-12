@@ -352,7 +352,7 @@ export default function FeuilleResultatsBV({ electionState: electionStateProp } 
                 ? ((voixNum / exprimes) * 100).toFixed(2).replace('.', ',') + ' %'
                 : '—';
 
-              const label = [listeId, nomListe, tete ? `(${tete})` : ''].filter(Boolean).join(' — ');
+              const label = [nomListe, tete ? `(${tete})` : ''].filter(Boolean).join(' — ');
 
               return (
                 <tr key={listeId || nomListe}>
