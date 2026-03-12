@@ -516,38 +516,7 @@ export default function EnDirect({ electionState }) {
                         ))}
                       </tr>
 
-                      {/* Total par liste */}
-                      {candidatsActifs.map((c) => (
-                        <tr key={`total_${c.listeId}`} style={{ background: c.couleur ? `${c.couleur}10` : '#f8fafc' }}>
-                          <td colSpan={4} style={{ padding: '5px 10px', position: 'sticky', left: 0, zIndex: 2, background: c.couleur ? `${c.couleur}10` : '#f8fafc', borderBottom: '1px solid #e2e8f0', borderRight: '2px solid #cbd5e1' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
-                              <span style={{ fontWeight: 700, fontSize: 11 }}>{c.listeId}</span>
-                              <span style={{ fontSize: 10, color: '#475569' }}>
-                                {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim()}
-                                {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
-                              </span>
-                            </div>
-                          </td>
-                          {PALIER_KEYS.map((pk) => {
-                            const val   = totauxParListe[c.listeId]?.[pk] || 0;
-                            const total = totalParPalier[pk] || 0;
-                            const pct   = total > 0 ? ((val / total) * 100).toFixed(1) : null;
-                            return (
-                              <td key={pk} style={{ textAlign: 'center', padding: '4px 3px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #f1f5f9' }}>
-                                <div style={{ fontWeight: 700, fontSize: 12, color: val > 0 ? '#1e293b' : '#cbd5e1' }}>
-                                  {val > 0 ? val.toLocaleString('fr-FR') : '—'}
-                                </div>
-                                {pct !== null && (
-                                  <div style={{ fontSize: 10, color: c.couleur || '#64748b', fontWeight: 600, lineHeight: 1.2 }}>
-                                    {pct}%
-                                  </div>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
+
                     </tbody>
                   </table>
                 </div>
@@ -610,22 +579,67 @@ export default function EnDirect({ electionState }) {
                   </BarChart>
                 </ResponsiveContainer>
 
-                {/* Totaux synthèse en bas du graphique */}
-                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: '6px 12px' }}>
-                  {candidatsActifs.map((c) => {
-                    const lastPk  = [...PALIER_KEYS].reverse().find(pk => (totauxParListe[c.listeId]?.[pk] || 0) > 0);
-                    const lastVal = lastPk ? (totauxParListe[c.listeId]?.[lastPk] || 0) : 0;
-                    const lastTot = lastPk ? (totalParPalier[lastPk] || 0) : 0;
-                    const pct     = lastTot > 0 ? ((lastVal / lastTot) * 100).toFixed(1) : null;
-                    return (
-                      <span key={c.listeId} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '3px 8px', borderRadius: 6, background: c.couleur ? `${c.couleur}15` : '#f8fafc', border: `1px solid ${c.couleur || '#e2e8f0'}` }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
-                        <strong>{c.listeId}</strong>
-                        {lastVal > 0 && <span style={{ color: '#475569' }}>{lastVal.toLocaleString('fr-FR')}{pct && <span style={{ color: c.couleur || '#64748b', fontWeight: 700 }}> ({pct}%)</span>}</span>}
-                        {lastVal === 0 && <span style={{ color: '#cbd5e1' }}>—</span>}
-                      </span>
-                    );
-                  })}
+                {/* ── Tableau totaux par liste par palier ── */}
+                <div style={{ marginTop: 20, overflowX: 'auto', borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 1px 6px rgba(0,0,0,0.07)' }}>
+                  <table style={{ borderCollapse: 'collapse', fontSize: 12, background: '#fff', width: '100%' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ background: '#1e3c72', color: '#fff', padding: '7px 10px', fontSize: 10, fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.3px', whiteSpace: 'nowrap', borderRight: '2px solid rgba(255,255,255,0.2)', minWidth: 140 }}>
+                          Liste
+                        </th>
+                        {PALIERS.map((p) => (
+                          <th key={p} style={{ background: '#1e3c72', color: '#fff', padding: '7px 5px', fontSize: 10, fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'nowrap', borderRight: '1px solid rgba(255,255,255,0.12)', minWidth: 50 }}>
+                            {p}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Ligne total toutes listes */}
+                      <tr style={{ background: '#1e293b' }}>
+                        <td style={{ padding: '6px 10px', fontWeight: 800, fontSize: 11, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.4px', borderRight: '2px solid #334155', borderBottom: '1px solid #334155' }}>
+                          Total
+                        </td>
+                        {PALIER_KEYS.map((pk) => (
+                          <td key={pk} style={{ textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#fff', padding: '6px 4px', borderRight: '1px solid #334155', borderBottom: '1px solid #334155' }}>
+                            {totalParPalier[pk] > 0 ? totalParPalier[pk].toLocaleString('fr-FR') : '—'}
+                          </td>
+                        ))}
+                      </tr>
+                      {/* Une ligne par liste */}
+                      {candidatsActifs.map((c, idx) => (
+                        <tr key={c.listeId} style={{ background: idx % 2 === 0 ? (c.couleur ? `${c.couleur}0d` : '#fff') : (c.couleur ? `${c.couleur}18` : '#f8fafc') }}>
+                          <td style={{ padding: '5px 10px', borderBottom: '1px solid #e2e8f0', borderRight: '2px solid #cbd5e1' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+                              <span style={{ fontWeight: 700, fontSize: 11, color: '#1e293b' }}>{c.listeId}</span>
+                              <span style={{ fontSize: 10, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                                {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim()}
+                                {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
+                              </span>
+                            </div>
+                          </td>
+                          {PALIER_KEYS.map((pk) => {
+                            const val   = totauxParListe[c.listeId]?.[pk] || 0;
+                            const total = totalParPalier[pk] || 0;
+                            const pct   = total > 0 ? ((val / total) * 100).toFixed(1) : null;
+                            return (
+                              <td key={pk} style={{ textAlign: 'center', padding: '4px 3px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #f1f5f9' }}>
+                                <div style={{ fontWeight: val > 0 ? 700 : 400, fontSize: 12, color: val > 0 ? '#1e293b' : '#cbd5e1' }}>
+                                  {val > 0 ? val.toLocaleString('fr-FR') : '—'}
+                                </div>
+                                {pct !== null && (
+                                  <div style={{ fontSize: 10, color: c.couleur || '#64748b', fontWeight: 700, lineHeight: 1.2 }}>
+                                    {pct}%
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
