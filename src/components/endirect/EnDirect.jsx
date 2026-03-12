@@ -629,11 +629,11 @@ export default function EnDirect({ electionState }) {
                 {/* Marge droite dynamique : voix (max) + % + padding */}
                 {(() => {
                   const barHeight  = Math.max(338, candidatsActifs.length * 105 + 40);
-                  const fs         = Math.max(12, Math.round(((barHeight - 40) / candidatsActifs.length * 0.85) * 0.72));
+                  const fs         = Math.max(12, Math.round(((barHeight - 40) / candidatsActifs.length * 0.85) * 0.50));
                   const maxVoix    = Math.max(...chartData.map(d => d.voix), 0);
                   const maxVoixStr = maxVoix.toLocaleString('fr-FR');
                   const maxPct     = chartData.find(d => d.voix === maxVoix)?.pct ?? '00.0';
-                  const pctFs      = Math.max(10, Math.round(fs * 0.75));
+                  const pctFs      = Math.max(10, Math.round(fs * 0.53));
                   const voixW      = maxVoixStr.length * fs * 0.62;
                   const pctW       = (String(maxPct).length + 1) * pctFs * 0.62 + 10;
                   const rightMargin = Math.ceil(voixW + pctW + 24);
@@ -682,7 +682,7 @@ export default function EnDirect({ electionState }) {
                         const voixStr = value.toLocaleString('fr-FR');
                         const voixW   = voixStr.length * fs * 0.62;
                         const pctStr  = entry.pct !== null ? `${entry.pct}%` : null;
-                        const pctFs   = Math.max(10, Math.round(fs * 0.75));
+                        const pctFs   = Math.max(10, Math.round(fs * 0.53));
                         const pctW    = pctStr ? pctStr.length * pctFs * 0.62 + 10 : 0;
                         const pctH    = pctFs + 8;
                         const pctX    = cx + voixW + 8;
