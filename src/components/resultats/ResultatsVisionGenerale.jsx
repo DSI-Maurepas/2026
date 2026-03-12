@@ -336,6 +336,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
           inputMode="numeric"
           value={val}
           onChange={e => handleCellChange(bureauId, rowDef.field, e.target.value, rowDef.listeId || null)}
+          onFocus={() => { if (String(val) === '0') handleCellChange(bureauId, rowDef.field, '', rowDef.listeId || null); }}
           onBlur={() => handleCellBlur(bureauId, rowDef.field, rowDef.listeId || null)}
           style={{
             width: '100%', minWidth: 52, padding: '3px 5px',
