@@ -131,10 +131,21 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Init inputs — déclenché uniquement au changement de tour / listes / bureaux
-  //    (PAS sur enDirectMap pour ne pas écraser la saisie en cours)
+  // ── Chargement initial au montage + changement de tour ────────────────────
+  const initializedRef = useRef(false);
+
   useEffect(() => {
-    pendingRowIdxRef.current = {};          // reset seulement au changement de tour
+    // Forcer le rechargement depuis Sheets à chaque montage/changement de tour
+    pendingRowIdxRef.current = {};
+    initializedRef.current   = false;
+    reloadEnDirect();
+  }, [viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Hydratation des inputs dès que Sheets répond ─────────────────────────
+  //    Déclenché à chaque mise à jour de enDirectMap (y compris au retour page)
+  useEffect(() => {
+    if (bureauxList.length === 0 || candidatsActifs.length === 0) return;
+
     setInputs((prev) => {
       const next = {};
       bureauxList.forEach((b) => {
@@ -144,40 +155,24 @@ export default function EnDirect({ electionState }) {
           const row    = enDirectMap[rowKey];
           const paliers = {};
           PALIER_KEYS.forEach((pk) => {
-            // Priorité : valeur déjà en mémoire locale > valeur Sheets
-            const local  = prev[rowKey]?.[pk];
             const remote = row ? String(row[pk] ?? '') : '';
+            // Si déjà initialisé (saisie en cours) : garder la valeur locale
+            // Si premier chargement ou retour page : prendre Sheets
+            const local  = initializedRef.current ? prev[rowKey]?.[pk] : undefined;
             paliers[pk]  = (local !== undefined && local !== '') ? local : remote;
           });
           next[rowKey] = paliers;
-        });
-      });
-      return next;
-    });
-  }, [bureauxList, candidatsActifs, viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Sync depuis Sheets après reload (sans écraser la saisie active) ───────
-  useEffect(() => {
-    if (Object.keys(enDirectMap).length === 0) return;
-    setInputs((prev) => {
-      const next = { ...prev };
-      Object.entries(enDirectMap).forEach(([rowKey, row]) => {
-        if (!next[rowKey]) return;
-        PALIER_KEYS.forEach((pk) => {
-          const remote = String(row[pk] ?? '');
-          // N'écrase que si la cellule locale est vide (pas en cours de saisie)
-          if (!next[rowKey][pk] || next[rowKey][pk] === '') {
-            next[rowKey] = { ...next[rowKey], [pk]: remote };
+          // Mémoriser rowIndex
+          if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
+            pendingRowIdxRef.current[rowKey] = row.rowIndex;
           }
         });
-        // Mémoriser rowIndex pour les updates futurs
-        if (row.rowIndex !== undefined && row.rowIndex !== null) {
-          pendingRowIdxRef.current[rowKey] = row.rowIndex;
-        }
       });
+      initializedRef.current = true;
       return next;
     });
-  }, [enDirectMap]);
+  }, [enDirectMap, bureauxList, candidatsActifs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Changement (buffer) ─────────────────────────────────────────────────
   const handleChange = useCallback((rowKey, pk, value) => {
