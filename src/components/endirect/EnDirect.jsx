@@ -146,6 +146,11 @@ export default function EnDirect({ electionState }) {
   useEffect(() => {
     if (bureauxList.length === 0 || candidatsActifs.length === 0) return;
 
+    // Ne pas traiter tant que Sheets n'a pas répondu (enDirectMap vide = données pas encore arrivées)
+    // SAUF s'il n'y a vraiment aucune donnée dans Sheets (cas d'un premier dépouillement)
+    // → on distingue "pas encore chargé" de "chargé mais vide" grâce à initializedRef
+    const sheetsARepondu = Object.keys(enDirectMap).length > 0;
+
     setInputs((prev) => {
       const next = {};
       bureauxList.forEach((b) => {
@@ -156,20 +161,31 @@ export default function EnDirect({ electionState }) {
           const paliers = {};
           PALIER_KEYS.forEach((pk) => {
             const remote = row ? String(row[pk] ?? '') : '';
-            // Si déjà initialisé (saisie en cours) : garder la valeur locale
-            // Si premier chargement ou retour page : prendre Sheets
-            const local  = initializedRef.current ? prev[rowKey]?.[pk] : undefined;
-            paliers[pk]  = (local !== undefined && local !== '') ? local : remote;
+            if (!initializedRef.current) {
+              // Premier chargement : toujours prendre Sheets
+              paliers[pk] = remote;
+            } else if (sheetsARepondu) {
+              // Sheets a répondu : préférer local si non vide (saisie en cours)
+              const local = prev[rowKey]?.[pk];
+              paliers[pk] = (local !== undefined && local !== '') ? local : remote;
+            } else {
+              // Sheets pas encore répondu après navigation : garder le local existant
+              const local = prev[rowKey]?.[pk];
+              paliers[pk] = local ?? '';
+            }
           });
           next[rowKey] = paliers;
 
-          // Mémoriser rowIndex
-          if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
+          // Mémoriser rowIndex uniquement si Sheets a répondu
+          if (sheetsARepondu && row?.rowIndex !== undefined && row?.rowIndex !== null) {
             pendingRowIdxRef.current[rowKey] = row.rowIndex;
           }
         });
       });
-      initializedRef.current = true;
+
+      // Marquer initialisé UNIQUEMENT si Sheets a répondu avec des données
+      if (sheetsARepondu) initializedRef.current = true;
+
       return next;
     });
   }, [enDirectMap, bureauxList, candidatsActifs]); // eslint-disable-line react-hooks/exhaustive-deps
