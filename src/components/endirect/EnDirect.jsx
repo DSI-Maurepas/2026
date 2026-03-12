@@ -663,23 +663,22 @@ export default function EnDirect({ electionState }) {
                         const { x, y, width, height, value, index } = props;
                         const entry = chartData[index];
                         if (!entry || value <= 0) return null;
-                        const cx       = x + width + 8;
-                        const cy       = y + height / 2;
-                        const voixStr  = value.toLocaleString('fr-FR');
-                        const voixW    = voixStr.length * 7.5;
-                        // % — même style que le tableau : fontSize 10, fontWeight 700, couleur candidat
-                        // liseré = rect fill="none" stroke=couleur
-                        const pctStr   = entry.pct !== null ? `${entry.pct}%` : null;
-                        const pctW     = pctStr ? pctStr.length * 6.5 + 8 : 0;
-                        const pctH     = 16;
-                        const pctX     = cx + voixW + 6;
+                        // Police aussi haute que la barre (légèrement réduite pour marge)
+                        const fs      = Math.max(12, Math.round(height * 0.72));
+                        const cx      = x + width + 10;
+                        const cy      = y + height / 2;
+                        const voixStr = value.toLocaleString('fr-FR');
+                        const voixW   = voixStr.length * fs * 0.62;
+                        const pctStr  = entry.pct !== null ? `${entry.pct}%` : null;
+                        const pctFs   = Math.max(10, Math.round(fs * 0.75));
+                        const pctW    = pctStr ? pctStr.length * pctFs * 0.62 + 10 : 0;
+                        const pctH    = pctFs + 8;
+                        const pctX    = cx + voixW + 8;
                         return (
                           <g>
-                            {/* Voix — fontSize 12, fontWeight 700, noir — identique tableau */}
-                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={12} fontWeight={700} fill="#1e293b">
+                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={fs} fontWeight={800} fill="#1e293b">
                               {voixStr}
                             </text>
-                            {/* % — liseré couleur candidat, texte couleur candidat fontSize 10 fontWeight 700 */}
                             {pctStr && (
                               <g>
                                 <rect
@@ -687,18 +686,18 @@ export default function EnDirect({ electionState }) {
                                   y={cy - pctH / 2}
                                   width={pctW}
                                   height={pctH}
-                                  rx={3}
-                                  ry={3}
+                                  rx={4}
+                                  ry={4}
                                   fill="none"
                                   stroke={entry.couleur}
-                                  strokeWidth={1.5}
+                                  strokeWidth={2}
                                 />
                                 <text
                                   x={pctX + pctW / 2}
                                   y={cy}
                                   textAnchor="middle"
                                   dominantBaseline="middle"
-                                  fontSize={10}
+                                  fontSize={pctFs}
                                   fontWeight={700}
                                   fill={entry.couleur}
                                 >
