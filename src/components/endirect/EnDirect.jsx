@@ -271,7 +271,8 @@ export default function EnDirect({ electionState }) {
             pendingRowIdxRef.current[rowKey] = appended.rowIndex;
           }
         }
-        await reloadEnDirect();
+        // PAS de reloadEnDirect() ici — le reload déclencherait le useEffect
+        // qui écraserait les valeurs locales avant confirmation Sheets
       } catch (e) {
         console.error('[EnDirect] Erreur sauvegarde:', e);
       } finally {
