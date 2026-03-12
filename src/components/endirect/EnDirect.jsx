@@ -340,47 +340,46 @@ export default function EnDirect({ electionState }) {
     <>
       {/* ── STYLE PAGE FULL-WIDTH ─────────────────────────────────────── */}
       <style>{`
-        .endirect-page-override {
-          max-width: 1900px !important;
-          width: 100% !important;
-          padding-left: 12px !important;
-          padding-right: 12px !important;
+        /* ── Casse le conteneur parent sur toute la chaîne ── */
+        .endirect-breakout {
+          width: 100vw !important;
+          position: relative !important;
+          left: 50% !important;
+          right: 50% !important;
+          margin-left: -50vw !important;
+          margin-right: -50vw !important;
+          padding-left: 18px !important;
+          padding-right: 18px !important;
           box-sizing: border-box !important;
-        }
-        /* Forcer le conteneur parent à pleine largeur uniquement sur cette page */
-        .page-container:has(.endirect-page-override) {
-          max-width: 1900px !important;
-          width: 100% !important;
-          padding-left: 12px !important;
-          padding-right: 12px !important;
         }
         .endirect-grid {
           display: grid;
           grid-template-columns: 3fr 2fr;
           gap: 16px;
           align-items: start;
+          width: 100%;
         }
         @media (max-width: 1200px) {
-          .endirect-grid {
-            grid-template-columns: 1fr;
-          }
+          .endirect-grid { grid-template-columns: 1fr; }
         }
         .endirect-table-wrap {
           overflow-x: auto;
           border-radius: 8px;
           box-shadow: 0 2px 10px rgba(0,0,0,0.09);
           border: 1px solid #e2e8f0;
+          width: 100%;
         }
         .endirect-table {
           border-collapse: collapse;
           font-size: 12px;
           background: #fff;
           width: 100%;
+          min-width: 900px;
         }
         .endirect-th {
           background: #1e3c72;
           color: #fff;
-          padding: 7px 5px;
+          padding: 7px 6px;
           font-size: 10px;
           font-weight: 700;
           text-align: center;
@@ -390,7 +389,7 @@ export default function EnDirect({ electionState }) {
           border-right: 1px solid rgba(255,255,255,0.12);
         }
         .endirect-input {
-          width: 46px;
+          width: 52px;
           padding: 3px 3px;
           border-radius: 4px;
           font-size: 12px;
@@ -401,7 +400,7 @@ export default function EnDirect({ electionState }) {
         }
       `}</style>
 
-      <div className="endirect-page-override">
+      <div className="endirect-breakout">
 
         {/* ── EN-TÊTE ─────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, flexWrap: 'wrap' }}>
