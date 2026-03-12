@@ -6,6 +6,7 @@
 //   VITE_GLOBAL_PASSWORD=
 //   VITE_ADMIN_PASSWORD=
 //   VITE_INFO_PASSWORD=
+//   VITE_DIRECT_PASSWORD=
 
 // Chargement sécurisé de VITE_BV_PASSWORDS
 function _loadBvPasswords() {
@@ -39,6 +40,7 @@ export const ACCESS_CONFIG = Object.freeze({
   GLOBAL_PASSWORD: import.meta.env.VITE_GLOBAL_PASSWORD,
   ADMIN_PASSWORD:  import.meta.env.VITE_ADMIN_PASSWORD,
   INFO_PASSWORD:   import.meta.env.VITE_INFO_PASSWORD,
+  DIRECT_PASSWORD: import.meta.env.VITE_DIRECT_PASSWORD,
 });
 
 /**
@@ -50,6 +52,7 @@ export function validateEnvConfig() {
     "VITE_GLOBAL_PASSWORD",
     "VITE_ADMIN_PASSWORD",
     "VITE_INFO_PASSWORD",
+    "VITE_DIRECT_PASSWORD",
   ];
 
   const missing = required.filter((key) => !import.meta.env[key]);
@@ -84,6 +87,9 @@ export function parseAccessCode(code) {
 
   // Informations (lecture seule)
   if (trimmed === ACCESS_CONFIG.INFO_PASSWORD) return { role: "INFO" };
+
+  // Direct (dépouillement en direct)
+  if (trimmed === ACCESS_CONFIG.DIRECT_PASSWORD) return { role: "DIRECT" };
 
   // BV — mots de passe individuels uniquement
   if (ACCESS_CONFIG.BV_PASSWORDS) {
@@ -128,6 +134,11 @@ export function canAccessPage(auth, pageKey) {
     return allowed.has(pageKey);
   }
 
+  if (role === "DIRECT") {
+    const allowed = new Set(["dashboard", "informations", "info_participation", "en_direct"]);
+    return allowed.has(pageKey);
+  }
+
   if (role === "BV") {
     const allowed = new Set([
       "participation_saisie",
@@ -145,3 +156,4 @@ export function isBV(auth)     { return auth?.role === "BV";     }
 export function isGlobal(auth) { return auth?.role === "GLOBAL"; }
 export function isAdmin(auth)  { return auth?.role === "ADMIN";  }
 export function isInfo(auth)   { return auth?.role === "INFO";   }
+export function isDirect(auth) { return auth?.role === "DIRECT"; }

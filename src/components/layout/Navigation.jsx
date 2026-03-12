@@ -59,6 +59,7 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
       case "exports": return "exports";
       case "informations": return "informations";
       case "admin": return "admin_bureaux";
+      case "en-direct": return "en_direct";
       case "dashboard":
       default:
         return "dashboard";
@@ -73,6 +74,7 @@ const Navigation = ({ currentPage, onNavigate, isAuthenticated, onSignIn, onSign
     { id: "sieges", label: "🪑 Sièges", page: "sieges" },
     { id: "exports", label: "📄 Exports", page: "exports" },
     { id: "informations", label: "ℹ️ Informations", page: "informations" },
+    { id: "en-direct", label: "📡 En Direct", page: "en-direct" },
     { id: "admin", label: "⚙️ Administration", page: "admin" },
   ];
 

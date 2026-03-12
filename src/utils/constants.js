@@ -238,7 +238,9 @@ export const SHEET_NAMES = {
   SEATS_COMMUNITY: 'Seats_Community',
   ELECTIONS_STATE: 'ElectionsState',
   AUDIT_LOG: 'AuditLog',
-  ERROR_LOG: 'ErrorLog'
+  ERROR_LOG: 'ErrorLog',
+  EN_DIRECT_T1: 'EnDirect_T1',
+  EN_DIRECT_T2: 'EnDirect_T2'
 };
 
 export const MESSAGES = {
