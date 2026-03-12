@@ -250,7 +250,7 @@ export default function EnDirect({ electionState }) {
         setSavingCell(null);
       }
     },
-    [inputs, sheet]
+    [inputs, sheet, loadFromSheets]
   );
 
   // ── Totaux par liste ────────────────────────────────────────────────────

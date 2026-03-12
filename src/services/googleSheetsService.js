@@ -487,6 +487,23 @@ async sleep(ms) {
         return deduped;
       }
 
+      case 'EnDirect_T1':
+      case 'EnDirect_T2':
+        // Colonnes : bureauId | listeId | p100 | p200 | p300 | p400 | p500 | p600 | p700 | p800 | p900
+        return rows.map(row => ({
+          bureauId: _str(row, 'bureauId', 0, ''),
+          listeId:  _str(row, 'listeId',  1, ''),
+          p100: _str(row, 'p100', 2, ''),
+          p200: _str(row, 'p200', 3, ''),
+          p300: _str(row, 'p300', 4, ''),
+          p400: _str(row, 'p400', 5, ''),
+          p500: _str(row, 'p500', 6, ''),
+          p600: _str(row, 'p600', 7, ''),
+          p700: _str(row, 'p700', 8, ''),
+          p800: _str(row, 'p800', 9, ''),
+          p900: _str(row, 'p900', 10, ''),
+        }));
+
       case 'Seats_Municipal':
         // Colonnes attendues :
         // Tour | ListeID | NomListe | Voix | PctVoix | SiegesMajorite | SiegesProportionnels | SiegesTotal | Eligible
