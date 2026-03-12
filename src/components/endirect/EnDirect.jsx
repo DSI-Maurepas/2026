@@ -239,19 +239,9 @@ export default function EnDirect({ electionState }) {
       } finally {
         isSavingRef.current = null;
         setSavingCell(null);
-        // Vider le buffer local pour cette cellule : Sheets devient la source de vérité
-        setInputs((prev) => {
-          const next = { ...prev };
-          if (next[rowKey]) {
-            const row = { ...next[rowKey] };
-            delete row[pk];
-            if (Object.keys(row).length === 0) delete next[rowKey];
-            else next[rowKey] = row;
-          }
-          return next;
-        });
-        // Recharger Sheets pour afficher la valeur confirmée
-        reloadEnDirect();
+        // On garde la valeur dans inputs — elle reste affichée immédiatement.
+        // Sheets se rechargera en arrière-plan via useGoogleSheets naturellement.
+        // On ne vide PAS inputs ici pour éviter le flash vide entre save et reload.
       }
     },
     [inputs, enDirectMap, sheet, reloadEnDirect]
