@@ -279,8 +279,10 @@ export default function EnDirect({ electionState }) {
 
   // ── Graphique : cumul voix par liste (barres horizontales) ─────────────
   const chartData = useMemo(
-    () =>
-      candidatsActifs.map((c) => {
+    () => {
+      const totalVoix = candidatsActifs.reduce((s, c) =>
+        s + PALIER_KEYS.reduce((ss, pk) => ss + (totauxParListe[c.listeId]?.[pk] || 0), 0), 0);
+      return candidatsActifs.map((c) => {
         const cumul = PALIER_KEYS.reduce(
           (s, pk) => s + (totauxParListe[c.listeId]?.[pk] || 0),
           0
@@ -289,10 +291,12 @@ export default function EnDirect({ electionState }) {
           name: `${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim() || c.listeId,
           nomListe: String(c.nomListe || '').replace(/^Liste /i, ''),
           voix: cumul,
+          pct: totalVoix > 0 ? ((cumul / totalVoix) * 100).toFixed(1) : null,
           couleur: c.couleur || '#94a3b8',
           listeId: c.listeId,
         };
-      }),
+      });
+    },
     [totauxParListe, candidatsActifs]
   );
 
@@ -626,7 +630,7 @@ export default function EnDirect({ electionState }) {
                   <BarChart
                     layout="vertical"
                     data={chartData}
-                    margin={{ top: 6, right: 60, left: 10, bottom: 10 }}
+                    margin={{ top: 6, right: 110, left: 10, bottom: 10 }}
                     barCategoryGap="25%"
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -655,12 +659,40 @@ export default function EnDirect({ electionState }) {
                     <Bar
                       dataKey="voix"
                       radius={[0, 4, 4, 0]}
-                      label={{
-                        position: 'right',
-                        formatter: (v) => v > 0 ? v.toLocaleString('fr-FR') : '',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        fill: '#1e293b',
+                      label={(props) => {
+                        const { x, y, width, height, value, index } = props;
+                        const entry = chartData[index];
+                        if (!entry || value <= 0) return null;
+                        const voixLabel = value.toLocaleString('fr-FR');
+                        const pct       = entry.pct;
+                        const cx        = x + width + 8;
+                        const cy        = y + height / 2;
+                        // Bulle couleur candidat avec le %
+                        const bubbleR   = 16;
+                        const isLight   = (entry.couleur || '#000') === '#FFFFFF' || (entry.couleur || '').toLowerCase() === '#ffffff';
+                        return (
+                          <g>
+                            {/* Nombre de voix */}
+                            <text x={cx} y={cy - 1} dominantBaseline="middle" fontSize={12} fontWeight={700} fill="#1e293b">
+                              {voixLabel}
+                            </text>
+                            {/* Bulle % */}
+                            {pct !== null && (
+                              <g transform={`translate(${cx + voixLabel.length * 7 + 8}, ${cy})`}>
+                                <circle r={bubbleR} fill={entry.couleur} stroke="rgba(0,0,0,0.15)" strokeWidth={1} />
+                                <text
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                  fontSize={9}
+                                  fontWeight={800}
+                                  fill={isLight ? '#1e293b' : '#fff'}
+                                >
+                                  {pct}%
+                                </text>
+                              </g>
+                            )}
+                          </g>
+                        );
                       }}
                     >
                       {chartData.map((entry) => (
