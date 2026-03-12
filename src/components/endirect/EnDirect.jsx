@@ -628,7 +628,7 @@ export default function EnDirect({ electionState }) {
 
                 {/* Marge droite dynamique : voix (max) + % + padding */}
                 {(() => {
-                  const barHeight  = Math.max(270, candidatsActifs.length * 84 + 40);
+                  const barHeight  = Math.max(338, candidatsActifs.length * 105 + 40);
                   const fs         = Math.max(12, Math.round(((barHeight - 40) / candidatsActifs.length * 0.85) * 0.72));
                   const maxVoix    = Math.max(...chartData.map(d => d.voix), 0);
                   const maxVoixStr = maxVoix.toLocaleString('fr-FR');
