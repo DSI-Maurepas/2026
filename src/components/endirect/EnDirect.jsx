@@ -630,11 +630,13 @@ export default function EnDirect({ electionState }) {
                 {(() => {
                   const barHeight  = Math.max(338, candidatsActifs.length * 105 + 40);
                   const fs         = Math.max(12, Math.round(((barHeight - 40) / candidatsActifs.length * 0.85) * 0.325));
+                  const voixFs     = Math.max(10, Math.round(fs * 0.65));
                   const maxVoix    = Math.max(...chartData.map(d => d.voix), 0);
                   const maxVoixStr = maxVoix.toLocaleString('fr-FR');
                   const maxPct     = chartData.find(d => d.voix === maxVoix)?.pct ?? '00.0';
                   const pctFs      = Math.max(10, Math.round(fs * 0.344));
-                  const voixW      = maxVoixStr.length * fs * 0.62;
+                  const voixFsR    = Math.max(10, Math.round(fs * 0.65));
+                  const voixW      = maxVoixStr.length * voixFsR * 0.62;
                   const pctW       = (String(maxPct).length + 1) * pctFs * 0.62 + 10;
                   const rightMargin = Math.ceil(voixW + pctW + 24);
                   return (
@@ -680,7 +682,7 @@ export default function EnDirect({ electionState }) {
                         const cx      = x + width + 10;
                         const cy      = y + height / 2;
                         const voixStr = value.toLocaleString('fr-FR');
-                        const voixW   = voixStr.length * fs * 0.62;
+                        const voixW   = voixStr.length * voixFs * 0.62;
                         const pctStr  = entry.pct !== null ? `${entry.pct}%` : null;
                         const pctFs   = Math.max(10, Math.round(fs * 0.344));
                         const pctW    = pctStr ? pctStr.length * pctFs * 0.62 + 10 : 0;
@@ -688,7 +690,7 @@ export default function EnDirect({ electionState }) {
                         const pctX    = cx + voixW + 8;
                         return (
                           <g>
-                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={fs} fontWeight={800} fill="#1e293b">
+                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={voixFs} fontWeight={800} fill="#1e293b">
                               {voixStr}
                             </text>
                             {pctStr && (
