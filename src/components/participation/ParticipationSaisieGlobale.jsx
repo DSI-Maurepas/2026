@@ -248,6 +248,7 @@ const ParticipationSaisieGlobale = ({ electionState, reloadElectionState }) => {
                           value={rawVal}
                           disabled={saving}
                           onChange={(e) => handleChange(bid, h.key, e.target.value)}
+                          onFocus={() => { if ((inputs[bid]?.[h.key] ?? '') === '0') handleChange(bid, h.key, ''); }}
                           onBlur={() => handleBlur(bureau, h.key)}
                           style={{
                             width: '100%',

@@ -309,6 +309,7 @@ const ParticipationSaisie = ({ electionState, reloadElectionState }) => {
                       pattern="\d*"
                       value={inputs[h.key] ?? ''}
                       onChange={(e) => handleChange(h.key, e.target.value)}
+                      onFocus={() => { if (inputs[h.key] === '0') handleChange(h.key, ''); }}
                       onBlur={() => handleBlur(h.key)}
                       disabled={savingKey === h.key}
                     />
