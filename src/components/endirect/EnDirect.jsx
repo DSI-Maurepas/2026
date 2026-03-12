@@ -88,6 +88,7 @@ export default function EnDirect({ electionState }) {
 
   const isSavingRef       = useRef(null);
   const pendingRowIdxRef  = useRef({});
+  const inputsRef         = useRef({});   // { "BV1_L1_p100": <input DOM> }
 
   // ── Bureaux actifs triés ────────────────────────────────────────────────
   const bureauxList = useMemo(() => {
@@ -156,6 +157,48 @@ export default function EnDirect({ electionState }) {
       [rowKey]: { ...prev[rowKey], [pk]: value },
     }));
   }, []);
+
+  // ── Navigation clavier : Tab / Entrée → cellule du DESSOUS ─────────────────
+  const handleKeyDown = useCallback(
+    (e, bvId, listeId, pk) => {
+      if (e.key !== 'Tab' && e.key !== 'Enter') return;
+      e.preventDefault();
+
+      // Ordre de navigation : même liste, même palier, bureau suivant
+      // puis revient au premier bureau avec liste/palier suivant
+      const bvIdx     = bureauxList.findIndex(b => normalizeBvId(b.id) === bvId);
+      const palierIdx = PALIER_KEYS.indexOf(pk);
+      const listeIdx  = candidatsActifs.findIndex(c => c.listeId === listeId);
+
+      let nextBvIdx     = bvIdx + 1;
+      let nextPalierIdx = palierIdx;
+      let nextListeIdx  = listeIdx;
+
+      if (nextBvIdx >= bureauxList.length) {
+        // Fin de colonne → liste suivante, premier bureau
+        nextBvIdx   = 0;
+        nextListeIdx = listeIdx + 1;
+        if (nextListeIdx >= candidatsActifs.length) {
+          // Fin des listes → palier suivant, première liste, premier bureau
+          nextListeIdx  = 0;
+          nextPalierIdx = palierIdx + 1;
+          if (nextPalierIdx >= PALIER_KEYS.length) nextPalierIdx = 0;
+        }
+      }
+
+      const nextBvId    = normalizeBvId(bureauxList[nextBvIdx]?.id);
+      const nextListeId = candidatsActifs[nextListeIdx]?.listeId;
+      const nextPk      = PALIER_KEYS[nextPalierIdx];
+      const nextKey     = `${nextBvId}_${nextListeId}_${nextPk}`;
+
+      const el = inputsRef.current[nextKey];
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    },
+    [bureauxList, candidatsActifs]
+  );
 
   // ── Sauvegarde sur blur ─────────────────────────────────────────────────
   const handleBlur = useCallback(
@@ -287,7 +330,7 @@ export default function EnDirect({ electionState }) {
         }
         .endirect-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 3fr 2fr;
           gap: 16px;
           align-items: start;
         }
@@ -478,6 +521,11 @@ export default function EnDirect({ electionState }) {
                                 return (
                                   <td key={pk} style={{ padding: '2px 2px', borderBottom: bdrBtm, borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
                                     <input
+                                      ref={(el) => {
+                                        const refKey = `${bvId}_${c.listeId}_${pk}`;
+                                        if (el) inputsRef.current[refKey] = el;
+                                        else delete inputsRef.current[refKey];
+                                      }}
                                       type="text"
                                       inputMode="numeric"
                                       pattern="\d*"
@@ -485,6 +533,7 @@ export default function EnDirect({ electionState }) {
                                       onChange={(e) => handleChange(rowKey, pk, e.target.value)}
                                       onFocus={() => { if (String(val) === '0') handleChange(rowKey, pk, ''); }}
                                       onBlur={() => handleBlur(bvId, c.listeId, pk)}
+                                      onKeyDown={(e) => handleKeyDown(e, bvId, c.listeId, pk)}
                                       disabled={isSaving}
                                       aria-label={`${bvId} ${c.listeId} palier ${pk.replace('p', '')}`}
                                       className="endirect-input"
