@@ -238,8 +238,11 @@ export default function EnDirect({ electionState }) {
             pendingRowIdxRef.current[rowKey] = appended.rowIndex;
           }
         }
-        // Recharger depuis Sheets pour resynchroniser inputs (pattern ParticipationSaisie)
-        await loadFromSheets();
+        // Confirmer la valeur immédiatement dans inputs (pas de flash)
+        setInputs((prev) => ({
+          ...prev,
+          [rowKey]: { ...(prev[rowKey] || {}), [pk]: String(n) },
+        }));
       } catch (e) {
         console.error('[EnDirect] Erreur sauvegarde:', e);
       } finally {
