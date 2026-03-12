@@ -459,11 +459,11 @@ export default function EnDirect({ electionState }) {
                 <div className="endirect-table-wrap">
                   <table className="endirect-table">
                     <thead>
+                      <tr>
                         <th className="endirect-th" style={{ textAlign: 'left', width: 70, minWidth: 70, position: 'sticky', left: 0, zIndex: 5, background: '#1e3c72' }}>Bureau</th>
                         <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Inscrits</th>
                         <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Votants*</th>
                         <th className="endirect-th" style={{ textAlign: 'left', minWidth: 200 }}>Candidat tête de liste</th>
-                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 220 }}>Candidat(e) — Liste</th>
                         {PALIERS.map((p) => (
                           <th key={p} className="endirect-th" style={{ minWidth: 50 }}>{p}</th>
                         ))}
