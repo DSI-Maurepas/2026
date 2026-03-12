@@ -154,8 +154,9 @@ export default function App() {
   // ADMIN et GLOBAL voient le contenu sans OAuth
   const canViewContent = useMemo(() =>
     isAuthenticated ||
-    accessAuth?.role === 'ADMIN' ||
+    accessAuth?.role === 'ADMIN'  ||
     accessAuth?.role === 'GLOBAL' ||
+    accessAuth?.role === 'INFO'   ||
     accessAuth?.role === 'DIRECT',
   [isAuthenticated, accessAuth]);
 
@@ -179,10 +180,10 @@ export default function App() {
       return "informations";
     case "info-participation":
       return "info_participation";
-    case "admin":
-      return "admin_bureaux";
     case "en-direct":
       return "en_direct";
+    case "admin":
+      return "admin_bureaux";
     case "dashboard":
     default:
       return "dashboard";
@@ -206,7 +207,7 @@ export default function App() {
     setCurrentPage(page);
   };
 
-  // Au changement d'accès: BV => participation, INFO => informations, Global/Admin => dashboard
+  // Au changement d'accès: BV => participation, INFO => informations, DIRECT => en-direct, Global/Admin => dashboard
   useEffect(() => {
     if (!accessAuth) return;
     if (accessAuth.role === "BV") {
@@ -221,17 +222,20 @@ export default function App() {
   }, [accessAuth]);
 
   // Bloque pages sensibles si non connecté OAuth (sauf profil INFO qui reste sur informations, BV qui reste sur participation)
-  const authRequiredPages = new Set(["participation", "resultats", "passage-t2", "sieges", "exports", "admin", "informations", "info-participation", "en-direct"]);
+  const authRequiredPages = new Set(["participation", "resultats", "passage-t2", "sieges", "exports", "admin", "informations", "info-participation"]);
   useEffect(() => {
     if (!isAuthenticated && authRequiredPages.has(currentPage)) {
       if (accessAuth?.role === "INFO") {
         // INFO reste sur informations (la page gère l'état non connecté)
         setCurrentPage("informations");
+      } else if (accessAuth?.role === "DIRECT") {
+        // DIRECT reste sur en-direct (pas besoin d'OAuth)
+        setCurrentPage("en-direct");
       } else if (accessAuth?.role === "BV") {
         // BV reste sur participation (la page gère l'état non connecté via renderAuthGate)
         setCurrentPage("participation");
-      } else if (accessAuth?.role === "ADMIN" || accessAuth?.role === "GLOBAL" || accessAuth?.role === "DIRECT") {
-        // ADMIN, GLOBAL et DIRECT peuvent naviguer sans OAuth : renderAuthGate() s'affiche dans la page
+      } else if (accessAuth?.role === "ADMIN" || accessAuth?.role === "GLOBAL") {
+        // ADMIN et GLOBAL peuvent naviguer sans OAuth : renderAuthGate() s'affiche dans la page
       } else {
         setCurrentPage("dashboard");
       }
@@ -405,6 +409,11 @@ export default function App() {
             )}
           </>
         );
+
+case "en-direct":
+  return (
+    <EnDirect electionState={safeElectionState} />
+  );
 
 case "informations":
   return (
@@ -745,15 +754,6 @@ case "info-participation":
                 <ConfigCandidats />
                 <AuditLog />
               </>
-            )}
-          </>
-        );
-      case "en-direct":
-        return (
-          <>
-            {renderAuthGate()}
-            {canViewContent && (
-              <EnDirect electionState={safeElectionState} />
             )}
           </>
         );
