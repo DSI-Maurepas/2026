@@ -131,24 +131,53 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Init inputs ─────────────────────────────────────────────────────────
+  // ── Init inputs — déclenché uniquement au changement de tour / listes / bureaux
+  //    (PAS sur enDirectMap pour ne pas écraser la saisie en cours)
   useEffect(() => {
-    pendingRowIdxRef.current = {};
-    const next = {};
-    bureauxList.forEach((b) => {
-      const bvId = normalizeBvId(b.id);
-      candidatsActifs.forEach((c) => {
-        const rowKey = `${bvId}_${c.listeId}`;
-        const row    = enDirectMap[rowKey];
-        const paliers = {};
-        PALIER_KEYS.forEach((pk) => {
-          paliers[pk] = row ? String(row[pk] ?? '') : '';
+    pendingRowIdxRef.current = {};          // reset seulement au changement de tour
+    setInputs((prev) => {
+      const next = {};
+      bureauxList.forEach((b) => {
+        const bvId = normalizeBvId(b.id);
+        candidatsActifs.forEach((c) => {
+          const rowKey = `${bvId}_${c.listeId}`;
+          const row    = enDirectMap[rowKey];
+          const paliers = {};
+          PALIER_KEYS.forEach((pk) => {
+            // Priorité : valeur déjà en mémoire locale > valeur Sheets
+            const local  = prev[rowKey]?.[pk];
+            const remote = row ? String(row[pk] ?? '') : '';
+            paliers[pk]  = (local !== undefined && local !== '') ? local : remote;
+          });
+          next[rowKey] = paliers;
         });
-        next[rowKey] = paliers;
       });
+      return next;
     });
-    setInputs(next);
-  }, [enDirectMap, bureauxList, candidatsActifs]);
+  }, [bureauxList, candidatsActifs, viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Sync depuis Sheets après reload (sans écraser la saisie active) ───────
+  useEffect(() => {
+    if (Object.keys(enDirectMap).length === 0) return;
+    setInputs((prev) => {
+      const next = { ...prev };
+      Object.entries(enDirectMap).forEach(([rowKey, row]) => {
+        if (!next[rowKey]) return;
+        PALIER_KEYS.forEach((pk) => {
+          const remote = String(row[pk] ?? '');
+          // N'écrase que si la cellule locale est vide (pas en cours de saisie)
+          if (!next[rowKey][pk] || next[rowKey][pk] === '') {
+            next[rowKey] = { ...next[rowKey], [pk]: remote };
+          }
+        });
+        // Mémoriser rowIndex pour les updates futurs
+        if (row.rowIndex !== undefined && row.rowIndex !== null) {
+          pendingRowIdxRef.current[rowKey] = row.rowIndex;
+        }
+      });
+      return next;
+    });
+  }, [enDirectMap]);
 
   // ── Changement (buffer) ─────────────────────────────────────────────────
   const handleChange = useCallback((rowKey, pk, value) => {
@@ -164,32 +193,24 @@ export default function EnDirect({ electionState }) {
       if (e.key !== 'Tab' && e.key !== 'Enter') return;
       e.preventDefault();
 
-      // Ordre de navigation : même liste, même palier, bureau suivant
-      // puis revient au premier bureau avec liste/palier suivant
-      const bvIdx     = bureauxList.findIndex(b => normalizeBvId(b.id) === bvId);
+      // Navigation : liste suivante dans le MÊME bureau et MÊME palier
+      // En fin de liste → palier suivant, première liste, même bureau
       const palierIdx = PALIER_KEYS.indexOf(pk);
       const listeIdx  = candidatsActifs.findIndex(c => c.listeId === listeId);
 
-      let nextBvIdx     = bvIdx + 1;
       let nextPalierIdx = palierIdx;
-      let nextListeIdx  = listeIdx;
+      let nextListeIdx  = listeIdx + 1;
 
-      if (nextBvIdx >= bureauxList.length) {
-        // Fin de colonne → liste suivante, premier bureau
-        nextBvIdx   = 0;
-        nextListeIdx = listeIdx + 1;
-        if (nextListeIdx >= candidatsActifs.length) {
-          // Fin des listes → palier suivant, première liste, premier bureau
-          nextListeIdx  = 0;
-          nextPalierIdx = palierIdx + 1;
-          if (nextPalierIdx >= PALIER_KEYS.length) nextPalierIdx = 0;
-        }
+      if (nextListeIdx >= candidatsActifs.length) {
+        // Fin des listes → palier suivant, première liste, même bureau
+        nextListeIdx  = 0;
+        nextPalierIdx = palierIdx + 1;
+        if (nextPalierIdx >= PALIER_KEYS.length) nextPalierIdx = 0;
       }
 
-      const nextBvId    = normalizeBvId(bureauxList[nextBvIdx]?.id);
       const nextListeId = candidatsActifs[nextListeIdx]?.listeId;
       const nextPk      = PALIER_KEYS[nextPalierIdx];
-      const nextKey     = `${nextBvId}_${nextListeId}_${nextPk}`;
+      const nextKey     = `${bvId}_${nextListeId}_${nextPk}`;
 
       const el = inputsRef.current[nextKey];
       if (el) {
@@ -197,7 +218,7 @@ export default function EnDirect({ electionState }) {
         el.select();
       }
     },
-    [bureauxList, candidatsActifs]
+    [candidatsActifs]
   );
 
   // ── Sauvegarde sur blur ─────────────────────────────────────────────────
@@ -245,6 +266,11 @@ export default function EnDirect({ electionState }) {
       } finally {
         isSavingRef.current = null;
         setSavingCell(null);
+        // Confirmer la valeur saisie dans inputs (évite le reset par le sync Sheets)
+        setInputs((prev) => ({
+          ...prev,
+          [rowKey]: { ...(prev[rowKey] || {}), [pk]: String(n) },
+        }));
       }
     },
     [inputs, enDirectMap, sheet, reloadEnDirect]
