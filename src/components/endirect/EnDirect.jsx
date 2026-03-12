@@ -663,33 +663,17 @@ export default function EnDirect({ electionState }) {
                         const { x, y, width, height, value, index } = props;
                         const entry = chartData[index];
                         if (!entry || value <= 0) return null;
-                        const voixLabel = value.toLocaleString('fr-FR');
-                        const pct       = entry.pct;
-                        const cx        = x + width + 8;
-                        const cy        = y + height / 2;
-                        // Bulle couleur candidat avec le %
-                        const bubbleR   = 16;
-                        const isLight   = (entry.couleur || '#000') === '#FFFFFF' || (entry.couleur || '').toLowerCase() === '#ffffff';
+                        const cx = x + width + 8;
+                        const cy = y + height / 2;
                         return (
                           <g>
-                            {/* Nombre de voix */}
-                            <text x={cx} y={cy - 1} dominantBaseline="middle" fontSize={12} fontWeight={700} fill="#1e293b">
-                              {voixLabel}
+                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={12} fontWeight={700} fill="#1e293b">
+                              {value.toLocaleString('fr-FR')}
                             </text>
-                            {/* Bulle % */}
-                            {pct !== null && (
-                              <g transform={`translate(${cx + voixLabel.length * 7 + 8}, ${cy})`}>
-                                <circle r={bubbleR} fill={entry.couleur} stroke="rgba(0,0,0,0.15)" strokeWidth={1} />
-                                <text
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                  fontSize={9}
-                                  fontWeight={800}
-                                  fill={isLight ? '#1e293b' : '#fff'}
-                                >
-                                  {pct}%
-                                </text>
-                              </g>
+                            {entry.pct !== null && (
+                              <text x={cx + String(value.toLocaleString('fr-FR')).length * 7 + 4} y={cy} dominantBaseline="middle" fontSize={12} fontWeight={700} fill={entry.couleur === '#FFFFFF' || entry.couleur === '#ffffff' ? '#94a3b8' : entry.couleur}>
+                                {entry.pct}%
+                              </text>
                             )}
                           </g>
                         );
