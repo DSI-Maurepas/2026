@@ -42,6 +42,7 @@ jobs:
           VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
           VITE_INFO_PASSWORD: ${{ secrets.VITE_INFO_PASSWORD }}
           VITE_BV_PASSWORDS: ${{ secrets.VITE_BV_PASSWORDS }}
+          VITE_DIRECT_PASSWORD: ${{ secrets.VITE_DIRECT_PASSWORD }}
 
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
