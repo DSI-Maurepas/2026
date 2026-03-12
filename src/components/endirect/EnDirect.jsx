@@ -78,19 +78,18 @@ export default function EnDirect({ electionState }) {
   const sheet          = viewTour === 2 ? 'EnDirect_T2'   : 'EnDirect_T1';
   const resultatsSheet = viewTour === 2 ? 'Resultats_T2'  : 'Resultats_T1';
 
-  const { data: bureaux   }                      = useGoogleSheets('Bureaux');
-  const { data: candidats }                      = useGoogleSheets('Candidats');
-  const { data: resultats }                      = useGoogleSheets(resultatsSheet);
-  const { data: enDirectData, load: reloadEnDirect } = useGoogleSheets(sheet);
+  const { data: bureaux   } = useGoogleSheets('Bureaux');
+  const { data: candidats } = useGoogleSheets('Candidats');
+  const { data: resultats } = useGoogleSheets(resultatsSheet);
 
-  // ── inputs = buffer temporaire pendant la FRAPPE uniquement ─────────────
-  // { "BV1_L1_p100": "42" }  — vide si la cellule n'est pas en cours d'édition
+  // inputs = source de vérité pour l'affichage (initialisé depuis Sheets au montage)
   const [inputs,      setInputs]      = useState({});
   const [savingCell,  setSavingCell]  = useState(null);
+  const [loading,     setLoading]     = useState(false);
 
-  const isSavingRef       = useRef(null);
-  const pendingRowIdxRef  = useRef({});
-  const inputsRef         = useRef({});
+  const isSavingRef      = useRef(null);
+  const pendingRowIdxRef = useRef({});
+  const inputsRef        = useRef({});
 
   // ── Bureaux actifs triés ────────────────────────────────────────────────
   const bureauxList = useMemo(() => {
@@ -112,17 +111,6 @@ export default function EnDirect({ electionState }) {
     return filtered;
   }, [candidats, viewTour]);
 
-  // ── Map EnDirect ────────────────────────────────────────────────────────
-  const enDirectMap = useMemo(() => {
-    const map = {};
-    (Array.isArray(enDirectData) ? enDirectData : []).forEach((r) => {
-      const bvId   = normalizeBvId(r?.bureauId);
-      const listeId = String(r?.listeId ?? '').trim();
-      if (bvId && listeId) map[`${bvId}_${listeId}`] = r;
-    });
-    return map;
-  }, [enDirectData]);
-
   // ── Votants par bureau (lecture seule) ──────────────────────────────────
   const votantsMap = useMemo(() => {
     const map = {};
@@ -133,22 +121,41 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Rechargement Sheets au montage et changement de tour ────────────────
-  useEffect(() => {
-    pendingRowIdxRef.current = {};
-    setInputs({});       // vider le buffer de frappe
-    reloadEnDirect();
-  }, [viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Chargement direct depuis Sheets (pattern identique à ParticipationSaisie) ─
+  const loadFromSheets = useCallback(async () => {
+    setLoading(true);
+    try {
+      const rows = await googleSheetsService.getData(sheet);
+      pendingRowIdxRef.current = {};
 
-  // ── Mémoriser les rowIndex dès que Sheets répond ──────────────────────────
+      // Construire inputs depuis les données Sheets
+      const next = {};
+      (Array.isArray(rows) ? rows : []).forEach((r) => {
+        const bvId    = normalizeBvId(r?.bureauId);
+        const listeId = String(r?.listeId ?? '').trim();
+        if (!bvId || !listeId) return;
+        const rowKey = `${bvId}_${listeId}`;
+        const paliers = {};
+        PALIER_KEYS.forEach((pk) => {
+          paliers[pk] = r[pk] !== undefined && r[pk] !== null ? String(r[pk]) : '';
+        });
+        next[rowKey] = paliers;
+        if (r.rowIndex !== undefined && r.rowIndex !== null) {
+          pendingRowIdxRef.current[rowKey] = r.rowIndex;
+        }
+      });
+      setInputs(next);
+    } catch (e) {
+      console.error('[EnDirect] Erreur chargement:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [sheet]);
+
+  // ── Chargement au montage et au changement de tour ───────────────────────
   useEffect(() => {
-    if (Object.keys(enDirectMap).length === 0) return;
-    Object.entries(enDirectMap).forEach(([rowKey, row]) => {
-      if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
-        pendingRowIdxRef.current[rowKey] = row.rowIndex;
-      }
-    });
-  }, [enDirectMap]);
+    loadFromSheets();
+  }, [loadFromSheets]);
 
   // ── Changement (buffer) ─────────────────────────────────────────────────
   // Buffer de frappe : stocke UNIQUEMENT la valeur en cours d'édition
@@ -201,7 +208,7 @@ export default function EnDirect({ electionState }) {
 
       if (isSavingRef.current === cellKey) return;
 
-      const raw = inputs[rowKey]?.[pk] ?? (enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '');
+      const raw = inputs[rowKey]?.[pk] ?? '';
       if (raw === '') return;
 
       const n = parseInt(raw, 10);
@@ -211,8 +218,7 @@ export default function EnDirect({ electionState }) {
       setSavingCell(cellKey);
 
       try {
-        const existingRow    = enDirectMap[rowKey];
-        const existingRowIdx = existingRow?.rowIndex ?? pendingRowIdxRef.current[rowKey];
+        const existingRowIdx = pendingRowIdxRef.current[rowKey];
 
         const rowData = {
           bureauId: bvId,
@@ -232,19 +238,16 @@ export default function EnDirect({ electionState }) {
             pendingRowIdxRef.current[rowKey] = appended.rowIndex;
           }
         }
-        // PAS de reloadEnDirect() ici — le reload déclencherait le useEffect
-        // qui écraserait les valeurs locales avant confirmation Sheets
+        // Recharger depuis Sheets pour resynchroniser inputs (pattern ParticipationSaisie)
+        await loadFromSheets();
       } catch (e) {
         console.error('[EnDirect] Erreur sauvegarde:', e);
       } finally {
         isSavingRef.current = null;
         setSavingCell(null);
-        // On garde la valeur dans inputs — elle reste affichée immédiatement.
-        // Sheets se rechargera en arrière-plan via useGoogleSheets naturellement.
-        // On ne vide PAS inputs ici pour éviter le flash vide entre save et reload.
       }
     },
-    [inputs, enDirectMap, sheet, reloadEnDirect]
+    [inputs, sheet, loadFromSheets]
   );
 
   // ── Totaux par liste ────────────────────────────────────────────────────
@@ -257,14 +260,12 @@ export default function EnDirect({ electionState }) {
           const bvId   = normalizeBvId(b.id);
           const rowKey = `${bvId}_${c.listeId}`;
           // Priorité : buffer frappe > Sheets
-          const local  = inputs[rowKey]?.[pk];
-          const sheets = enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '';
-          return s + toInt(local !== undefined ? local : sheets);
+          return s + toInt(inputs[rowKey]?.[pk]);
         }, 0);
       });
     });
     return res;
-  }, [inputs, enDirectMap, bureauxList, candidatsActifs]);
+  }, [inputs, bureauxList, candidatsActifs]);
 
   const totalParPalier = useMemo(() => {
     const res = {};
@@ -548,10 +549,8 @@ export default function EnDirect({ electionState }) {
                               {palierVisibles.map((pk) => {
                                 const cellKey = `${rowKey}_${pk}`;
                                 const isSaving = savingCell === cellKey;
-                                const sheetsVal = enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '';
-                                const localVal  = inputs[rowKey]?.[pk];  // défini seulement si en cours de frappe
-                                const val       = (localVal !== undefined) ? localVal : sheetsVal;
-                                const hasVal    = val !== '' && val !== '0' && toInt(val) > 0;
+                                const val    = inputs[rowKey]?.[pk] ?? '';
+                                const hasVal = val !== '' && val !== '0' && toInt(val) > 0;
 
                                 return (
                                   <td key={pk} style={{ padding: '2px 2px', borderBottom: bdrBtm, borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
@@ -566,7 +565,7 @@ export default function EnDirect({ electionState }) {
                                       pattern="\d*"
                                       value={val}
                                       onChange={(e) => handleChange(rowKey, pk, e.target.value)}
-                                      onFocus={() => { if (String(val) === '0' || val === '') handleChange(rowKey, pk, sheetsVal === '0' ? '' : (localVal ?? '')); }}
+                                      onFocus={() => { if (String(val) === '0') handleChange(rowKey, pk, ''); }}
                                       onBlur={() => handleBlur(bvId, c.listeId, pk)}
                                       onKeyDown={(e) => handleKeyDown(e, bvId, c.listeId, pk)}
                                       disabled={isSaving}
