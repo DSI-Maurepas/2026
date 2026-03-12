@@ -663,24 +663,23 @@ export default function EnDirect({ electionState }) {
                         const { x, y, width, height, value, index } = props;
                         const entry = chartData[index];
                         if (!entry || value <= 0) return null;
-                        const cx  = x + width + 8;
-                        const cy  = y + height / 2;
-                        const voixStr   = value.toLocaleString('fr-FR');
-                        const voixWidth = voixStr.length * 7.5;
-                        // Cadre % : couleur candidat
-                        const pctStr    = entry.pct !== null ? `${entry.pct}%` : null;
-                        const pctW      = pctStr ? pctStr.length * 7 + 10 : 0;
-                        const pctH      = 18;
-                        const pctX      = cx + voixWidth + 8;
-                        const isLight   = /^#?([fF]{6}|[fF]{3})$/.test((entry.couleur||'').replace('#','')) 
-                                          || (entry.couleur||'').toLowerCase() === '#ffffff'
-                                          || (entry.couleur||'').toLowerCase() === '#ffff00'
-                                          || (entry.couleur||'').toLowerCase() === '#ffd700';
+                        const cx       = x + width + 8;
+                        const cy       = y + height / 2;
+                        const voixStr  = value.toLocaleString('fr-FR');
+                        const voixW    = voixStr.length * 7.5;
+                        // % — même style que le tableau : fontSize 10, fontWeight 700, couleur candidat
+                        // liseré = rect fill="none" stroke=couleur
+                        const pctStr   = entry.pct !== null ? `${entry.pct}%` : null;
+                        const pctW     = pctStr ? pctStr.length * 6.5 + 8 : 0;
+                        const pctH     = 16;
+                        const pctX     = cx + voixW + 6;
                         return (
                           <g>
-                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={13} fontWeight={800} fill="#1e293b">
+                            {/* Voix — fontSize 12, fontWeight 700, noir — identique tableau */}
+                            <text x={cx} y={cy} dominantBaseline="middle" fontSize={12} fontWeight={700} fill="#1e293b">
                               {voixStr}
                             </text>
+                            {/* % — liseré couleur candidat, texte couleur candidat fontSize 10 fontWeight 700 */}
                             {pctStr && (
                               <g>
                                 <rect
@@ -688,20 +687,20 @@ export default function EnDirect({ electionState }) {
                                   y={cy - pctH / 2}
                                   width={pctW}
                                   height={pctH}
-                                  rx={4}
-                                  ry={4}
-                                  fill={entry.couleur}
-                                  stroke="rgba(0,0,0,0.18)"
-                                  strokeWidth={1}
+                                  rx={3}
+                                  ry={3}
+                                  fill="none"
+                                  stroke={entry.couleur}
+                                  strokeWidth={1.5}
                                 />
                                 <text
                                   x={pctX + pctW / 2}
                                   y={cy}
                                   textAnchor="middle"
                                   dominantBaseline="middle"
-                                  fontSize={11}
-                                  fontWeight={800}
-                                  fill={isLight ? '#1e293b' : '#fff'}
+                                  fontSize={10}
+                                  fontWeight={700}
+                                  fill={entry.couleur}
                                 >
                                   {pctStr}
                                 </text>
