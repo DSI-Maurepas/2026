@@ -131,27 +131,21 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Chargement initial au montage + changement de tour ────────────────────
-  const initializedRef = useRef(false);
-
+  // ── Chargement au montage / changement de tour ──────────────────────────
+  // savingRef : true si une sauvegarde est en cours (on ne veut pas écraser)
   useEffect(() => {
-    // Forcer le rechargement depuis Sheets à chaque montage/changement de tour
     pendingRowIdxRef.current = {};
-    initializedRef.current   = false;
     reloadEnDirect();
   }, [viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Hydratation des inputs dès que Sheets répond ─────────────────────────
-  //    Déclenché à chaque mise à jour de enDirectMap (y compris au retour page)
+  // ── Hydratation depuis Sheets ─────────────────────────────────────────────
+  //    Règle simple : Sheets a toujours raison, SAUF si une cellule est en cours
+  //    de sauvegarde (isSavingRef.current !== null)
   useEffect(() => {
     if (bureauxList.length === 0 || candidatsActifs.length === 0) return;
+    if (Object.keys(enDirectMap).length === 0) return; // Sheets pas encore répondu
 
-    // Ne pas traiter tant que Sheets n'a pas répondu (enDirectMap vide = données pas encore arrivées)
-    // SAUF s'il n'y a vraiment aucune donnée dans Sheets (cas d'un premier dépouillement)
-    // → on distingue "pas encore chargé" de "chargé mais vide" grâce à initializedRef
-    const sheetsARepondu = Object.keys(enDirectMap).length > 0;
-
-    setInputs((prev) => {
+    setInputs(() => {
       const next = {};
       bureauxList.forEach((b) => {
         const bvId = normalizeBvId(b.id);
@@ -160,32 +154,19 @@ export default function EnDirect({ electionState }) {
           const row    = enDirectMap[rowKey];
           const paliers = {};
           PALIER_KEYS.forEach((pk) => {
-            const remote = row ? String(row[pk] ?? '') : '';
-            if (!initializedRef.current) {
-              // Premier chargement : toujours prendre Sheets
-              paliers[pk] = remote;
-            } else if (sheetsARepondu) {
-              // Sheets a répondu : préférer local si non vide (saisie en cours)
-              const local = prev[rowKey]?.[pk];
-              paliers[pk] = (local !== undefined && local !== '') ? local : remote;
+            // Si cette cellule est en cours de sauvegarde, on ne touche à rien
+            if (isSavingRef.current === `${rowKey}_${pk}`) {
+              paliers[pk] = ''; // sera remplacé par le finally du handleBlur
             } else {
-              // Sheets pas encore répondu après navigation : garder le local existant
-              const local = prev[rowKey]?.[pk];
-              paliers[pk] = local ?? '';
+              paliers[pk] = row ? String(row[pk] ?? '') : '';
             }
           });
           next[rowKey] = paliers;
-
-          // Mémoriser rowIndex uniquement si Sheets a répondu
-          if (sheetsARepondu && row?.rowIndex !== undefined && row?.rowIndex !== null) {
+          if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
             pendingRowIdxRef.current[rowKey] = row.rowIndex;
           }
         });
       });
-
-      // Marquer initialisé UNIQUEMENT si Sheets a répondu avec des données
-      if (sheetsARepondu) initializedRef.current = true;
-
       return next;
     });
   }, [enDirectMap, bureauxList, candidatsActifs]); // eslint-disable-line react-hooks/exhaustive-deps
