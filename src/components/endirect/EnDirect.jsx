@@ -29,11 +29,11 @@ import React, {
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import googleSheetsService from '../../services/googleSheetsService';
@@ -302,19 +302,46 @@ export default function EnDirect({ electionState }) {
     return res;
   }, [totauxParListe, candidatsActifs]);
 
-  // ── Données graphique recharts ──────────────────────────────────────────
+  // ── Graphique : cumul voix par liste (barres horizontales) ─────────────
   const chartData = useMemo(
     () =>
-      PALIERS.map((p, i) => {
-        const pk    = PALIER_KEYS[i];
-        const entry = { name: String(p) };
-        candidatsActifs.forEach((c) => {
-          entry[c.listeId] = totauxParListe[c.listeId]?.[pk] || 0;
-        });
-        return entry;
+      candidatsActifs.map((c) => {
+        const cumul = PALIER_KEYS.reduce(
+          (s, pk) => s + (totauxParListe[c.listeId]?.[pk] || 0),
+          0
+        );
+        return {
+          name: `${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim() || c.listeId,
+          nomListe: String(c.nomListe || '').replace(/^Liste /i, ''),
+          voix: cumul,
+          couleur: c.couleur || '#94a3b8',
+          listeId: c.listeId,
+        };
       }),
     [totauxParListe, candidatsActifs]
   );
+
+  // ── Paliers visibles : 4 fixes + suivant si precedent renseigne ──────────
+  const palierVisibles = useMemo(() => {
+    const visible = [];
+    for (let i = 0; i < PALIER_KEYS.length; i++) {
+      const pk = PALIER_KEYS[i];
+      if (i < 4) {
+        visible.push(pk);
+      } else {
+        const pkPrev = PALIER_KEYS[i - 1];
+        const prevRenseigne = bureauxList.some((b) => {
+          const bvId = normalizeBvId(b.id);
+          return candidatsActifs.some((c) =>
+            toInt(inputs[`${bvId}_${c.listeId}`]?.[pkPrev]) > 0
+          );
+        });
+        if (prevRenseigne) visible.push(pk);
+        else break;
+      }
+    }
+    return visible;
+  }, [inputs, bureauxList, candidatsActifs]);
 
   // ── Statistiques rapides ────────────────────────────────────────────────
   const totalInscrits = useMemo(
@@ -464,8 +491,10 @@ export default function EnDirect({ electionState }) {
                         <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Inscrits</th>
                         <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Votants*</th>
                         <th className="endirect-th" style={{ textAlign: 'left', minWidth: 200 }}>Candidat tête de liste</th>
-                        {PALIERS.map((p) => (
-                          <th key={p} className="endirect-th" style={{ minWidth: 50 }}>{p}</th>
+                        {palierVisibles.map((pk) => (
+                          <th key={pk} className="endirect-th" style={{ minWidth: 50 }}>
+                            {pk.replace('p', '')}
+                          </th>
                         ))}
                       </tr>
                     </thead>
@@ -540,8 +569,8 @@ export default function EnDirect({ electionState }) {
                                 </div>
                               </td>
 
-                              {/* Cellules saisie (9 paliers) */}
-                              {PALIER_KEYS.map((pk) => {
+                              {/* Cellules saisie — paliers visibles uniquement */}
+                              {palierVisibles.map((pk) => {
                                 const cellKey = `${rowKey}_${pk}`;
                                 const isSaving = savingCell === cellKey;
                                 const val    = inputs[rowKey]?.[pk] ?? '';
@@ -587,7 +616,7 @@ export default function EnDirect({ electionState }) {
                         <td colSpan={4} style={{ padding: '7px 10px', fontWeight: 800, fontSize: 11, background: '#1e293b', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', position: 'sticky', left: 0, zIndex: 2, borderTop: '2px solid #334155' }}>
                           Total communal
                         </td>
-                        {PALIER_KEYS.map((pk) => (
+                        {palierVisibles.map((pk) => (
                           <td key={pk} style={{ textAlign: 'center', fontWeight: 800, fontSize: 12, background: '#1e293b', color: '#fff', padding: '7px 3px', borderTop: '2px solid #334155', borderRight: '1px solid #334155' }}>
                             {totalParPalier[pk] > 0 ? totalParPalier[pk].toLocaleString('fr-FR') : '—'}
                           </td>
@@ -615,53 +644,54 @@ export default function EnDirect({ electionState }) {
                   📊 Progression des voix — Tour {viewTour}
                 </h3>
                 <p style={{ margin: '0 0 16px 0', fontSize: 11, color: '#94a3b8' }}>
-                  Barres empilées par tranche de 100 dépouillements
+                  Barres horizontales — voix cumulées toutes tranches confondues
                 </p>
 
-                <ResponsiveContainer width="100%" height={400}>
+                <ResponsiveContainer width="100%" height={Math.max(180, candidatsActifs.length * 56 + 40)}>
                   <BarChart
+                    layout="vertical"
                     data={chartData}
-                    margin={{ top: 6, right: 20, left: 0, bottom: 36 }}
-                    barCategoryGap="20%"
+                    margin={{ top: 6, right: 60, left: 10, bottom: 10 }}
+                    barCategoryGap="25%"
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                     <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      type="number"
+                      tick={{ fontSize: 10, fill: '#64748b' }}
+                      tickFormatter={(v) => v.toLocaleString('fr-FR')}
                       label={{
-                        value: 'Bulletins dépouillés',
+                        value: 'Voix cumulées',
                         position: 'insideBottom',
-                        offset: -22,
-                        fontSize: 11,
+                        offset: -2,
+                        fontSize: 10,
                         fill: '#94a3b8',
                       }}
                     />
                     <YAxis
-                      domain={[0, 100]}
-                      ticks={[0, 20, 40, 60, 80, 100]}
-                      tick={{ fontSize: 11, fill: '#64748b' }}
-                      tickFormatter={(v) => `${v}`}
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }}
+                      width={140}
                     />
                     <Tooltip
-                      formatter={(value, name) => [
-                        `${value.toLocaleString('fr-FR')} voix (${value}%)`,
-                        name,
-                      ]}
+                      formatter={(value) => [`${value.toLocaleString('fr-FR')} voix`, 'Cumul']}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
                     />
-                    <Legend
-                      iconType="square"
-                      wrapperStyle={{ fontSize: 11, paddingTop: 14 }}
-                    />
-                    {candidatsActifs.map((c) => (
-                      <Bar
-                        key={c.listeId}
-                        dataKey={c.listeId}
-                        name={`${c.listeId} — ${String(c.nomListe || '').replace(/^Liste /i, '')}`}
-                        stackId="a"
-                        fill={c.couleur || '#94a3b8'}
-                      />
-                    ))}
+                    <Bar
+                      dataKey="voix"
+                      radius={[0, 4, 4, 0]}
+                      label={{
+                        position: 'right',
+                        formatter: (v) => v > 0 ? v.toLocaleString('fr-FR') : '',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        fill: '#1e293b',
+                      }}
+                    >
+                      {chartData.map((entry) => (
+                        <Cell key={entry.listeId} fill={entry.couleur} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
 
@@ -673,9 +703,9 @@ export default function EnDirect({ electionState }) {
                         <th style={{ background: '#1e3c72', color: '#fff', padding: '7px 10px', fontSize: 10, fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.3px', whiteSpace: 'nowrap', borderRight: '2px solid rgba(255,255,255,0.2)', minWidth: 140 }}>
                           Liste
                         </th>
-                        {PALIERS.map((p) => (
-                          <th key={p} style={{ background: '#1e3c72', color: '#fff', padding: '7px 5px', fontSize: 10, fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'nowrap', borderRight: '1px solid rgba(255,255,255,0.12)', minWidth: 50 }}>
-                            {p}
+                        {palierVisibles.map((pk) => (
+                          <th key={pk} style={{ background: '#1e3c72', color: '#fff', padding: '7px 5px', fontSize: 10, fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'nowrap', borderRight: '1px solid rgba(255,255,255,0.12)', minWidth: 50 }}>
+                            {pk.replace('p', '')}
                           </th>
                         ))}
                       </tr>
@@ -686,7 +716,7 @@ export default function EnDirect({ electionState }) {
                         <td style={{ padding: '6px 10px', fontWeight: 800, fontSize: 11, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.4px', borderRight: '2px solid #334155', borderBottom: '1px solid #334155' }}>
                           Total
                         </td>
-                        {PALIER_KEYS.map((pk) => (
+                        {palierVisibles.map((pk) => (
                           <td key={pk} style={{ textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#fff', padding: '6px 4px', borderRight: '1px solid #334155', borderBottom: '1px solid #334155' }}>
                             {totalParPalier[pk] > 0 ? totalParPalier[pk].toLocaleString('fr-FR') : '—'}
                           </td>
@@ -708,7 +738,7 @@ export default function EnDirect({ electionState }) {
                               </div>
                             </div>
                           </td>
-                          {PALIER_KEYS.map((pk) => {
+                          {palierVisibles.map((pk) => {
                             const val   = totauxParListe[c.listeId]?.[pk] || 0;
                             const total = totalParPalier[pk] || 0;
                             const pct   = total > 0 ? ((val / total) * 100).toFixed(1) : null;
