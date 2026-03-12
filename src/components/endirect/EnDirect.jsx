@@ -459,11 +459,11 @@ export default function EnDirect({ electionState }) {
                 <div className="endirect-table-wrap">
                   <table className="endirect-table">
                     <thead>
-                      <tr>
-                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 80, position: 'sticky', left: 0, zIndex: 5, background: '#1e3c72' }}>Bureau</th>
-                        <th className="endirect-th" style={{ minWidth: 56 }}>Inscrits</th>
-                        <th className="endirect-th" style={{ minWidth: 56 }}>Votants*</th>
-                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 110 }}>Liste</th>
+                        <th className="endirect-th" style={{ textAlign: 'left', width: 70, minWidth: 70, position: 'sticky', left: 0, zIndex: 5, background: '#1e3c72' }}>Bureau</th>
+                        <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Inscrits</th>
+                        <th className="endirect-th" style={{ width: 54, minWidth: 54 }}>Votants*</th>
+                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 200 }}>Candidat tête de liste</th>
+                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 220 }}>Candidat(e) — Liste</th>
                         {PALIERS.map((p) => (
                           <th key={p} className="endirect-th" style={{ minWidth: 50 }}>{p}</th>
                         ))}
@@ -488,13 +488,13 @@ export default function EnDirect({ electionState }) {
                               {/* Bureau (rowspan) */}
                               {isFirst && (
                                 <td rowSpan={nListes} style={{
-                                  padding: '5px 7px', fontWeight: 700, fontSize: 11,
+                                  padding: '4px 5px', fontWeight: 700, fontSize: 11,
                                   background: bgRow, position: 'sticky', left: 0, zIndex: 2,
                                   borderRight: '2px solid #cbd5e1', borderBottom: '2px solid #cbd5e1',
-                                  verticalAlign: 'middle', whiteSpace: 'nowrap',
+                                  verticalAlign: 'middle', width: 70,
                                 }}>
                                   <div style={{ color: '#1e293b', fontSize: 11 }}>{bvId}</div>
-                                  <div style={{ color: '#64748b', fontWeight: 400, fontSize: 10, maxWidth: 72, whiteSpace: 'normal', lineHeight: 1.3 }}>
+                                  <div style={{ color: '#64748b', fontWeight: 400, fontSize: 10, whiteSpace: 'normal', lineHeight: 1.3 }}>
                                     {bureau.nom}
                                   </div>
                                 </td>
@@ -503,8 +503,8 @@ export default function EnDirect({ electionState }) {
                               {/* Inscrits (rowspan) */}
                               {isFirst && (
                                 <td rowSpan={nListes} style={{
-                                  padding: '4px 5px', textAlign: 'center', fontWeight: 700,
-                                  fontSize: 11, verticalAlign: 'middle',
+                                  padding: '4px 3px', textAlign: 'center', fontWeight: 700,
+                                  fontSize: 11, verticalAlign: 'middle', width: 54,
                                   borderRight: '1px solid #e8ecf0', borderBottom: '2px solid #cbd5e1',
                                   background: bgRow, color: '#374151',
                                 }}>
@@ -515,9 +515,9 @@ export default function EnDirect({ electionState }) {
                               {/* Votants (rowspan, lecture seule) */}
                               {isFirst && (
                                 <td rowSpan={nListes} style={{
-                                  padding: '4px 5px', textAlign: 'center',
+                                  padding: '4px 3px', textAlign: 'center',
                                   fontWeight: votants > 0 ? 700 : 400, fontSize: 11,
-                                  verticalAlign: 'middle',
+                                  verticalAlign: 'middle', width: 54,
                                   borderRight: '2px solid #cbd5e1', borderBottom: '2px solid #cbd5e1',
                                   background: bgRow, color: votants > 0 ? '#047857' : '#94a3b8',
                                 }}>
@@ -525,14 +525,18 @@ export default function EnDirect({ electionState }) {
                                 </td>
                               )}
 
-                              {/* Nom liste */}
-                              <td style={{ padding: '3px 6px', whiteSpace: 'nowrap', borderBottom: bdrBtm, borderRight: '2px solid #cbd5e1' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: 2, background: c.couleur || '#94a3b8', flexShrink: 0, display: 'inline-block' }} />
-                                  <span style={{ fontWeight: 700, color: '#1e293b', fontSize: 11 }}>{c.listeId}</span>
-                                  <span style={{ color: '#64748b', fontSize: 10, maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {String(c.nomListe || '').replace(/^Liste /i, '')}
-                                  </span>
+                              {/* Candidat tête de liste */}
+                              <td style={{ padding: '3px 8px', borderBottom: bdrBtm, borderRight: '2px solid #cbd5e1', minWidth: 200 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ width: 9, height: 9, borderRadius: 2, background: c.couleur || '#94a3b8', flexShrink: 0, display: 'inline-block' }} />
+                                  <div style={{ lineHeight: 1.3 }}>
+                                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: 11, whiteSpace: 'nowrap' }}>
+                                      {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim() || '—'}
+                                    </div>
+                                    <div style={{ color: '#64748b', fontSize: 10, whiteSpace: 'nowrap' }}>
+                                      {String(c.nomListe || '').replace(/^Liste /i, '')}
+                                    </div>
+                                  </div>
                                 </div>
                               </td>
 
@@ -632,9 +636,17 @@ export default function EnDirect({ electionState }) {
                         fill: '#94a3b8',
                       }}
                     />
-                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis
+                      domain={[0, 100]}
+                      ticks={[0, 20, 40, 60, 80, 100]}
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      tickFormatter={(v) => `${v}`}
+                    />
                     <Tooltip
-                      formatter={(value, name) => [`${value.toLocaleString('fr-FR')} voix`, name]}
+                      formatter={(value, name) => [
+                        `${value.toLocaleString('fr-FR')} voix (${value}%)`,
+                        name,
+                      ]}
                       contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
                     />
                     <Legend
@@ -686,11 +698,14 @@ export default function EnDirect({ electionState }) {
                           <td style={{ padding: '5px 10px', borderBottom: '1px solid #e2e8f0', borderRight: '2px solid #cbd5e1' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
-                              <span style={{ fontWeight: 700, fontSize: 11, color: '#1e293b' }}>{c.listeId}</span>
-                              <span style={{ fontSize: 10, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                                {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim()}
-                                {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
-                              </span>
+                              <div style={{ lineHeight: 1.3 }}>
+                                <div style={{ fontWeight: 700, fontSize: 11, color: '#1e293b', whiteSpace: 'nowrap' }}>
+                                  {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim() || '—'}
+                                </div>
+                                <div style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>
+                                  {String(c.nomListe || '').replace(/^Liste /i, '')}
+                                </div>
+                              </div>
                             </div>
                           </td>
                           {PALIER_KEYS.map((pk) => {
