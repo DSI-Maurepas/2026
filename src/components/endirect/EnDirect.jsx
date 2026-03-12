@@ -626,11 +626,23 @@ export default function EnDirect({ electionState }) {
                   Barres horizontales — voix cumulées toutes tranches confondues
                 </p>
 
-                <ResponsiveContainer width="100%" height={Math.max(270, candidatsActifs.length * 84 + 40)}>
+                {/* Marge droite dynamique : voix (max) + % + padding */}
+                {(() => {
+                  const barHeight  = Math.max(270, candidatsActifs.length * 84 + 40);
+                  const fs         = Math.max(12, Math.round(((barHeight - 40) / candidatsActifs.length * 0.85) * 0.72));
+                  const maxVoix    = Math.max(...chartData.map(d => d.voix), 0);
+                  const maxVoixStr = maxVoix.toLocaleString('fr-FR');
+                  const maxPct     = chartData.find(d => d.voix === maxVoix)?.pct ?? '00.0';
+                  const pctFs      = Math.max(10, Math.round(fs * 0.75));
+                  const voixW      = maxVoixStr.length * fs * 0.62;
+                  const pctW       = (String(maxPct).length + 1) * pctFs * 0.62 + 10;
+                  const rightMargin = Math.ceil(voixW + pctW + 24);
+                  return (
+                <ResponsiveContainer width="100%" height={barHeight}>
                   <BarChart
                     layout="vertical"
                     data={chartData}
-                    margin={{ top: 6, right: 110, left: 10, bottom: 10 }}
+                    margin={{ top: 6, right: rightMargin, left: 10, bottom: 10 }}
                     barCategoryGap="15%"
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
@@ -715,6 +727,8 @@ export default function EnDirect({ electionState }) {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                  );
+                })()}
 
                 {/* ── Tableau totaux par liste par palier ── */}
                 <div style={{ marginTop: 20, overflowX: 'auto', borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 1px 6px rgba(0,0,0,0.07)' }}>
