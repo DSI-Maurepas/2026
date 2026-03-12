@@ -83,12 +83,14 @@ export default function EnDirect({ electionState }) {
   const { data: resultats }                      = useGoogleSheets(resultatsSheet);
   const { data: enDirectData, load: reloadEnDirect } = useGoogleSheets(sheet);
 
+  // ── inputs = buffer temporaire pendant la FRAPPE uniquement ─────────────
+  // { "BV1_L1_p100": "42" }  — vide si la cellule n'est pas en cours d'édition
   const [inputs,      setInputs]      = useState({});
   const [savingCell,  setSavingCell]  = useState(null);
 
   const isSavingRef       = useRef(null);
   const pendingRowIdxRef  = useRef({});
-  const inputsRef         = useRef({});   // { "BV1_L1_p100": <input DOM> }
+  const inputsRef         = useRef({});
 
   // ── Bureaux actifs triés ────────────────────────────────────────────────
   const bureauxList = useMemo(() => {
@@ -131,51 +133,29 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Chargement au montage / changement de tour ──────────────────────────
-  // savingRef : true si une sauvegarde est en cours (on ne veut pas écraser)
+  // ── Rechargement Sheets au montage et changement de tour ────────────────
   useEffect(() => {
     pendingRowIdxRef.current = {};
+    setInputs({});       // vider le buffer de frappe
     reloadEnDirect();
   }, [viewTour]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Hydratation depuis Sheets ─────────────────────────────────────────────
-  //    Règle simple : Sheets a toujours raison, SAUF si une cellule est en cours
-  //    de sauvegarde (isSavingRef.current !== null)
+  // ── Mémoriser les rowIndex dès que Sheets répond ──────────────────────────
   useEffect(() => {
-    if (bureauxList.length === 0 || candidatsActifs.length === 0) return;
-    if (Object.keys(enDirectMap).length === 0) return; // Sheets pas encore répondu
-
-    setInputs(() => {
-      const next = {};
-      bureauxList.forEach((b) => {
-        const bvId = normalizeBvId(b.id);
-        candidatsActifs.forEach((c) => {
-          const rowKey = `${bvId}_${c.listeId}`;
-          const row    = enDirectMap[rowKey];
-          const paliers = {};
-          PALIER_KEYS.forEach((pk) => {
-            // Si cette cellule est en cours de sauvegarde, on ne touche à rien
-            if (isSavingRef.current === `${rowKey}_${pk}`) {
-              paliers[pk] = ''; // sera remplacé par le finally du handleBlur
-            } else {
-              paliers[pk] = row ? String(row[pk] ?? '') : '';
-            }
-          });
-          next[rowKey] = paliers;
-          if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
-            pendingRowIdxRef.current[rowKey] = row.rowIndex;
-          }
-        });
-      });
-      return next;
+    if (Object.keys(enDirectMap).length === 0) return;
+    Object.entries(enDirectMap).forEach(([rowKey, row]) => {
+      if (row?.rowIndex !== undefined && row?.rowIndex !== null) {
+        pendingRowIdxRef.current[rowKey] = row.rowIndex;
+      }
     });
-  }, [enDirectMap, bureauxList, candidatsActifs]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enDirectMap]);
 
   // ── Changement (buffer) ─────────────────────────────────────────────────
+  // Buffer de frappe : stocke UNIQUEMENT la valeur en cours d'édition
   const handleChange = useCallback((rowKey, pk, value) => {
     setInputs((prev) => ({
       ...prev,
-      [rowKey]: { ...prev[rowKey], [pk]: value },
+      [rowKey]: { ...(prev[rowKey] || {}), [pk]: value },
     }));
   }, []);
 
@@ -221,7 +201,7 @@ export default function EnDirect({ electionState }) {
 
       if (isSavingRef.current === cellKey) return;
 
-      const raw = inputs[rowKey]?.[pk] ?? '';
+      const raw = inputs[rowKey]?.[pk] ?? (enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '');
       if (raw === '') return;
 
       const n = parseInt(raw, 10);
@@ -259,11 +239,19 @@ export default function EnDirect({ electionState }) {
       } finally {
         isSavingRef.current = null;
         setSavingCell(null);
-        // Confirmer la valeur saisie dans inputs (évite le reset par le sync Sheets)
-        setInputs((prev) => ({
-          ...prev,
-          [rowKey]: { ...(prev[rowKey] || {}), [pk]: String(n) },
-        }));
+        // Vider le buffer local pour cette cellule : Sheets devient la source de vérité
+        setInputs((prev) => {
+          const next = { ...prev };
+          if (next[rowKey]) {
+            const row = { ...next[rowKey] };
+            delete row[pk];
+            if (Object.keys(row).length === 0) delete next[rowKey];
+            else next[rowKey] = row;
+          }
+          return next;
+        });
+        // Recharger Sheets pour afficher la valeur confirmée
+        reloadEnDirect();
       }
     },
     [inputs, enDirectMap, sheet, reloadEnDirect]
@@ -276,13 +264,17 @@ export default function EnDirect({ electionState }) {
       res[c.listeId] = {};
       PALIER_KEYS.forEach((pk) => {
         res[c.listeId][pk] = bureauxList.reduce((s, b) => {
-          const bvId = normalizeBvId(b.id);
-          return s + toInt(inputs[`${bvId}_${c.listeId}`]?.[pk]);
+          const bvId   = normalizeBvId(b.id);
+          const rowKey = `${bvId}_${c.listeId}`;
+          // Priorité : buffer frappe > Sheets
+          const local  = inputs[rowKey]?.[pk];
+          const sheets = enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '';
+          return s + toInt(local !== undefined ? local : sheets);
         }, 0);
       });
     });
     return res;
-  }, [inputs, bureauxList, candidatsActifs]);
+  }, [inputs, enDirectMap, bureauxList, candidatsActifs]);
 
   const totalParPalier = useMemo(() => {
     const res = {};
@@ -566,8 +558,10 @@ export default function EnDirect({ electionState }) {
                               {palierVisibles.map((pk) => {
                                 const cellKey = `${rowKey}_${pk}`;
                                 const isSaving = savingCell === cellKey;
-                                const val    = inputs[rowKey]?.[pk] ?? '';
-                                const hasVal = val !== '' && val !== '0' && toInt(val) > 0;
+                                const sheetsVal = enDirectMap[rowKey] ? String(enDirectMap[rowKey][pk] ?? '') : '';
+                                const localVal  = inputs[rowKey]?.[pk];  // défini seulement si en cours de frappe
+                                const val       = (localVal !== undefined) ? localVal : sheetsVal;
+                                const hasVal    = val !== '' && val !== '0' && toInt(val) > 0;
 
                                 return (
                                   <td key={pk} style={{ padding: '2px 2px', borderBottom: bdrBtm, borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
@@ -582,7 +576,7 @@ export default function EnDirect({ electionState }) {
                                       pattern="\d*"
                                       value={val}
                                       onChange={(e) => handleChange(rowKey, pk, e.target.value)}
-                                      onFocus={() => { if (String(val) === '0') handleChange(rowKey, pk, ''); }}
+                                      onFocus={() => { if (String(val) === '0' || val === '') handleChange(rowKey, pk, sheetsVal === '0' ? '' : (localVal ?? '')); }}
                                       onBlur={() => handleBlur(bvId, c.listeId, pk)}
                                       onKeyDown={(e) => handleKeyDown(e, bvId, c.listeId, pk)}
                                       disabled={isSaving}
