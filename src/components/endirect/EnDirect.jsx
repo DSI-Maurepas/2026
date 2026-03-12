@@ -13,7 +13,7 @@
 //     Colonnes : bureauId | listeId | p100 | p200 | ... | p900
 //
 // Règles métier :
-//   - Saisie toutes les 100 unités dépouillées (9 paliers)
+//   - Saisie toutes les 100 unités dépouillées (9 paliers fixes)
 //   - Validation uniquement au onBlur (jamais au onChange)
 //   - onFocus : si valeur === "0", vider le champ
 //   - T1 et T2 sont indépendants (données conservées au basculement)
@@ -26,6 +26,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import googleSheetsService from '../../services/googleSheetsService';
 import { useGoogleSheets } from '../../hooks/useGoogleSheets';
 
@@ -33,7 +43,7 @@ import { useGoogleSheets } from '../../hooks/useGoogleSheets';
 // Constantes
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PALIERS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+const PALIERS     = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 const PALIER_KEYS = PALIERS.map((p) => `p${p}`);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,259 +62,34 @@ const toInt = (v) => {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 };
 
-// Couleurs selon le tour
 const tourColors = (t) =>
   t === 2
     ? { solid: '#2563eb', light: '#dbeafe', text: '#1e40af', bg: 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)' }
     : { solid: '#047857', light: '#d1fae5', text: '#065f46', bg: 'linear-gradient(135deg, #065f46 0%, #047857 100%)' };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sous-composants de cellule (évite les fonctions inline dans le render)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TH = ({ children, style = {} }) => (
-  <th
-    style={{
-      background: '#1e3c72',
-      color: '#fff',
-      padding: '8px 6px',
-      fontSize: 11,
-      fontWeight: 700,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      letterSpacing: '0.3px',
-      whiteSpace: 'nowrap',
-      borderRight: '1px solid rgba(255,255,255,0.12)',
-      ...style,
-    }}
-  >
-    {children}
-  </th>
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Composant principal
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Graphique barres empilées SVG — sans dépendance externe
-// ─────────────────────────────────────────────────────────────────────────────
-
-function StackedBarChart({ data, candidats }) {
-  const W = 760;
-  const H = 280;
-  const PAD = { top: 16, right: 20, bottom: 48, left: 44 };
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
-
-  // Calcul du max global (pour l'axe Y)
-  const maxVal = data.reduce((mx, d) => {
-    const sum = candidats.reduce((s, c) => s + (Number(d[c.listeId]) || 0), 0);
-    return Math.max(mx, sum);
-  }, 0);
-
-  const yMax = maxVal > 0 ? Math.ceil(maxVal / 100) * 100 : 100;
-  const nBars = data.length;
-  const barW = Math.floor(chartW / nBars * 0.6);
-  const gap  = Math.floor(chartW / nBars);
-
-  // Graduations Y
-  const yTicks = [];
-  const nTicks = 5;
-  for (let i = 0; i <= nTicks; i++) {
-    yTicks.push(Math.round((yMax / nTicks) * i));
-  }
-
-  const [tooltip, setTooltip] = React.useState(null);
-
-  return (
-    <div style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width="100%"
-        style={{ display: 'block', minWidth: 480 }}
-        aria-label="Graphique barres empilées dépouillements"
-      >
-        {/* ── Grille ── */}
-        {yTicks.map((t) => {
-          const y = PAD.top + chartH - (t / yMax) * chartH;
-          return (
-            <g key={t}>
-              <line
-                x1={PAD.left} y1={y}
-                x2={PAD.left + chartW} y2={y}
-                stroke="#e2e8f0" strokeWidth={1}
-              />
-              <text
-                x={PAD.left - 5} y={y + 4}
-                textAnchor="end" fontSize={9} fill="#94a3b8"
-              >
-                {t > 0 ? t.toLocaleString('fr-FR') : '0'}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* ── Axes ── */}
-        <line
-          x1={PAD.left} y1={PAD.top}
-          x2={PAD.left} y2={PAD.top + chartH}
-          stroke="#cbd5e1" strokeWidth={1}
-        />
-        <line
-          x1={PAD.left} y1={PAD.top + chartH}
-          x2={PAD.left + chartW} y2={PAD.top + chartH}
-          stroke="#cbd5e1" strokeWidth={1}
-        />
-
-        {/* ── Barres ── */}
-        {data.map((d, i) => {
-          const x = PAD.left + i * gap + Math.floor((gap - barW) / 2);
-          let yOffset = 0;
-          return (
-            <g key={d.name}>
-              {candidats.map((c) => {
-                const val = Number(d[c.listeId]) || 0;
-                if (val === 0) return null;
-                const barH = Math.max(1, (val / yMax) * chartH);
-                const y = PAD.top + chartH - yOffset - barH;
-                yOffset += barH;
-                return (
-                  <rect
-                    key={c.listeId}
-                    x={x} y={y}
-                    width={barW} height={barH}
-                    fill={c.couleur || '#94a3b8'}
-                    opacity={0.88}
-                    onMouseEnter={(e) =>
-                      setTooltip({
-                        x: e.clientX,
-                        y: e.clientY,
-                        label: `${c.listeId} @ ${d.name}`,
-                        val,
-                        color: c.couleur || '#94a3b8',
-                      })
-                    }
-                    onMouseLeave={() => setTooltip(null)}
-                    style={{ cursor: 'default' }}
-                  />
-                );
-              })}
-              {/* Label axe X */}
-              <text
-                x={x + barW / 2}
-                y={PAD.top + chartH + 14}
-                textAnchor="middle"
-                fontSize={10}
-                fill="#64748b"
-              >
-                {d.name}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* ── Label axe X ── */}
-        <text
-          x={PAD.left + chartW / 2}
-          y={H - 4}
-          textAnchor="middle"
-          fontSize={10}
-          fill="#94a3b8"
-        >
-          Bulletins dépouillés
-        </text>
-      </svg>
-
-      {/* ── Tooltip ── */}
-      {tooltip && (
-        <div
-          style={{
-            position: 'fixed',
-            left: tooltip.x + 10,
-            top: tooltip.y - 30,
-            background: '#1e293b',
-            color: '#fff',
-            padding: '4px 10px',
-            borderRadius: 6,
-            fontSize: 12,
-            pointerEvents: 'none',
-            zIndex: 9999,
-            whiteSpace: 'nowrap',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          }}
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              width: 8, height: 8,
-              borderRadius: 2,
-              background: tooltip.color,
-              marginRight: 6,
-            }}
-          />
-          {tooltip.label} : <strong>{tooltip.val.toLocaleString('fr-FR')} voix</strong>
-        </div>
-      )}
-
-      {/* ── Légende ── */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px 18px',
-          marginTop: 10,
-          paddingLeft: PAD.left,
-        }}
-      >
-        {candidats.map((c) => (
-          <span key={c.listeId} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
-            <span
-              style={{
-                width: 12, height: 12,
-                borderRadius: 2,
-                background: c.couleur || '#94a3b8',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            />
-            <span style={{ color: '#475569' }}>
-              <strong>{c.listeId}</strong>
-              {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function EnDirect({ electionState }) {
   const tourActuel = electionState?.tourActuel === 2 ? 2 : 1;
-
-  // L'utilisateur peut afficher T1 ou T2 indépendamment
   const [viewTour, setViewTour] = useState(tourActuel);
 
-  const sheet = viewTour === 2 ? 'EnDirect_T2' : 'EnDirect_T1';
-  const resultatsSheet = viewTour === 2 ? 'Resultats_T2' : 'Resultats_T1';
+  const sheet          = viewTour === 2 ? 'EnDirect_T2'   : 'EnDirect_T1';
+  const resultatsSheet = viewTour === 2 ? 'Resultats_T2'  : 'Resultats_T1';
 
-  // ── Sources de données ─────────────────────────────────────────────────
-  const { data: bureaux } = useGoogleSheets('Bureaux');
-  const { data: candidats } = useGoogleSheets('Candidats');
-  const { data: resultats } = useGoogleSheets(resultatsSheet);
+  const { data: bureaux   }                      = useGoogleSheets('Bureaux');
+  const { data: candidats }                      = useGoogleSheets('Candidats');
+  const { data: resultats }                      = useGoogleSheets(resultatsSheet);
   const { data: enDirectData, load: reloadEnDirect } = useGoogleSheets(sheet);
 
-  // ── État local ──────────────────────────────────────────────────────────
-  // inputs : { [rowKey]: { p100: '', p200: '', ..., p900: '' } }
-  const [inputs, setInputs] = useState({});
-  const [savingCell, setSavingCell] = useState(null);
+  const [inputs,      setInputs]      = useState({});
+  const [savingCell,  setSavingCell]  = useState(null);
 
-  // Anti-doublon sauvegarde concurrente
-  const isSavingRef = useRef(null);
-  // Mémorise les rowIndex après appendRow (avant que reloadEnDirect retourne)
-  const pendingRowIdxRef = useRef({});
+  const isSavingRef       = useRef(null);
+  const pendingRowIdxRef  = useRef({});
 
-  // ── Bureaux actifs triés ───────────────────────────────────────────────
+  // ── Bureaux actifs triés ────────────────────────────────────────────────
   const bureauxList = useMemo(() => {
     const list = Array.isArray(bureaux) ? bureaux : [];
     return list
@@ -316,28 +101,26 @@ export default function EnDirect({ electionState }) {
       });
   }, [bureaux]);
 
-  // ── Candidats actifs pour ce tour ─────────────────────────────────────
+  // ── Candidats actifs ────────────────────────────────────────────────────
   const candidatsActifs = useMemo(() => {
     const list = Array.isArray(candidats) ? candidats : [];
-    const filtered = list.filter((c) =>
-      viewTour === 1 ? !!c.actifT1 : !!c.actifT2
-    );
+    const filtered = list.filter((c) => viewTour === 1 ? !!c.actifT1 : !!c.actifT2);
     filtered.sort((a, b) => (Number(a.ordre) || 0) - (Number(b.ordre) || 0));
     return filtered;
   }, [candidats, viewTour]);
 
-  // ── Map EnDirect : "BV1_L1" → row ─────────────────────────────────────
+  // ── Map EnDirect ────────────────────────────────────────────────────────
   const enDirectMap = useMemo(() => {
     const map = {};
     (Array.isArray(enDirectData) ? enDirectData : []).forEach((r) => {
-      const bvId = normalizeBvId(r?.bureauId);
+      const bvId   = normalizeBvId(r?.bureauId);
       const listeId = String(r?.listeId ?? '').trim();
       if (bvId && listeId) map[`${bvId}_${listeId}`] = r;
     });
     return map;
   }, [enDirectData]);
 
-  // ── Votants par bureau (lecture seule depuis Resultats_Tx) ─────────────
+  // ── Votants par bureau (lecture seule) ──────────────────────────────────
   const votantsMap = useMemo(() => {
     const map = {};
     (Array.isArray(resultats) ? resultats : []).forEach((r) => {
@@ -347,15 +130,15 @@ export default function EnDirect({ electionState }) {
     return map;
   }, [resultats]);
 
-  // ── Initialisation des inputs depuis les données Google Sheets ─────────
+  // ── Init inputs ─────────────────────────────────────────────────────────
   useEffect(() => {
-    pendingRowIdxRef.current = {}; // reset après chaque rechargement
+    pendingRowIdxRef.current = {};
     const next = {};
     bureauxList.forEach((b) => {
       const bvId = normalizeBvId(b.id);
       candidatsActifs.forEach((c) => {
         const rowKey = `${bvId}_${c.listeId}`;
-        const row = enDirectMap[rowKey];
+        const row    = enDirectMap[rowKey];
         const paliers = {};
         PALIER_KEYS.forEach((pk) => {
           paliers[pk] = row ? String(row[pk] ?? '') : '';
@@ -366,7 +149,7 @@ export default function EnDirect({ electionState }) {
     setInputs(next);
   }, [enDirectMap, bureauxList, candidatsActifs]);
 
-  // ── Changement de valeur (buffer, aucune validation pendant la frappe) ─
+  // ── Changement (buffer) ─────────────────────────────────────────────────
   const handleChange = useCallback((rowKey, pk, value) => {
     setInputs((prev) => ({
       ...prev,
@@ -374,17 +157,15 @@ export default function EnDirect({ electionState }) {
     }));
   }, []);
 
-  // ── Sauvegarde sur blur ────────────────────────────────────────────────
+  // ── Sauvegarde sur blur ─────────────────────────────────────────────────
   const handleBlur = useCallback(
     async (bvId, listeId, pk) => {
-      const rowKey = `${bvId}_${listeId}`;
+      const rowKey  = `${bvId}_${listeId}`;
       const cellKey = `${rowKey}_${pk}`;
 
-      // Anti-doublon
       if (isSavingRef.current === cellKey) return;
 
       const raw = inputs[rowKey]?.[pk] ?? '';
-      // Ne pas sauvegarder si champ vide
       if (raw === '') return;
 
       const n = parseInt(raw, 10);
@@ -394,12 +175,9 @@ export default function EnDirect({ electionState }) {
       setSavingCell(cellKey);
 
       try {
-        const existingRow = enDirectMap[rowKey];
-        // Utilise le rowIndex depuis la map OU depuis le ref (appendRow précédent)
-        const existingRowIdx =
-          existingRow?.rowIndex ?? pendingRowIdxRef.current[rowKey];
+        const existingRow    = enDirectMap[rowKey];
+        const existingRowIdx = existingRow?.rowIndex ?? pendingRowIdxRef.current[rowKey];
 
-        // Construit la ligne complète avec toutes les valeurs courantes
         const rowData = {
           bureauId: bvId,
           listeId,
@@ -407,19 +185,17 @@ export default function EnDirect({ electionState }) {
             (acc, k) => ({ ...acc, [k]: toInt(inputs[rowKey]?.[k]) }),
             {}
           ),
-          [pk]: n, // écrase avec la valeur validée
+          [pk]: n,
         };
 
         if (existingRowIdx !== undefined && existingRowIdx !== null) {
           await googleSheetsService.updateRow(sheet, existingRowIdx, rowData);
         } else {
           const appended = await googleSheetsService.appendRow(sheet, rowData);
-          // Mémorise le rowIndex pour les sauvegardes suivantes sur cette ligne
           if (appended?.rowIndex !== undefined) {
             pendingRowIdxRef.current[rowKey] = appended.rowIndex;
           }
         }
-
         await reloadEnDirect();
       } catch (e) {
         console.error('[EnDirect] Erreur sauvegarde:', e);
@@ -431,7 +207,7 @@ export default function EnDirect({ electionState }) {
     [inputs, enDirectMap, sheet, reloadEnDirect]
   );
 
-  // ── Totaux par liste et par palier (toutes communes confondues) ────────
+  // ── Totaux par liste ────────────────────────────────────────────────────
   const totauxParListe = useMemo(() => {
     const res = {};
     candidatsActifs.forEach((c) => {
@@ -446,7 +222,6 @@ export default function EnDirect({ electionState }) {
     return res;
   }, [inputs, bureauxList, candidatsActifs]);
 
-  // ── Total voix toutes listes par palier ───────────────────────────────
   const totalParPalier = useMemo(() => {
     const res = {};
     PALIER_KEYS.forEach((pk) => {
@@ -458,11 +233,11 @@ export default function EnDirect({ electionState }) {
     return res;
   }, [totauxParListe, candidatsActifs]);
 
-  // ── Données graphique ─────────────────────────────────────────────────
+  // ── Données graphique recharts ──────────────────────────────────────────
   const chartData = useMemo(
     () =>
       PALIERS.map((p, i) => {
-        const pk = PALIER_KEYS[i];
+        const pk    = PALIER_KEYS[i];
         const entry = { name: String(p) };
         candidatsActifs.forEach((c) => {
           entry[c.listeId] = totauxParListe[c.listeId]?.[pk] || 0;
@@ -472,552 +247,392 @@ export default function EnDirect({ electionState }) {
     [totauxParListe, candidatsActifs]
   );
 
-  // ── Stats rapides ──────────────────────────────────────────────────────
+  // ── Statistiques rapides ────────────────────────────────────────────────
   const totalInscrits = useMemo(
     () => bureauxList.reduce((s, b) => s + (Number(b.inscrits) || 0), 0),
     [bureauxList]
   );
 
-  // Dernier palier renseigné (pour indiquer l'avancement)
   const dernierPalierRenseigne = useMemo(() => {
     let last = 0;
     PALIER_KEYS.forEach((pk, i) => {
-      const total = totalParPalier[pk] || 0;
-      if (total > 0) last = PALIERS[i];
+      if ((totalParPalier[pk] || 0) > 0) last = PALIERS[i];
     });
     return last;
   }, [totalParPalier]);
 
-  const tc = tourColors(viewTour);
-  const nListes = candidatsActifs.length;
+  const tc       = tourColors(viewTour);
+  const nListes  = candidatsActifs.length;
 
-  // ─────────────────────────────────────────────────────────────────────
-  // Rendu
-  // ─────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Rendu — layout full-width
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '0 0 48px 0' }}>
+    <>
+      {/* ── STYLE PAGE FULL-WIDTH ─────────────────────────────────────── */}
+      <style>{`
+        .endirect-page-override {
+          max-width: 1900px !important;
+          width: 100% !important;
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+          box-sizing: border-box !important;
+        }
+        /* Forcer le conteneur parent à pleine largeur uniquement sur cette page */
+        .page-container:has(.endirect-page-override) {
+          max-width: 1900px !important;
+          width: 100% !important;
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+        }
+        .endirect-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          align-items: start;
+        }
+        @media (max-width: 1200px) {
+          .endirect-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .endirect-table-wrap {
+          overflow-x: auto;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+          border: 1px solid #e2e8f0;
+        }
+        .endirect-table {
+          border-collapse: collapse;
+          font-size: 12px;
+          background: #fff;
+          width: 100%;
+        }
+        .endirect-th {
+          background: #1e3c72;
+          color: #fff;
+          padding: 7px 5px;
+          font-size: 10px;
+          font-weight: 700;
+          text-align: center;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          white-space: nowrap;
+          border-right: 1px solid rgba(255,255,255,0.12);
+        }
+        .endirect-input {
+          width: 46px;
+          padding: 3px 3px;
+          border-radius: 4px;
+          font-size: 12px;
+          text-align: center;
+          outline: none;
+          font-variant-numeric: tabular-nums;
+          box-sizing: border-box;
+        }
+      `}</style>
 
-      {/* ── EN-TÊTE ─────────────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          marginBottom: 20,
-          flexWrap: 'wrap',
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1e293b' }}>
-          📡 Dépouillement En Direct
-        </h2>
+      <div className="endirect-page-override">
 
-        {/* Sélecteur de tour */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[1, 2].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setViewTour(t)}
-              style={{
-                padding: '5px 18px',
-                borderRadius: 20,
-                border: 'none',
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: 'pointer',
-                background:
-                  viewTour === t
-                    ? t === 1
-                      ? '#047857'
-                      : '#2563eb'
-                    : '#e2e8f0',
-                color: viewTour === t ? '#fff' : '#475569',
-                transition: 'all 0.2s',
-              }}
-            >
-              Tour {t}
-            </button>
-          ))}
-        </div>
+        {/* ── EN-TÊTE ─────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1e293b' }}>
+            📡 Dépouillement En Direct
+          </h2>
 
-        <span
-          style={{
-            background: tc.light,
-            color: tc.text,
-            fontSize: 11,
-            fontWeight: 700,
-            padding: '3px 10px',
-            borderRadius: 20,
-            border: `1px solid ${tc.solid}`,
-          }}
-        >
-          {bureauxList.length} bureaux &bull; {totalInscrits.toLocaleString('fr-FR')} inscrits
-          {dernierPalierRenseigne > 0 && (
-            <> &bull; Dernier palier : <strong>{dernierPalierRenseigne}</strong></>
-          )}
-        </span>
-      </div>
-
-      {/* ── AUCUNE LISTE ACTIVE ─────────────────────────────────────── */}
-      {nListes === 0 && (
-        <div
-          style={{
-            padding: 20,
-            background: '#fef3c7',
-            borderRadius: 8,
-            border: '1px solid #fde68a',
-            color: '#92400e',
-          }}
-        >
-          ⚠️ Aucune liste active pour le Tour {viewTour}. Vérifiez la configuration
-          des candidats dans l&apos;onglet Administration.
-        </div>
-      )}
-
-      {/* ── TABLEAU + GRAPHIQUE ─────────────────────────────────────── */}
-      {nListes > 0 && (
-        <>
-          {/* ── TABLEAU DE SAISIE ──────────────────────────────────── */}
-          <div
-            style={{
-              overflowX: 'auto',
-              borderRadius: 10,
-              boxShadow: '0 2px 14px rgba(0,0,0,0.09)',
-              border: '1px solid #e2e8f0',
-              marginBottom: 28,
-            }}
-          >
-            <table
-              style={{
-                borderCollapse: 'collapse',
-                fontSize: 12,
-                background: '#fff',
-                minWidth: 860,
-              }}
-            >
-              <thead>
-                <tr>
-                  <TH style={{ textAlign: 'left', minWidth: 110, position: 'sticky', left: 0, zIndex: 5 }}>
-                    Bureau
-                  </TH>
-                  <TH style={{ minWidth: 64 }}>Inscrits</TH>
-                  <TH style={{ minWidth: 64 }}>Votants&nbsp;*</TH>
-                  <TH style={{ textAlign: 'left', minWidth: 140 }}>Liste</TH>
-                  {PALIERS.map((p) => (
-                    <TH key={p} style={{ minWidth: 54 }}>
-                      {p}
-                    </TH>
-                  ))}
-                </tr>
-              </thead>
-
-              <tbody>
-                {bureauxList.flatMap((bureau, bIdx) => {
-                  const bvId = normalizeBvId(bureau.id);
-                  const inscrits = Number(bureau.inscrits) || 0;
-                  const votants = votantsMap[bvId] || 0;
-                  const bgRow = bIdx % 2 === 0 ? '#fff' : '#f8fafc';
-
-                  return candidatsActifs.map((c, cIdx) => {
-                    const rowKey = `${bvId}_${c.listeId}`;
-                    const isFirst = cIdx === 0;
-                    const isLast = cIdx === nListes - 1;
-                    const bdrBtm = isLast
-                      ? '2px solid #cbd5e1'
-                      : '1px solid #e8ecf0';
-
-                    return (
-                      <tr key={rowKey} style={{ background: bgRow }}>
-
-                        {/* ── Bureau (rowspan) ── */}
-                        {isFirst && (
-                          <td
-                            rowSpan={nListes}
-                            style={{
-                              padding: '6px 8px',
-                              fontWeight: 700,
-                              fontSize: 11,
-                              background: bgRow,
-                              position: 'sticky',
-                              left: 0,
-                              zIndex: 2,
-                              borderRight: '2px solid #cbd5e1',
-                              borderBottom: '2px solid #cbd5e1',
-                              verticalAlign: 'middle',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            <div style={{ color: '#1e293b', fontSize: 12 }}>{bvId}</div>
-                            <div
-                              style={{
-                                color: '#64748b',
-                                fontWeight: 400,
-                                fontSize: 10,
-                                maxWidth: 96,
-                                whiteSpace: 'normal',
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              {bureau.nom}
-                            </div>
-                          </td>
-                        )}
-
-                        {/* ── Inscrits (rowspan) ── */}
-                        {isFirst && (
-                          <td
-                            rowSpan={nListes}
-                            style={{
-                              padding: '4px 6px',
-                              textAlign: 'center',
-                              fontWeight: 700,
-                              fontSize: 12,
-                              verticalAlign: 'middle',
-                              borderRight: '1px solid #e8ecf0',
-                              borderBottom: '2px solid #cbd5e1',
-                              background: bgRow,
-                              color: '#374151',
-                            }}
-                          >
-                            {inscrits.toLocaleString('fr-FR')}
-                          </td>
-                        )}
-
-                        {/* ── Votants (rowspan, lecture seule) ── */}
-                        {isFirst && (
-                          <td
-                            rowSpan={nListes}
-                            style={{
-                              padding: '4px 6px',
-                              textAlign: 'center',
-                              fontWeight: votants > 0 ? 700 : 400,
-                              fontSize: 12,
-                              verticalAlign: 'middle',
-                              borderRight: '2px solid #cbd5e1',
-                              borderBottom: '2px solid #cbd5e1',
-                              background: bgRow,
-                              color: votants > 0 ? '#047857' : '#94a3b8',
-                            }}
-                          >
-                            {votants > 0 ? votants.toLocaleString('fr-FR') : '—'}
-                          </td>
-                        )}
-
-                        {/* ── Nom de la liste ── */}
-                        <td
-                          style={{
-                            padding: '3px 7px',
-                            whiteSpace: 'nowrap',
-                            borderBottom: bdrBtm,
-                            borderRight: '2px solid #cbd5e1',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: 2,
-                                background: c.couleur || '#94a3b8',
-                                flexShrink: 0,
-                                display: 'inline-block',
-                              }}
-                            />
-                            <span
-                              style={{
-                                fontWeight: 700,
-                                color: '#1e293b',
-                                fontSize: 11,
-                              }}
-                            >
-                              {c.listeId}
-                            </span>
-                            <span
-                              style={{
-                                color: '#64748b',
-                                fontSize: 10,
-                                maxWidth: 90,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {String(c.nomListe || '').replace(/^Liste /i, '')}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* ── Cellules de saisie (9 paliers) ── */}
-                        {PALIER_KEYS.map((pk) => {
-                          const cellKey = `${rowKey}_${pk}`;
-                          const isSaving = savingCell === cellKey;
-                          const val = inputs[rowKey]?.[pk] ?? '';
-                          const hasVal =
-                            val !== '' && val !== '0' && toInt(val) > 0;
-
-                          return (
-                            <td
-                              key={pk}
-                              style={{
-                                padding: '2px 3px',
-                                borderBottom: bdrBtm,
-                                borderRight: '1px solid #f1f5f9',
-                                textAlign: 'center',
-                              }}
-                            >
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="\d*"
-                                value={val}
-                                onChange={(e) =>
-                                  handleChange(rowKey, pk, e.target.value)
-                                }
-                                onFocus={() => {
-                                  if (String(val) === '0')
-                                    handleChange(rowKey, pk, '');
-                                }}
-                                onBlur={() =>
-                                  handleBlur(bvId, c.listeId, pk)
-                                }
-                                disabled={isSaving}
-                                aria-label={`${bvId} ${c.listeId} dépouillement ${pk.replace('p', '')}`}
-                                style={{
-                                  width: 48,
-                                  padding: '3px 4px',
-                                  border: `1.5px solid ${
-                                    isSaving
-                                      ? '#fbbf24'
-                                      : hasVal
-                                      ? c.couleur || '#93c5fd'
-                                      : '#e2e8f0'
-                                  }`,
-                                  borderRadius: 4,
-                                  fontSize: 12,
-                                  textAlign: 'center',
-                                  background: isSaving
-                                    ? '#fef9c3'
-                                    : hasVal
-                                    ? `${c.couleur}1a`
-                                    : '#fff',
-                                  outline: 'none',
-                                  fontVariantNumeric: 'tabular-nums',
-                                  fontWeight: hasVal ? 700 : 400,
-                                  color: hasVal ? '#1e293b' : '#94a3b8',
-                                  cursor: isSaving ? 'wait' : 'text',
-                                  boxSizing: 'border-box',
-                                }}
-                              />
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  });
-                })}
-
-                {/* ── TOTAL COMMUNAL — ligne d'en-tête ────────────────── */}
-                <tr>
-                  <td
-                    colSpan={4}
-                    style={{
-                      padding: '7px 10px',
-                      fontWeight: 800,
-                      fontSize: 11,
-                      background: '#1e293b',
-                      color: '#fff',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 2,
-                      borderTop: '2px solid #334155',
-                    }}
-                  >
-                    Total communal
-                  </td>
-                  {PALIER_KEYS.map((pk) => (
-                    <td
-                      key={pk}
-                      style={{
-                        textAlign: 'center',
-                        fontWeight: 800,
-                        fontSize: 12,
-                        background: '#1e293b',
-                        color: '#fff',
-                        padding: '7px 4px',
-                        borderTop: '2px solid #334155',
-                        borderRight: '1px solid #334155',
-                      }}
-                    >
-                      {totalParPalier[pk] > 0
-                        ? totalParPalier[pk].toLocaleString('fr-FR')
-                        : '—'}
-                    </td>
-                  ))}
-                </tr>
-
-                {/* ── TOTAL PAR LISTE ─────────────────────────────────── */}
-                {candidatsActifs.map((c) => (
-                  <tr
-                    key={`total_${c.listeId}`}
-                    style={{
-                      background: c.couleur ? `${c.couleur}10` : '#f8fafc',
-                    }}
-                  >
-                    <td
-                      colSpan={4}
-                      style={{
-                        padding: '5px 10px',
-                        position: 'sticky',
-                        left: 0,
-                        zIndex: 2,
-                        background: c.couleur ? `${c.couleur}10` : '#f8fafc',
-                        borderBottom: '1px solid #e2e8f0',
-                        borderRight: '2px solid #cbd5e1',
-                      }}
-                    >
-                      <div
-                        style={{ display: 'flex', alignItems: 'center', gap: 7 }}
-                      >
-                        <span
-                          style={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: 2,
-                            background: c.couleur || '#94a3b8',
-                            display: 'inline-block',
-                            flexShrink: 0,
-                          }}
-                        />
-                        <span style={{ fontWeight: 700, fontSize: 11 }}>
-                          {c.listeId}
-                        </span>
-                        <span style={{ fontSize: 10, color: '#475569' }}>
-                          {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim()}
-                          {c.nomListe
-                            ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}`
-                            : ''}
-                        </span>
-                      </div>
-                    </td>
-                    {PALIER_KEYS.map((pk) => {
-                      const val = totauxParListe[c.listeId]?.[pk] || 0;
-                      const total = totalParPalier[pk] || 0;
-                      const pct =
-                        total > 0
-                          ? ((val / total) * 100).toFixed(1)
-                          : null;
-                      return (
-                        <td
-                          key={pk}
-                          style={{
-                            textAlign: 'center',
-                            padding: '4px 4px',
-                            borderBottom: '1px solid #e2e8f0',
-                            borderRight: '1px solid #f1f5f9',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              fontSize: 12,
-                              color: val > 0 ? '#1e293b' : '#cbd5e1',
-                            }}
-                          >
-                            {val > 0 ? val.toLocaleString('fr-FR') : '—'}
-                          </div>
-                          {pct !== null && (
-                            <div
-                              style={{
-                                fontSize: 10,
-                                color: c.couleur || '#64748b',
-                                fontWeight: 600,
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {pct}%
-                            </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── NOTE BAS DE TABLEAU ──────────────────────────────────── */}
-          <div
-            style={{
-              marginBottom: 24,
-              fontSize: 11,
-              color: '#94a3b8',
-              display: 'flex',
-              gap: 20,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span>💾 Sauvegarde automatique à chaque sortie de cellule</span>
-            <span>* Votants : lecture seule depuis les résultats officiels</span>
-            <span>
-              📋 Onglet :{' '}
-              <code
+          {/* Sélecteur tour */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[1, 2].map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setViewTour(t)}
                 style={{
-                  background: '#f1f5f9',
-                  padding: '1px 5px',
-                  borderRadius: 3,
-                  fontSize: 11,
+                  padding: '5px 18px', borderRadius: 20, border: 'none',
+                  fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                  background: viewTour === t ? (t === 1 ? '#047857' : '#2563eb') : '#e2e8f0',
+                  color: viewTour === t ? '#fff' : '#475569',
+                  transition: 'all 0.2s',
                 }}
               >
-                {sheet}
-              </code>
-            </span>
+                Tour {t}
+              </button>
+            ))}
           </div>
 
-          {/* ── GRAPHIQUE BARRES EMPILÉES ────────────────────────────── */}
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 10,
-              border: '1px solid #e2e8f0',
-              padding: '20px 20px 8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            }}
-          >
-            <h3
-              style={{
-                margin: '0 0 4px 0',
-                fontSize: 15,
-                fontWeight: 800,
-                color: '#1e293b',
-              }}
-            >
-              📊 Progression des voix — Total communal — Tour {viewTour}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 16px 0',
-                fontSize: 11,
-                color: '#94a3b8',
-              }}
-            >
-              Barres empilées par tranche de 100 dépouillements — couleur par
-              liste
-            </p>
-  <StackedBarChart
-              data={chartData}
-              candidats={candidatsActifs}
-            />
+          <span style={{
+            background: tc.light, color: tc.text,
+            fontSize: 11, fontWeight: 700, padding: '3px 12px',
+            borderRadius: 20, border: `1px solid ${tc.solid}`,
+          }}>
+            {bureauxList.length} bureaux &bull; {totalInscrits.toLocaleString('fr-FR')} inscrits
+            {dernierPalierRenseigne > 0 && <> &bull; Dernier palier : <strong>{dernierPalierRenseigne}</strong></>}
+          </span>
+
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94a3b8' }}>
+            💾 Sauvegarde auto à chaque sortie de cellule
+          </span>
+        </div>
+
+        {/* ── AVERTISSEMENT PAS DE LISTE ──────────────────────────────── */}
+        {nListes === 0 && (
+          <div style={{ padding: 20, background: '#fef3c7', borderRadius: 8, border: '1px solid #fde68a', color: '#92400e' }}>
+            ⚠️ Aucune liste active pour le Tour {viewTour}.
           </div>
-        </>
-      )}
-    </div>
+        )}
+
+        {nListes > 0 && (
+          <>
+            {/* ── GRILLE PRINCIPALE : TABLEAU GAUCHE | GRAPHIQUE DROITE ── */}
+            <div className="endirect-grid">
+
+              {/* ── TABLEAU DE SAISIE ──────────────────────────────────── */}
+              <div>
+                <div className="endirect-table-wrap">
+                  <table className="endirect-table">
+                    <thead>
+                      <tr>
+                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 80, position: 'sticky', left: 0, zIndex: 5, background: '#1e3c72' }}>Bureau</th>
+                        <th className="endirect-th" style={{ minWidth: 56 }}>Inscrits</th>
+                        <th className="endirect-th" style={{ minWidth: 56 }}>Votants*</th>
+                        <th className="endirect-th" style={{ textAlign: 'left', minWidth: 110 }}>Liste</th>
+                        {PALIERS.map((p) => (
+                          <th key={p} className="endirect-th" style={{ minWidth: 50 }}>{p}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bureauxList.flatMap((bureau, bIdx) => {
+                        const bvId    = normalizeBvId(bureau.id);
+                        const inscrits = Number(bureau.inscrits) || 0;
+                        const votants  = votantsMap[bvId] || 0;
+                        const bgRow    = bIdx % 2 === 0 ? '#fff' : '#f8fafc';
+
+                        return candidatsActifs.map((c, cIdx) => {
+                          const rowKey  = `${bvId}_${c.listeId}`;
+                          const isFirst = cIdx === 0;
+                          const isLast  = cIdx === nListes - 1;
+                          const bdrBtm  = isLast ? '2px solid #cbd5e1' : '1px solid #e8ecf0';
+
+                          return (
+                            <tr key={rowKey} style={{ background: bgRow }}>
+
+                              {/* Bureau (rowspan) */}
+                              {isFirst && (
+                                <td rowSpan={nListes} style={{
+                                  padding: '5px 7px', fontWeight: 700, fontSize: 11,
+                                  background: bgRow, position: 'sticky', left: 0, zIndex: 2,
+                                  borderRight: '2px solid #cbd5e1', borderBottom: '2px solid #cbd5e1',
+                                  verticalAlign: 'middle', whiteSpace: 'nowrap',
+                                }}>
+                                  <div style={{ color: '#1e293b', fontSize: 11 }}>{bvId}</div>
+                                  <div style={{ color: '#64748b', fontWeight: 400, fontSize: 10, maxWidth: 72, whiteSpace: 'normal', lineHeight: 1.3 }}>
+                                    {bureau.nom}
+                                  </div>
+                                </td>
+                              )}
+
+                              {/* Inscrits (rowspan) */}
+                              {isFirst && (
+                                <td rowSpan={nListes} style={{
+                                  padding: '4px 5px', textAlign: 'center', fontWeight: 700,
+                                  fontSize: 11, verticalAlign: 'middle',
+                                  borderRight: '1px solid #e8ecf0', borderBottom: '2px solid #cbd5e1',
+                                  background: bgRow, color: '#374151',
+                                }}>
+                                  {inscrits.toLocaleString('fr-FR')}
+                                </td>
+                              )}
+
+                              {/* Votants (rowspan, lecture seule) */}
+                              {isFirst && (
+                                <td rowSpan={nListes} style={{
+                                  padding: '4px 5px', textAlign: 'center',
+                                  fontWeight: votants > 0 ? 700 : 400, fontSize: 11,
+                                  verticalAlign: 'middle',
+                                  borderRight: '2px solid #cbd5e1', borderBottom: '2px solid #cbd5e1',
+                                  background: bgRow, color: votants > 0 ? '#047857' : '#94a3b8',
+                                }}>
+                                  {votants > 0 ? votants.toLocaleString('fr-FR') : '—'}
+                                </td>
+                              )}
+
+                              {/* Nom liste */}
+                              <td style={{ padding: '3px 6px', whiteSpace: 'nowrap', borderBottom: bdrBtm, borderRight: '2px solid #cbd5e1' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: 2, background: c.couleur || '#94a3b8', flexShrink: 0, display: 'inline-block' }} />
+                                  <span style={{ fontWeight: 700, color: '#1e293b', fontSize: 11 }}>{c.listeId}</span>
+                                  <span style={{ color: '#64748b', fontSize: 10, maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {String(c.nomListe || '').replace(/^Liste /i, '')}
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* Cellules saisie (9 paliers) */}
+                              {PALIER_KEYS.map((pk) => {
+                                const cellKey = `${rowKey}_${pk}`;
+                                const isSaving = savingCell === cellKey;
+                                const val    = inputs[rowKey]?.[pk] ?? '';
+                                const hasVal = val !== '' && val !== '0' && toInt(val) > 0;
+
+                                return (
+                                  <td key={pk} style={{ padding: '2px 2px', borderBottom: bdrBtm, borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      pattern="\d*"
+                                      value={val}
+                                      onChange={(e) => handleChange(rowKey, pk, e.target.value)}
+                                      onFocus={() => { if (String(val) === '0') handleChange(rowKey, pk, ''); }}
+                                      onBlur={() => handleBlur(bvId, c.listeId, pk)}
+                                      disabled={isSaving}
+                                      aria-label={`${bvId} ${c.listeId} palier ${pk.replace('p', '')}`}
+                                      className="endirect-input"
+                                      style={{
+                                        border: `1.5px solid ${isSaving ? '#fbbf24' : hasVal ? (c.couleur || '#93c5fd') : '#e2e8f0'}`,
+                                        background: isSaving ? '#fef9c3' : hasVal ? `${c.couleur}1a` : '#fff',
+                                        fontWeight: hasVal ? 700 : 400,
+                                        color: hasVal ? '#1e293b' : '#94a3b8',
+                                        cursor: isSaving ? 'wait' : 'text',
+                                      }}
+                                    />
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        });
+                      })}
+
+                      {/* Total communal */}
+                      <tr>
+                        <td colSpan={4} style={{ padding: '7px 10px', fontWeight: 800, fontSize: 11, background: '#1e293b', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px', position: 'sticky', left: 0, zIndex: 2, borderTop: '2px solid #334155' }}>
+                          Total communal
+                        </td>
+                        {PALIER_KEYS.map((pk) => (
+                          <td key={pk} style={{ textAlign: 'center', fontWeight: 800, fontSize: 12, background: '#1e293b', color: '#fff', padding: '7px 3px', borderTop: '2px solid #334155', borderRight: '1px solid #334155' }}>
+                            {totalParPalier[pk] > 0 ? totalParPalier[pk].toLocaleString('fr-FR') : '—'}
+                          </td>
+                        ))}
+                      </tr>
+
+                      {/* Total par liste */}
+                      {candidatsActifs.map((c) => (
+                        <tr key={`total_${c.listeId}`} style={{ background: c.couleur ? `${c.couleur}10` : '#f8fafc' }}>
+                          <td colSpan={4} style={{ padding: '5px 10px', position: 'sticky', left: 0, zIndex: 2, background: c.couleur ? `${c.couleur}10` : '#f8fafc', borderBottom: '1px solid #e2e8f0', borderRight: '2px solid #cbd5e1' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+                              <span style={{ fontWeight: 700, fontSize: 11 }}>{c.listeId}</span>
+                              <span style={{ fontSize: 10, color: '#475569' }}>
+                                {`${c.teteListePrenom || ''} ${c.teteListeNom || ''}`.trim()}
+                                {c.nomListe ? ` — ${String(c.nomListe).replace(/^Liste /i, '')}` : ''}
+                              </span>
+                            </div>
+                          </td>
+                          {PALIER_KEYS.map((pk) => {
+                            const val   = totauxParListe[c.listeId]?.[pk] || 0;
+                            const total = totalParPalier[pk] || 0;
+                            const pct   = total > 0 ? ((val / total) * 100).toFixed(1) : null;
+                            return (
+                              <td key={pk} style={{ textAlign: 'center', padding: '4px 3px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #f1f5f9' }}>
+                                <div style={{ fontWeight: 700, fontSize: 12, color: val > 0 ? '#1e293b' : '#cbd5e1' }}>
+                                  {val > 0 ? val.toLocaleString('fr-FR') : '—'}
+                                </div>
+                                {pct !== null && (
+                                  <div style={{ fontSize: 10, color: c.couleur || '#64748b', fontWeight: 600, lineHeight: 1.2 }}>
+                                    {pct}%
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
+                  * Votants : lecture seule depuis les résultats officiels — Onglet : <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>{sheet}</code>
+                </div>
+              </div>
+
+              {/* ── GRAPHIQUE RECHARTS ─────────────────────────────────── */}
+              <div style={{
+                background: '#fff', borderRadius: 10,
+                border: '1px solid #e2e8f0', padding: '20px 16px 12px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
+                position: 'sticky', top: 12,
+              }}>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: 15, fontWeight: 800, color: '#1e293b' }}>
+                  📊 Progression des voix — Tour {viewTour}
+                </h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: 11, color: '#94a3b8' }}>
+                  Barres empilées par tranche de 100 dépouillements
+                </p>
+
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 6, right: 20, left: 0, bottom: 36 }}
+                    barCategoryGap="20%"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      label={{
+                        value: 'Bulletins dépouillés',
+                        position: 'insideBottom',
+                        offset: -22,
+                        fontSize: 11,
+                        fill: '#94a3b8',
+                      }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <Tooltip
+                      formatter={(value, name) => [`${value.toLocaleString('fr-FR')} voix`, name]}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                    />
+                    <Legend
+                      iconType="square"
+                      wrapperStyle={{ fontSize: 11, paddingTop: 14 }}
+                    />
+                    {candidatsActifs.map((c) => (
+                      <Bar
+                        key={c.listeId}
+                        dataKey={c.listeId}
+                        name={`${c.listeId} — ${String(c.nomListe || '').replace(/^Liste /i, '')}`}
+                        stackId="a"
+                        fill={c.couleur || '#94a3b8'}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+
+                {/* Totaux synthèse en bas du graphique */}
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: '6px 12px' }}>
+                  {candidatsActifs.map((c) => {
+                    const lastPk  = [...PALIER_KEYS].reverse().find(pk => (totauxParListe[c.listeId]?.[pk] || 0) > 0);
+                    const lastVal = lastPk ? (totauxParListe[c.listeId]?.[lastPk] || 0) : 0;
+                    const lastTot = lastPk ? (totalParPalier[lastPk] || 0) : 0;
+                    const pct     = lastTot > 0 ? ((lastVal / lastTot) * 100).toFixed(1) : null;
+                    return (
+                      <span key={c.listeId} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '3px 8px', borderRadius: 6, background: c.couleur ? `${c.couleur}15` : '#f8fafc', border: `1px solid ${c.couleur || '#e2e8f0'}` }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: c.couleur || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+                        <strong>{c.listeId}</strong>
+                        {lastVal > 0 && <span style={{ color: '#475569' }}>{lastVal.toLocaleString('fr-FR')}{pct && <span style={{ color: c.couleur || '#64748b', fontWeight: 700 }}> ({pct}%)</span>}</span>}
+                        {lastVal === 0 && <span style={{ color: '#cbd5e1' }}>—</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }

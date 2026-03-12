@@ -101,7 +101,6 @@ const ConfigBureaux = () => {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     maxWidth: 0,
-    borderBottom: '1px solid #e2e8f0',
   };
 
   const inputStyle = (bureauId, field) => ({
