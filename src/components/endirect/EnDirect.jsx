@@ -166,38 +166,34 @@ export default function EnDirect({ electionState }) {
     }));
   }, []);
 
-  // ── Navigation clavier : Tab / Entrée → cellule du DESSOUS ─────────────────
+  // ── Navigation clavier : Tab / Entrée → toujours vers le bas ──────────────
+  // Règle : même palier, liste suivante. Fin du bureau → bureau suivant, même palier.
+  // On ne change JAMAIS de palier automatiquement.
   const handleKeyDown = useCallback(
     (e, bvId, listeId, pk) => {
       if (e.key !== 'Tab' && e.key !== 'Enter') return;
       e.preventDefault();
 
-      // Navigation : liste suivante dans le MÊME bureau et MÊME palier
-      // En fin de liste → palier suivant, première liste, même bureau
-      const palierIdx = PALIER_KEYS.indexOf(pk);
       const listeIdx  = candidatsActifs.findIndex(c => c.listeId === listeId);
+      const bureauIdx = bureauxList.findIndex(b => normalizeBvId(b.id) === bvId);
 
-      let nextPalierIdx = palierIdx;
       let nextListeIdx  = listeIdx + 1;
+      let nextBureauIdx = bureauIdx;
 
       if (nextListeIdx >= candidatsActifs.length) {
-        // Fin des listes → palier suivant, première liste, même bureau
         nextListeIdx  = 0;
-        nextPalierIdx = palierIdx + 1;
-        if (nextPalierIdx >= PALIER_KEYS.length) nextPalierIdx = 0;
+        nextBureauIdx = bureauIdx + 1;
+        if (nextBureauIdx >= bureauxList.length) nextBureauIdx = 0;
       }
 
+      const nextBvId    = normalizeBvId(bureauxList[nextBureauIdx]?.id);
       const nextListeId = candidatsActifs[nextListeIdx]?.listeId;
-      const nextPk      = PALIER_KEYS[nextPalierIdx];
-      const nextKey     = `${bvId}_${nextListeId}_${nextPk}`;
+      const nextKey     = `${nextBvId}_${nextListeId}_${pk}`;
 
       const el = inputsRef.current[nextKey];
-      if (el) {
-        el.focus();
-        el.select();
-      }
+      if (el) { el.focus(); el.select(); }
     },
-    [candidatsActifs]
+    [candidatsActifs, bureauxList]
   );
 
   // ── Sauvegarde sur blur ─────────────────────────────────────────────────
