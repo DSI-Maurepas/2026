@@ -518,14 +518,13 @@ const ResultatsConsolidation = ({ electionState}) => {
             <div className="stats-card-label">
               {isBureau ? `📈 Écart liste 1/2 pour le BV${bureauId}` : '📈 Écart entre liste 1 et 2'}
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+            {totaux.exprimes > 0 ? (
               <div className="stats-card-value">
                 {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'} voix
               </div>
-              <div className="stats-card-meta" style={{ fontSize: '1.1rem' }}>
-                {ecartLabel}
-              </div>
-            </div>
+            ) : (
+              <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible à la validation des résultats</div>
+            )}
           </div>
             </div>
 
@@ -657,12 +656,13 @@ const ResultatsConsolidation = ({ electionState}) => {
                <div className="stats-card-label">
                  {`📈 Écart liste 1/2 pour le BV${bureauId}`}
                </div>
-               <div className="stats-card-value">
-                 {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'}
-               </div>
-               <div className="stats-card-meta" style={{ fontSize: '0.85rem', lineHeight: 1.2 }}>
-                 {ecartLabel}
-               </div>
+               {totaux.exprimes > 0 ? (
+                 <div className="stats-card-value">
+                   {ecartVoix !== null ? ecartVoix.toLocaleString('fr-FR') : 'N/A'}
+                 </div>
+               ) : (
+                 <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible à la validation des résultats</div>
+               )}
              </div>
           ) : (
              /* Bloc Bureaux déclarés (Considéré comme admin ou global) */
