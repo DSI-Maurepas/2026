@@ -121,6 +121,7 @@ export default function App() {
   const [showTour2ActiveSuccess, setShowTour2ActiveSuccess] = useState(false);
   const [unlockCount, setUnlockCount] = useState(0);
   const [recalculingSieges, setRecalculingSieges] = useState(false);
+  const [purgingEnDirect,   setPurgingEnDirect]   = useState(false);
 
   const showToast = ({ type = "info", title = "", message = "", durationMs = 4000 }) => {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -749,6 +750,54 @@ case "info-participation":
 
                 </div>
                 {/* FIN LIGNE AVEC 5 BLOCS */}
+
+                {/* === PURGE EN DIRECT === */}
+                <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+                  <div style={{ flex: '1 1 0' }}>
+                    <div className="card" style={{ border: '2px solid #dc2626', background: '#fff5f5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
+                      <h2 style={{ color: '#dc2626', margin: 0, fontSize: '1em', textAlign: 'center', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        🗑️ Purge En Direct
+                      </h2>
+                      <p style={{ color: '#777', fontSize: 12, textAlign: 'center', margin: 0, lineHeight: 1.4 }}>
+                        Efface <strong>tous les chiffres</strong> saisis dans la page En Direct pour <strong>les deux tours</strong>.<br />
+                        <span style={{ color: '#dc2626', fontWeight: 700 }}>⚠️ Irréversible</span>
+                      </p>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        {[1, 2].map((t) => (
+                          <button
+                            key={t}
+                            className="btn btn-danger"
+                            disabled={purgingEnDirect}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 12, fontWeight: 600 }}
+                            onClick={async () => {
+                              const sheet = t === 1 ? 'EnDirect_T1' : 'EnDirect_T2';
+                              const ok = await uiService.confirm({
+                                title: `🗑️ Purge En Direct — Tour ${t}`,
+                                message: `Voulez-vous effacer TOUS les chiffres saisis dans la page En Direct pour le Tour ${t} ?\n\n⚠️ Cette action est irréversible.`,
+                                confirmText: `🗑️ Purger Tour ${t}`,
+                                cancelText: 'Annuler',
+                              });
+                              if (!ok) return;
+                              setPurgingEnDirect(true);
+                              try {
+                                await googleSheetsService.clearSheet(sheet);
+                                await auditService.log('ADMIN_PURGE_EN_DIRECT', { sheet, action: 'CLEAR' });
+                                uiService.toast('success', { title: `✅ En Direct Tour ${t} purgé`, message: `L'onglet ${sheet} a été vidé.` });
+                              } catch (e) {
+                                uiService.toast('error', { title: 'Erreur', message: 'Purge échouée : ' + (e?.message || e) });
+                              } finally {
+                                setPurgingEnDirect(false);
+                              }
+                            }}
+                          >
+                            {purgingEnDirect ? '⏳ En cours…' : `🗑️ Purger Tour ${t}`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* FIN PURGE EN DIRECT */}
 
                 <ConfigBureaux />
                 <ConfigCandidats />
