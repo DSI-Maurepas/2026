@@ -82,18 +82,35 @@ const ResultatsClassement = ({ electionState }) => {
   
   if (isTour1) {
     // Tour 1 : tous ceux >= 10% sont qualifiés
-    const qualifies = classement.filter(c => c.pct >= SEUIL_QUALIFICATION);
-    top2OrQualifies = qualifies.length >= 2 ? qualifies : classement.slice(0, 2);
-    others = classement.filter(c => !top2OrQualifies.includes(c));
+    // ⚠️ Si aucun suffrage exprimé, aucune liste ne peut être qualifiée
+    if (totalExprimes === 0) {
+      top2OrQualifies = [];
+      others = classement;
+    } else {
+      const qualifies = classement.filter(c => c.pct >= SEUIL_QUALIFICATION);
+      top2OrQualifies = qualifies.length >= 2 ? qualifies : classement.slice(0, 2);
+      others = classement.filter(c => !top2OrQualifies.includes(c));
+    }
   } else {
     // Tour 2 : seul le 1er est qualifié (gagnant)
-    top2OrQualifies = classement.slice(0, 1);
-    others = classement.slice(1);
+    if (totalExprimes === 0) {
+      top2OrQualifies = [];
+      others = classement;
+    } else {
+      top2OrQualifies = classement.slice(0, 1);
+      others = classement.slice(1);
+    }
   }
 
   // --- RENDU DES CARTES INDIVIDUELLES ---
   const classementContent = (
     <>
+      {totalExprimes === 0 ? (
+        <div style={{ padding: '24px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 15, fontWeight: 600 }}>
+          ⏳ Aucun suffrage exprimé pour le moment — le classement s'affichera dès la saisie des premiers résultats.
+        </div>
+      ) : (
+      <>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',  // Réduit de 300px à 250px
@@ -312,6 +329,8 @@ const ResultatsClassement = ({ electionState }) => {
             })}
           </div>
         </div>
+      )}
+      </>
       )}
     </>
   );
