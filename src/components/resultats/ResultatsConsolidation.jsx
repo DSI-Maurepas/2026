@@ -569,12 +569,14 @@ const ResultatsConsolidation = ({ electionState}) => {
             <div className="stats-card-label">
               {isBureau ? `❌ Abstentions pour le BV${bureauId}` : '❌ Abstentions'}
             </div>
-            <div className="stats-card-value">
-              {totalAbstentions.toLocaleString('fr-FR')}
-            </div>
-            <div className="stats-card-meta">
-              {clampPct(100 - tauxParticipation).toFixed(2)}%
-            </div>
+            {totaux.votants > 0 ? (
+              <>
+                <div className="stats-card-value">{totalAbstentions.toLocaleString('fr-FR')}</div>
+                <div className="stats-card-meta">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+              </>
+            ) : (
+              <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
+            )}
           </div>
             </div>
           </>
@@ -631,12 +633,14 @@ const ResultatsConsolidation = ({ electionState}) => {
             <div className="stats-card-label">
               {isBureau ? `❌ Abstentions pour le BV${bureauId}` : '❌ Abstentions'}
             </div>
-            <div className="stats-card-value">
-              {totalAbstentions.toLocaleString('fr-FR')}
-            </div>
-            <div className="stats-card-meta">
-              {clampPct(100 - tauxParticipation).toFixed(2)}%
-            </div>
+            {totaux.votants > 0 ? (
+              <>
+                <div className="stats-card-value">{totalAbstentions.toLocaleString('fr-FR')}</div>
+                <div className="stats-card-meta">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+              </>
+            ) : (
+              <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
+            )}
           </div>
         </div>
 
@@ -796,18 +800,26 @@ const ResultatsConsolidation = ({ electionState}) => {
             {/* Ligne 4 : Abstention */}
             <div className="stats-card" style={{ border: '2px solid rgba(244,63,94,0.55)', background: 'linear-gradient(135deg, rgba(244,63,94,0.10) 0%, rgba(254,205,211,0.08) 100%)' }}>
               <div className="stats-card-label">🚫 Bureau avec la plus forte abstention</div>
-              <div className="stats-card-value" style={{ fontSize: '0.90rem' }}>{adminExtremes.plusAbs?.label || '—'}</div>
-              <div className="stats-card-meta">
-                {(adminExtremes.plusAbs?.abstentions ?? 0).toLocaleString('fr-FR')} • {clampPct(adminExtremes.plusAbs?.abstentionPct ?? 0).toFixed(2)}%
-              </div>
+              {totaux.votants > 0 ? (
+                <>
+                  <div className="stats-card-value" style={{ fontSize: '0.90rem' }}>{adminExtremes.plusAbs?.label || '—'}</div>
+                  <div className="stats-card-meta">{(adminExtremes.plusAbs?.abstentions ?? 0).toLocaleString('fr-FR')} • {clampPct(adminExtremes.plusAbs?.abstentionPct ?? 0).toFixed(2)}%</div>
+                </>
+              ) : (
+                <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
+              )}
             </div>
 
             <div className="stats-card" style={{ border: '2px solid rgba(16,185,129,0.55)', background: 'linear-gradient(135deg, rgba(16,185,129,0.10) 0%, rgba(167,243,208,0.08) 100%)' }}>
               <div className="stats-card-label">✅ Bureau avec la moins forte abstention</div>
-              <div className="stats-card-value" style={{ fontSize: '0.90rem' }}>{adminExtremes.moinsAbs?.label || '—'}</div>
-              <div className="stats-card-meta">
-                {(adminExtremes.moinsAbs?.abstentions ?? 0).toLocaleString('fr-FR')} • {clampPct(adminExtremes.moinsAbs?.abstentionPct ?? 0).toFixed(2)}%
-              </div>
+              {totaux.votants > 0 ? (
+                <>
+                  <div className="stats-card-value" style={{ fontSize: '0.90rem' }}>{adminExtremes.moinsAbs?.label || '—'}</div>
+                  <div className="stats-card-meta">{(adminExtremes.moinsAbs?.abstentions ?? 0).toLocaleString('fr-FR')} • {clampPct(adminExtremes.moinsAbs?.abstentionPct ?? 0).toFixed(2)}%</div>
+                </>
+              ) : (
+                <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
+              )}
             </div>
 
             {/* Ligne 5 : Nuls */}
