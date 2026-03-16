@@ -1829,7 +1829,8 @@ const data = (auditData || [])
    * Ouvre les sièges dans une nouvelle fenêtre pour impression (PDF via l'imprimante du navigateur)
    */
   async openSiegesForPrint(municipal = [], communautaire = [], tour = 1) {
-    const html = this.generateSiegesHTML(municipal, communautaire, tour);
+    const blasonDataUrl = await this.getBlasonMaurepasDataUrl();
+    const html = this.generateSiegesHTML(municipal, communautaire, tour, blasonDataUrl);
     const printWindow = window.open('', '_blank');
     printWindow.document.write(html);
     printWindow.document.close();
@@ -1847,7 +1848,7 @@ const data = (auditData || [])
   /**
    * Génère le HTML d'export des sièges (municipal + communautaire)
    */
-  generateSiegesHTML(municipal = [], communautaire = [], tour = 1) {
+  generateSiegesHTML(municipal = [], communautaire = [], tour = 1, blasonDataUrl = '') {
     const t = Number(tour) || 1;
     const totalMunicipal = Number(ELECTION_CONFIG.SEATS_MUNICIPAL_TOTAL) || 35;
     const totalCommunity = Number(ELECTION_CONFIG.SEATS_COMMUNITY_TOTAL) || 6;
@@ -1905,7 +1906,11 @@ const data = (auditData || [])
   <title>Répartition des sièges - Tour ${t}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 28px; color: #000; }
-    h1 { margin: 0 0 12px 0; color: #0055A4; }
+    .header { display: flex; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #0055A4; padding-bottom: 14px; }
+    .blason-wrap { flex-shrink: 0; margin-right: 18px; }
+    .blason-wrap img { width: 38mm; height: auto; object-fit: contain; }
+    .header-text { flex: 1; }
+    h1 { margin: 0 0 4px 0; color: #0055A4; }
     h2 { margin: 26px 0 8px 0; color: #0055A4; }
     .meta { margin: 0 0 10px 0; padding: 10px 12px; background: #eef6ff; border-left: 4px solid #0055A4; }
     table { width: 100%; border-collapse: collapse; margin: 10px 0 18px 0; }
@@ -1930,7 +1935,13 @@ const data = (auditData || [])
   </style>
 </head>
 <body>
-  <h1>Répartition des sièges</h1>
+  <div class="header">
+    ${blasonDataUrl ? `<div class="blason-wrap"><img src="${blasonDataUrl}" alt="Blason Maurepas" /></div>` : ''}
+    <div class="header-text">
+      <h1>Répartition des sièges</h1>
+      <div style="color:#0055A4;font-size:13px;">${ELECTION_CONFIG.COMMUNE_NAME} — Tour ${t}</div>
+    </div>
+  </div>
   ${renderTable(municipal, 'Conseil Municipal', totalMunicipal)}
   ${renderTable(communautaire, 'Conseil Communautaire (SQY)', totalCommunity)}
   <div class="footer">Généré le ${this.escapeHtml(formatDateTime(new Date()))}</div>
