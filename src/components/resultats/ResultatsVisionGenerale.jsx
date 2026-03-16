@@ -145,8 +145,10 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
         procurations: r.procurations ?? '',
         blancs:       r.blancs      ?? '',
         nuls:         r.nuls        ?? '',
-        exprimes:     r.exprimes    ?? '',
-        voix:         { ...(r.voix || {}) },
+        exprimes:          r.exprimes          ?? '',
+        cartesDisponibles: r.cartesDisponibles ?? '',
+        cartesRecuperees:  r.cartesRecuperees  ?? '',
+        voix:              { ...(r.voix || {}) },
         _rowIndex:    r.rowIndex,
         _saisiPar:    r.saisiPar    ?? '',
         _validePar:   r.validePar   ?? '',
@@ -223,7 +225,9 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
         procurations: coerceInt(d.procurations),
         blancs:      coerceInt(d.blancs),
         nuls:        coerceInt(d.nuls),
-        exprimes:    coerceInt(d.exprimes),
+        exprimes:          coerceInt(d.exprimes),
+        cartesDisponibles: coerceInt(d.cartesDisponibles),
+        cartesRecuperees:  coerceInt(d.cartesRecuperees),
         voix,
         saisiPar:    d._saisiPar,
         validePar:   d._validePar,
@@ -261,8 +265,11 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       { key: 'blancs',       label: 'Blancs',       field: 'blancs'   },
       { key: 'nuls',         label: 'Nuls',         field: 'nuls'     },
       { key: 'abstention',   label: 'Abstentions',  field: 'abstention', isComputed: true },
-      { key: 'exprimes',     label: 'Exprimés',     field: 'exprimes' },
-      { key: '__ctrl1__',    label: '✓ Ctrl 1',     isCtrl: 'ctrl1'   },
+      { key: 'exprimes',          label: 'Exprimés',          field: 'exprimes' },
+      { key: 'cartesDisponibles', label: 'Mises à dispo',      field: 'cartesDisponibles', isCartes: true },
+      { key: 'cartesRecuperees',  label: 'Récupérées',          field: 'cartesRecuperees',  isCartes: true },
+      { key: 'cartesRestantes',   label: 'Restantes',           field: 'cartesRestantes',   isCartes: true, isComputed: true },
+      { key: '__ctrl1__',         label: '✓ Ctrl 1',            isCtrl: 'ctrl1'   },
     ];
     candidatsActifs.forEach(c => {
       const label = (
@@ -315,6 +322,20 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       );
     }
 
+    // Ligne calculée : restantes = disponibles - récupérées
+    if (rowDef.isComputed && rowDef.field === 'cartesRestantes') {
+      const dispo = parseInt(getVal(bureauId, 'cartesDisponibles') ?? '', 10);
+      const recup = parseInt(getVal(bureauId, 'cartesRecuperees')  ?? '', 10);
+      const rest  = (Number.isFinite(dispo) && Number.isFinite(recup)) ? Math.max(0, dispo - recup) : null;
+      return (
+        <td key={bureauId} style={{ ...cellStyle('#fde8d8', false, true), color: '#9a3412', fontWeight: 800, borderBottom: '1px solid #fed7aa' }}>
+          {rest !== null
+            ? rest.toLocaleString('fr-FR')
+            : <span style={{ color: '#fdba74' }}>—</span>}
+        </td>
+      );
+    }
+
     // Ligne calculée (ex: abstention = inscrits - votants)
     if (rowDef.isComputed && rowDef.field === 'abstention') {
       const ins = parseInt(getVal(bureauId, 'inscrits') ?? '', 10);
@@ -325,6 +346,39 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
           {abs !== null
             ? abs.toLocaleString('fr-FR')
             : <span style={{ color: '#d1d5db' }}>—</span>}
+        </td>
+      );
+    }
+
+    // Lignes cartes électorales (non calculées) — fond orange
+    if (rowDef.isCartes && !rowDef.isComputed) {
+      const val = getVal(bureauId, rowDef.field);
+      const cellKey = `${bureauId}_${rowDef.field}`;
+      const isSaving = savingCell === cellKey;
+      const isReadOnly = !editMode;
+      if (isReadOnly) {
+        return (
+          <td key={bureauId} style={{ ...cellStyle('#fff7ed', false, true), color: '#c2410c', fontWeight: 600, borderBottom: '1px solid #fed7aa' }}>
+            {val === '' ? <span style={{ color: '#fdba74' }}>—</span> : Number(val).toLocaleString('fr-FR')}
+          </td>
+        );
+      }
+      return (
+        <td key={bureauId} style={cellStyle(isSaving ? '#fef9c3' : '#fff7ed', true)}>
+          <input
+            type="text" inputMode="numeric"
+            value={val}
+            onChange={e => handleCellChange(bureauId, rowDef.field, e.target.value)}
+            onFocus={() => { if (String(val) === '0') handleCellChange(bureauId, rowDef.field, ''); }}
+            onBlur={() => handleCellBlur(bureauId, rowDef.field)}
+            style={{
+              width: '100%', minWidth: 52, padding: '3px 5px',
+              border: '1.5px solid #fb923c', borderRadius: 4,
+              fontSize: 13, textAlign: 'center', background: '#fff7ed',
+              outline: 'none', boxSizing: 'border-box', color: '#c2410c', fontWeight: 600
+            }}
+            disabled={isSaving}
+          />
         </td>
       );
     }
@@ -526,7 +580,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
               const isCtrlRow = !!rowDef.isCtrl;
               const isListRow = !!rowDef.listeId;
               // Séparateur visuel entre ctrl1 et listes
-              const topBorder = (rowIdx > 0 && rowDefs[rowIdx - 1]?.isCtrl) ? '2px solid #cbd5e1' : undefined;
+              const topBorder = (rowIdx > 0 && rowDefs[rowIdx - 1]?.isCtrl) ? '2px solid #cbd5e1' : (rowDef.isCartes && rowIdx > 0 && !rowDefs[rowIdx - 1]?.isCartes) ? '2px solid #fb923c' : undefined;
 
               return (
                 <tr
@@ -540,11 +594,22 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
                       ? '#f1f5f9'
                       : isListRow
                       ? '#f0fdf4'
+                      : rowDef.isCartes
+                      ? '#fff7ed'
                       : (rowDef.readOnly ? '#f8fafc' : '#fff'),
                     fontSize: isCtrlRow ? 11 : isListRow ? 12 : 12,
+                    borderLeft: rowDef.isCartes ? '3px solid #fb923c' : undefined,
                   }}>
                     {isCtrlRow ? (
-                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.isComputed ? <span style={{ fontStyle: 'italic', color: '#888' }}>{rowDef.label} <span style={{ fontSize: 10 }}>(calculé)</span></span> : rowDef.label}</span>
+                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.label}</span>
+                    ) : rowDef.isCartes ? (
+                      <span style={{ color: '#c2410c', fontWeight: 700 }}>
+                        {rowDef.isComputed
+                          ? <>{rowDef.label} <span style={{ fontWeight: 400, fontStyle: 'italic', fontSize: 10 }}>(calculé)</span></>
+                          : rowDef.label}
+                      </span>
+                    ) : rowDef.isComputed ? (
+                      <span style={{ fontStyle: 'italic', color: '#888' }}>{rowDef.label} <span style={{ fontSize: 10 }}>(calculé)</span></span>
                     ) : (
                       rowDef.label
                     )}
