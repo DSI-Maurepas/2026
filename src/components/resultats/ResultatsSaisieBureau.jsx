@@ -1704,7 +1704,7 @@ useEffect(() => {
                     onBlur={isAdmin ? () => saveCurrentRow('cartesDisponibles') : undefined}
                     readOnly={!isAdmin}
                     disabled={!isAdmin || ((isLocked || adminValidated) && !isAdmin)}
-                    title={!isAdmin ? 'Renseigné par l'administrateur' : ''}
+                    title={!isAdmin ? "Renseigné par l'administrateur" : ''}
                     style={{
                       width: '100%', padding: 6,
                       background: !isAdmin ? '#f0f0f0' : '#fff',
@@ -1920,7 +1920,7 @@ useEffect(() => {
                     onBlur={isAdmin ? () => saveCurrentRow('cartesDisponibles') : undefined}
                     readOnly={!isAdmin}
                     disabled={!isAdmin || ((isLocked || adminValidated) && !isAdmin)}
-                    title={!isAdmin ? 'Renseigné par l'administrateur' : ''}
+                    title={!isAdmin ? "Renseigné par l'administrateur" : ''}
                     style={{
                       width: '100%', padding: '4px 6px',
                       background: !isAdmin ? '#f5f5f5' : '#fff',
