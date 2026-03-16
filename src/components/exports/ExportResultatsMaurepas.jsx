@@ -72,7 +72,7 @@ async function generateXLSX(data, tourActuel) {
     });
 
     // Données
-        data.cands.filter(c => (data.voixParListe[c.listeId] ?? 0) > 0).forEach((c, i) => {
+        data.cands.forEach((c, i) => {
         const v = data.voixParListe[c.listeId] || 0;
         const row = worksheet.addRow([
             i + 1,
@@ -135,7 +135,7 @@ function generatePDF(data, tourLabel) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.cands.filter(c => (data.voixParListe[c.listeId] ?? 0) > 0).map((c, i) => {
+                    ${data.cands.map((c, i) => {
                         const v = data.voixParListe[c.listeId] || 0;
                         return `
                             <tr>
