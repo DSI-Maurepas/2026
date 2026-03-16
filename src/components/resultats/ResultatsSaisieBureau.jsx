@@ -1675,8 +1675,8 @@ useEffect(() => {
 
 
           
-            {/* ═══ CARTES ÉLECTORALES — bloc mobile orange ═══ */}
-            <div style={{
+            {/* ═══ CARTES ÉLECTORALES — bloc mobile orange (BV uniquement) ═══ */}
+            {isBureauVote && <div style={{
               margin: '0 0 14px',
               background: '#fff7ed',
               border: '2px solid #fb923c',
@@ -1755,7 +1755,7 @@ useEffect(() => {
                   />
                 </div>
               </div>
-            </div>
+            </div>}
 
           {/* Infos bureau + contrôles + BOUTON VERROUILLER (4ème position) */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, margin: '0 0 14px' }}>
@@ -1891,87 +1891,6 @@ useEffect(() => {
               </div>
             )}
 
-            {/* ═══ 5ème carte : CARTES ÉLECTORALES ═══ */}
-            {selectedBureauId && (
-              <div style={{
-                flex: '1 1 220px',
-                background: '#fff7ed',
-                border: '2px solid #fb923c',
-                borderRadius: 10,
-                padding: 10,
-              }}>
-                <div style={{
-                  fontWeight: 800, marginBottom: 8, color: '#ea580c',
-                  fontSize: 13, letterSpacing: '0.5px'
-                }}>
-                  🗳️ Cartes électorales
-                </div>
-                {/* Mises à dispo */}
-                <div style={{ marginBottom: 6 }}>
-                  <div style={{ fontSize: 11, color: '#c2410c', fontWeight: 700, marginBottom: 2 }}>
-                    MISES À DISPO
-                    {!isAdmin && <span style={{ fontWeight: 400, fontStyle: 'italic', opacity: 0.7 }}> (admin)</span>}
-                  </div>
-                  <input
-                    type="text" inputMode="numeric"
-                    value={inputsMain.cartesDisponibles}
-                    onChange={isAdmin ? (e) => setInputsMain((prev) => ({ ...prev, cartesDisponibles: e.target.value })) : undefined}
-                    onFocus={isAdmin ? () => { if (inputsMain.cartesDisponibles === '0') setInputsMain((prev) => ({ ...prev, cartesDisponibles: '' })); } : undefined}
-                    onBlur={isAdmin ? () => saveCurrentRow('cartesDisponibles') : undefined}
-                    readOnly={!isAdmin}
-                    disabled={!isAdmin || ((isLocked || adminValidated) && !isAdmin)}
-                    title={!isAdmin ? "Renseigné par l'administrateur" : ''}
-                    style={{
-                      width: '100%', padding: '4px 6px',
-                      background: !isAdmin ? '#f5f5f5' : '#fff',
-                      border: '1px solid #fb923c', borderRadius: 5,
-                      cursor: !isAdmin ? 'not-allowed' : 'text',
-                      fontWeight: 600, color: '#c2410c', fontSize: 13
-                    }}
-                  />
-                </div>
-                {/* Récupérées */}
-                <div style={{ marginBottom: 6 }}>
-                  <div style={{ fontSize: 11, color: '#c2410c', fontWeight: 700, marginBottom: 2 }}>RÉCUPÉRÉES</div>
-                  <input
-                    type="text" inputMode="numeric"
-                    value={inputsMain.cartesRecuperees}
-                    onChange={(e) => setInputsMain((prev) => ({ ...prev, cartesRecuperees: e.target.value }))}
-                    onFocus={() => { if (inputsMain.cartesRecuperees === '0') setInputsMain((prev) => ({ ...prev, cartesRecuperees: '' })); }}
-                    onBlur={() => saveCurrentRow('cartesRecuperees')}
-                    disabled={(isLocked && !isAdmin) || adminValidated}
-                    style={{
-                      width: '100%', padding: '4px 6px',
-                      background: ((isLocked && !isAdmin) || adminValidated) ? '#f5f5f5' : '#fff',
-                      border: '1px solid #fb923c', borderRadius: 5,
-                      cursor: ((isLocked && !isAdmin) || adminValidated) ? 'not-allowed' : 'text',
-                      fontWeight: 600, color: '#c2410c', fontSize: 13
-                    }}
-                  />
-                </div>
-                {/* Restantes — calculé */}
-                <div>
-                  <div style={{ fontSize: 11, color: '#c2410c', fontWeight: 700, marginBottom: 2 }}>
-                    RESTANTES <span style={{ fontWeight: 400, fontStyle: 'italic', opacity: 0.7 }}>(calculé)</span>
-                  </div>
-                  <input
-                    type="text" inputMode="numeric" readOnly disabled
-                    value={(() => {
-                      const d = parseInt(inputsMain.cartesDisponibles, 10);
-                      const r = parseInt(inputsMain.cartesRecuperees, 10);
-                      if (Number.isFinite(d) && Number.isFinite(r)) return String(Math.max(0, d - r));
-                      return '';
-                    })()}
-                    title="Calculé : Mises à dispo − Récupérées"
-                    style={{
-                      width: '100%', padding: '4px 6px',
-                      background: '#fde8d8', border: '1px solid #fb923c', borderRadius: 5,
-                      cursor: 'not-allowed', fontWeight: 800, color: '#9a3412', fontSize: 14
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Tableau voix */}
