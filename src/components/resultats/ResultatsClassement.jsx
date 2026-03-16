@@ -76,20 +76,26 @@ const ResultatsClassement = ({ electionState }) => {
   }, [candidatsArray, resultats, totalExprimes]);
 
   const SEUIL_QUALIFICATION = 10;
-  
+  const SEUIL_ELECTION = 50; // >50% au T1 = élue directement
+
   // Logique de qualification selon le tour
   let top2OrQualifies, others;
-  
+
   if (isTour1) {
-    // Tour 1 : tous ceux >= 10% sont qualifiés
-    // ⚠️ Si aucun suffrage exprimé, aucune liste ne peut être qualifiée
     if (totalExprimes === 0) {
       top2OrQualifies = [];
       others = classement;
     } else {
-      const qualifies = classement.filter(c => c.pct >= SEUIL_QUALIFICATION);
-      top2OrQualifies = qualifies.length >= 2 ? qualifies : classement.slice(0, 2);
-      others = classement.filter(c => !top2OrQualifies.includes(c));
+      // Vérifier si une liste a plus de 50% → élue directement, aucune autre qualifiée
+      const eluT1 = classement.find(c => c.pct > SEUIL_ELECTION);
+      if (eluT1) {
+        top2OrQualifies = [eluT1];
+        others = classement.filter(c => c.id !== eluT1.id);
+      } else {
+        const qualifies = classement.filter(c => c.pct >= SEUIL_QUALIFICATION);
+        top2OrQualifies = qualifies.length >= 2 ? qualifies : classement.slice(0, 2);
+        others = classement.filter(c => !top2OrQualifies.includes(c));
+      }
     }
   } else {
     // Tour 2 : seul le 1er est qualifié (gagnant)
@@ -126,10 +132,13 @@ const ResultatsClassement = ({ electionState }) => {
             ? (candidat.pct >= SEUIL_QUALIFICATION || rank <= 2)
             : (rank === 1);
           
-          // Texte du badge selon le tour
-          const badgeText = isTour1 
-            ? "✅ LISTE QUALIFIÉ"
-            : "🏆 LISTE ÉLUE";
+          // Texte du badge selon le tour et le score
+          const eluDirectement = isTour1 && candidat.pct > SEUIL_ELECTION;
+          const badgeText = eluDirectement
+            ? "🏆 LISTE ÉLUE AU 1ER TOUR"
+            : isTour1
+              ? "✅ LISTE QUALIFIÉ"
+              : "🏆 LISTE ÉLUE";
           
           return (
             <div

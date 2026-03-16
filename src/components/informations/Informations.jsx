@@ -223,6 +223,7 @@ export default function Informations({ electionState }) {
     const actifsT1 = cand.filter(c=>!!c.actifT1);
     const base = actifsT1.length > 0 ? actifsT1 : cand.filter(c=>c?.listeId);
     const qualifies = new Set();
+    const voixParId = [];
     base.forEach((c,i)=>{
       const id = (c?.listeId??c?.id??c?.code??c?.key);
       const idStr = id&&String(id).trim() ? String(id).trim() : `L${i+1}`;
@@ -230,7 +231,13 @@ export default function Informations({ electionState }) {
       const voixByLiId = resT1.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+nv(vo?.[idStr]??vo?.[`${idStr}_Voix`]??vo?.[`${idStr}Voix`]);},0);
       const voixByFallback = idStr!==fallbackKey ? resT1.reduce((a,r)=>{const vo=r?.voix||r?.Voix||{};return a+nv(vo?.[fallbackKey]??vo?.[`${fallbackKey}_Voix`]??vo?.[`${fallbackKey}Voix`]);},0) : 0;
       const voix = voixByLiId > 0 ? voixByLiId : voixByFallback;
-      if ((voix / totalExpT1) * 100 >= SEUIL) qualifies.add(idStr);
+      voixParId.push({ idStr, voix, pct: (voix / totalExpT1) * 100 });
+    });
+    // Si une liste >50% : élue T1, aucune qualifiée pour T2
+    const eluT1 = voixParId.find(l => l.pct > 50);
+    if (eluT1) return new Set(); // Set vide = aucune liste qualifiée T2
+    voixParId.forEach(({ idStr, pct }) => {
+      if (pct >= SEUIL) qualifies.add(idStr);
     });
     return qualifies; // Set vide = aucune liste qualifiée (données insuffisantes)
   }, [resultatsT1, candidats]);
@@ -371,6 +378,10 @@ export default function Informations({ electionState }) {
 
     const admises = avecVoix.filter(l => l.pct >= SEUIL).sort((a, b) => b.voix - a.voix);
     if (!admises.length) return [];
+
+    // ⚠️ Si une liste dépasse 50% : élue directement au T1 → aucune autre liste n'est admise au T2
+    const eluT1 = admises.find(l => l.pct > 50);
+    if (eluT1) return [{ ...eluT1, elueT1: true, pctBar: 100, rank: '🏆 ÉLUE T1' }];
 
     const maxVoix = admises[0].voix || 1;
     const rangs   = ["1ER","2ÈME","3ÈME","4ÈME","5ÈME","6ÈME","7ÈME"];
@@ -667,7 +678,11 @@ export default function Informations({ electionState }) {
           {tourVisu===1?(
             /* ─── T1 : Listes admises pour le 2nd tour ─── */
             <article className="info-card info-card-qualifies">
-              <div className="card-title">Listes admises — 2nd Tour (+ 10%)</div>
+              <div className="card-title">
+                {listesAdmises.length === 1 && listesAdmises[0]?.elueT1
+                  ? "🏆 Liste Élue au 1er Tour"
+                  : "Listes admises — 2nd Tour (+ 10%)"}
+              </div>
               {listesAdmises.length===0?(
                 <div className="qualif-empty">
                   {totauxResultats.exprimes > 0
@@ -677,9 +692,10 @@ export default function Informations({ electionState }) {
               ):(
                 <>
                   <div className="qualif-legende">
-                    {listesAdmises.length} liste{listesAdmises.length>1?"s":""} admise{listesAdmises.length>1?"s":""}
-                    {" "}(≥ 10% des suffrages exprimés).
-                    {" "}<em>Ces listes sont admises à se présenter au 2nd tour. Les listes définitives peuvent différer en cas de fusion ou de désistement.</em>
+                    {listesAdmises[0]?.elueT1
+                      ? <><strong>Majorité absolue obtenue au 1er tour.</strong> Aucune autre liste n'est admise au 2nd tour.</>
+                      : <>{listesAdmises.length} liste{listesAdmises.length>1?"s":""} admise{listesAdmises.length>1?"s":""}{" "}(≥ 10% des suffrages exprimés).{" "}<em>Ces listes sont admises à se présenter au 2nd tour. Les listes définitives peuvent différer en cas de fusion ou de désistement.</em></>
+                    }
                   </div>
                   <div className="qualif-summary-tile">
                     <div className="qualif-summary-nb">{listesAdmises.length}</div>
