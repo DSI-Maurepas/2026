@@ -989,8 +989,6 @@ const data = (auditData || [])
       <th>Rang</th>
       <th>Liste</th>
       <th>Voix</th>
-      <th>Abstentions</th>
-      <th>% Abstention</th>
       <th>% Exprimés</th>
       <th>% Inscrits</th>
     </tr>
@@ -1257,6 +1255,8 @@ const data = (auditData || [])
       <th>Taux nuls (%)</th>
       <th>Blancs</th>
       <th>Taux blancs (%)</th>
+      <th>Abstentions</th>
+      <th>Taux abstention (%)</th>
       <th>Exprimés</th>
       <th>Taux exprimés (%)</th>
     </tr>
@@ -1423,8 +1423,6 @@ const data = (auditData || [])
       <th>Rang</th>
       <th>Liste</th>
       <th>Voix</th>
-      <th>Abstentions</th>
-      <th>% Abstention</th>
       <th>% Exprimés</th>
       <th>% Inscrits</th>
     </tr>
