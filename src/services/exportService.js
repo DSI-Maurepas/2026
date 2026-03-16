@@ -874,7 +874,7 @@ const data = (auditData || [])
   /**
    * Génère un PV de résultats en HTML (pour impression/PDF)
    */
-  generatePVHTML(resultats, candidats, tour = 1) {
+  generatePVHTML(resultats, candidats, tour = 1, blasonDataUrl = '') {
     const date = new Date();
     const consolidation = this.consolidateResults(resultats, candidats);
 
@@ -896,11 +896,15 @@ const data = (auditData || [])
       color: #000;
     }
     .header {
-      text-align: center;
+      display: flex;
+      align-items: center;
       margin-bottom: 40px;
       border-bottom: 2px solid #0055A4;
       padding-bottom: 20px;
     }
+    .blason-wrap { flex-shrink: 0; margin-right: 18px; }
+    .blason-wrap img { width: 38mm; height: auto; object-fit: contain; }
+    .header-text { flex: 1; text-align: center; }
     h1 {
       color: #0055A4;
       margin: 0;
@@ -942,10 +946,13 @@ const data = (auditData || [])
 </head>
 <body>
   <div class="header">
-    <h1>RÉPUBLIQUE FRANÇAISE</h1>
-    <h2>Procès-Verbal - Élections Municipales</h2>
-    <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
-    <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    ${blasonDataUrl ? `<div class="blason-wrap"><img src="${blasonDataUrl}" alt="Blason Maurepas" /></div>` : ''}
+    <div class="header-text">
+      <h1>RÉPUBLIQUE FRANÇAISE</h1>
+      <h2>Procès-Verbal - Élections Municipales</h2>
+      <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
+      <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    </div>
   </div>
 
   <div class="info">
@@ -1086,7 +1093,8 @@ const data = (auditData || [])
    * Ouvre le PV dans une nouvelle fenêtre pour impression
    */
   async openPVForPrint(resultats, candidats, tour = 1) {
-    const html = this.generatePVHTML(resultats, candidats, tour);
+    const blasonDataUrl = await this.getBlasonMaurepasDataUrl();
+    const html = this.generatePVHTML(resultats, candidats, tour, blasonDataUrl);
     const printWindow = window.open('', '_blank');
     printWindow.document.write(html);
     printWindow.document.close();
@@ -1098,7 +1106,8 @@ const data = (auditData || [])
    * Ouvre la participation dans une nouvelle fenêtre pour impression
    */
   async openParticipationForPrint(participation, bureaux, tour = 1) {
-    const html = this.generateParticipationHTML(participation, bureaux, tour);
+    const blasonDataUrl = await this.getBlasonMaurepasDataUrl();
+    const html = this.generateParticipationHTML(participation, bureaux, tour, blasonDataUrl);
     const printWindow = window.open('', '_blank');
     printWindow.document.write(html);
     printWindow.document.close();
@@ -1110,7 +1119,8 @@ const data = (auditData || [])
    * Ouvre les statistiques dans une nouvelle fenêtre pour impression
    */
   async openStatistiquesForPrint(resultats, candidats, bureaux, tour = 1) {
-    const html = this.generateStatistiquesHTML(resultats, candidats, bureaux, tour);
+    const blasonDataUrl = await this.getBlasonMaurepasDataUrl();
+    const html = this.generateStatistiquesHTML(resultats, candidats, bureaux, tour, blasonDataUrl);
     const printWindow = window.open('', '_blank');
     printWindow.document.write(html);
     printWindow.document.close();
@@ -1121,7 +1131,7 @@ const data = (auditData || [])
   /**
    * Génère le HTML de participation pour impression
    */
-  generateParticipationHTML(participation, bureaux, tour = 1) {
+  generateParticipationHTML(participation, bureaux, tour = 1, blasonDataUrl = '') {
     const date = new Date();
 
     // PV Participation : structure figée 09h -> 20h (Jour J)
@@ -1198,11 +1208,15 @@ const data = (auditData || [])
       color: #000;
     }
     .header {
-      text-align: center;
+      display: flex;
+      align-items: center;
       margin-bottom: 40px;
       border-bottom: 2px solid #0055A4;
       padding-bottom: 20px;
     }
+    .blason-wrap { flex-shrink: 0; margin-right: 18px; }
+    .blason-wrap img { width: 38mm; height: auto; object-fit: contain; }
+    .header-text { flex: 1; text-align: center; }
     h1 { color: #0055A4; margin: 0; }
     .info { margin: 20px 0; }
     table {
@@ -1231,10 +1245,13 @@ const data = (auditData || [])
 </head>
 <body>
   <div class="header">
-    <h1>RÉPUBLIQUE FRANÇAISE</h1>
-    <h2>Participation - Élections Municipales</h2>
-    <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
-    <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    ${blasonDataUrl ? `<div class="blason-wrap"><img src="${blasonDataUrl}" alt="Blason Maurepas" /></div>` : ''}
+    <div class="header-text">
+      <h1>RÉPUBLIQUE FRANÇAISE</h1>
+      <h2>Participation - Élections Municipales</h2>
+      <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
+      <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    </div>
   </div>
 
   <div class="info">
@@ -1315,7 +1332,7 @@ const data = (auditData || [])
   /**
    * Génère le HTML de statistiques pour impression
    */
-  generateStatistiquesHTML(resultats, candidats, bureaux, tour = 1) {
+  generateStatistiquesHTML(resultats, candidats, bureaux, tour = 1, blasonDataUrl = '') {
     const date = new Date();
     const consolidation = this.consolidateResults(resultats, candidats);
     
@@ -1333,11 +1350,15 @@ const data = (auditData || [])
       color: #000;
     }
     .header {
-      text-align: center;
+      display: flex;
+      align-items: center;
       margin-bottom: 40px;
       border-bottom: 2px solid #0055A4;
       padding-bottom: 20px;
     }
+    .blason-wrap { flex-shrink: 0; margin-right: 18px; }
+    .blason-wrap img { width: 38mm; height: auto; object-fit: contain; }
+    .header-text { flex: 1; text-align: center; }
     h1 { color: #0055A4; margin: 0; }
     .info { margin: 20px 0; }
     .stats-grid {
@@ -1378,10 +1399,13 @@ const data = (auditData || [])
 </head>
 <body>
   <div class="header">
-    <h1>RÉPUBLIQUE FRANÇAISE</h1>
-    <h2>Statistiques - Élections Municipales</h2>
-    <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
-    <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    ${blasonDataUrl ? `<div class="blason-wrap"><img src="${blasonDataUrl}" alt="Blason Maurepas" /></div>` : ''}
+    <div class="header-text">
+      <h1>RÉPUBLIQUE FRANÇAISE</h1>
+      <h2>Statistiques - Élections Municipales</h2>
+      <h3>${ELECTION_CONFIG.COMMUNE_NAME} (${ELECTION_CONFIG.COMMUNE_CODE})</h3>
+      <h3>${tour === 1 ? '1er Tour' : '2nd Tour'} - ${formatDateFR(ELECTION_CONFIG[tour === 1 ? 'ELECTION_DATE_T1' : 'ELECTION_DATE_T2'])}</h3>
+    </div>
   </div>
 
   <div class="info">
