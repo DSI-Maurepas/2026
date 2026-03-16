@@ -1071,7 +1071,7 @@ useEffect(() => {
         /* Responsive pour la grille des champs */
         .resultats-saisie-grid {
           display: grid;
-          grid-template-columns: repeat(6, minmax(110px, 1fr));
+          grid-template-columns: repeat(7, minmax(100px, 1fr));
           gap: 8px;
           margin: 10px 0 16px;
         }
@@ -1084,25 +1084,28 @@ useEffect(() => {
           .resultats-saisie-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
             grid-template-areas:
-              "inscrits exprimes exprimes"
-              "votants  blancs   nuls";
+              "inscrits     exprimes    exprimes"
+              "votants      blancs      nuls"
+              "procurations abstention  abstention";
           }
 
-          .resultats-field-inscrits { grid-area: inscrits; }
-          .resultats-field-exprimes { grid-area: exprimes; }
-          .resultats-field-votants { grid-area: votants; }
-          .resultats-field-blancs { grid-area: blancs; }
-          .resultats-field-nuls { grid-area: nuls; }
+          .resultats-field-inscrits     { grid-area: inscrits; }
+          .resultats-field-exprimes     { grid-area: exprimes; }
+          .resultats-field-votants      { grid-area: votants; }
+          .resultats-field-blancs       { grid-area: blancs; }
+          .resultats-field-nuls         { grid-area: nuls; }
+          .resultats-field-procurations { grid-area: procurations; }
+          .resultats-field-abstention   { grid-area: abstention; }
         }
 
         /* Très petit écran : on conserve l’ordre logique, mais on évite l’écrasement */
         @media (max-width: 480px) {
           .resultats-saisie-grid {
-            /* Toujours 2 lignes : INSCRITS + EXPRIMÉS / VOTANTS + BLANCS + NULS */
             grid-template-columns: repeat(3, minmax(0, 1fr));
             grid-template-areas:
-              "inscrits exprimes exprimes"
-              "votants  blancs   nuls";
+              "inscrits    exprimes    exprimes"
+              "votants     blancs      nuls"
+              "procurations abstention abstention";
             gap: 8px;
           }
         }
@@ -1602,6 +1605,36 @@ useEffect(() => {
                   padding: 6,
                   background: (isLocked && !isAdmin) ? '#f0f0f0' : '#fff',
                   cursor: (isLocked && !isAdmin) ? 'not-allowed' : 'text'
+                }}
+              />
+            </div>
+
+            {/* ABSTENTION — calculée automatiquement : Inscrits − Votants */}
+            <div className="resultats-field-abstention">
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4, fontWeight: 700 }}>
+                ABSTENTIONS <span style={{ fontWeight: 400, fontStyle: 'italic', opacity: 0.7 }}>(calculé)</span>
+              </div>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={
+                  (() => {
+                    const ins = parseInt(inputsMain.inscrits, 10);
+                    const vot = parseInt(inputsMain.votants,  10);
+                    if (Number.isFinite(ins) && Number.isFinite(vot)) return String(Math.max(0, ins - vot));
+                    return '';
+                  })()
+                }
+                readOnly
+                disabled
+                title="Calculé automatiquement : Inscrits − Votants"
+                style={{
+                  width: '100%',
+                  padding: 6,
+                  background: '#f0f0f0',
+                  cursor: 'not-allowed',
+                  fontWeight: 700,
+                  color: '#555'
                 }}
               />
             </div>

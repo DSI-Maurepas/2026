@@ -260,6 +260,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       { key: 'procurations', label: 'Procurations', field: 'procurations' },
       { key: 'blancs',       label: 'Blancs',       field: 'blancs'   },
       { key: 'nuls',         label: 'Nuls',         field: 'nuls'     },
+      { key: 'abstention',   label: 'Abstentions',  field: 'abstention', isComputed: true },
       { key: 'exprimes',     label: 'Exprimés',     field: 'exprimes' },
       { key: '__ctrl1__',    label: '✓ Ctrl 1',     isCtrl: 'ctrl1'   },
     ];
@@ -310,6 +311,20 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       return (
         <td key={bureauId} style={cellStyle(ok ? '#dcfce7' : '#fee2e2', false)}>
           <span style={{ fontSize: 16 }}>{ok ? '🟢' : '🔴'}</span>
+        </td>
+      );
+    }
+
+    // Ligne calculée (ex: abstention = inscrits - votants)
+    if (rowDef.isComputed && rowDef.field === 'abstention') {
+      const ins = parseInt(getVal(bureauId, 'inscrits') ?? '', 10);
+      const vot = parseInt(getVal(bureauId, 'votants')  ?? '', 10);
+      const abs = (Number.isFinite(ins) && Number.isFinite(vot)) ? Math.max(0, ins - vot) : null;
+      return (
+        <td key={bureauId} style={{ ...cellStyle('#f5f5f5', false, true), color: '#555', fontWeight: 700 }}>
+          {abs !== null
+            ? abs.toLocaleString('fr-FR')
+            : <span style={{ color: '#d1d5db' }}>—</span>}
         </td>
       );
     }
@@ -529,7 +544,7 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
                     fontSize: isCtrlRow ? 11 : isListRow ? 12 : 12,
                   }}>
                     {isCtrlRow ? (
-                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.label}</span>
+                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>{rowDef.isComputed ? <span style={{ fontStyle: 'italic', color: '#888' }}>{rowDef.label} <span style={{ fontSize: 10 }}>(calculé)</span></span> : rowDef.label}</span>
                     ) : (
                       rowDef.label
                     )}
