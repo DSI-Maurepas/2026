@@ -2226,11 +2226,13 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
       return s === 'false' || s === '0' || s === 'non' || s === 'no' || s === 'n' || s === 'faux';
     };
     const list = Array.isArray(candidats) ? candidats : [];
-    return list.filter((c) => {
-      if (!c) return false;
-      if (tour === 1) return !isFalse(c.actifT1) && !isFalse(c.ActifT1);
-      return !isFalse(c.actifT2) && !isFalse(c.ActifT2);
-    });
+    return list
+      .filter((c) => {
+        if (!c) return false;
+        if (tour === 1) return !isFalse(c.actifT1) && !isFalse(c.ActifT1);
+        return !isFalse(c.actifT2) && !isFalse(c.ActifT2);
+      })
+      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)));
   }
 
   _aggregateResultatsMaurepas(resultats = [], candidats = [], tour = 1) {
