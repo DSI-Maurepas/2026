@@ -288,6 +288,8 @@ default:
         'Taux nuls (%)': Number(tauxNuls.toFixed(2)),
         'Blancs': blancs,
         'Taux blancs (%)': Number(tauxBlancs.toFixed(2)),
+        'Abstentions': inscrits - votants > 0 ? inscrits - votants : 0,
+        'Taux abstention (%)': Number((inscrits > 0 ? ((inscrits - votants) / inscrits) * 100 : 0).toFixed(2)),
         'Exprimés': exprimes,
         'Taux exprimés (%)': Number(tauxExprimes.toFixed(2)),
         'Saisi par': p?.saisiPar || p?.SaisiPar || p?.user || '',
@@ -793,8 +795,10 @@ const data = (auditData || [])
       row['Taux nuls (%)']      = inscrits > 0 ? formatPercent(nuls     / inscrits, 2) : formatPercent(0, 2);
       row['Blancs']             = blancs;
       row['Taux blancs (%)']    = inscrits > 0 ? formatPercent(blancs   / inscrits, 2) : formatPercent(0, 2);
-      row['Exprimés']           = exprimes;
-      row['Taux exprimés (%)']  = inscrits > 0 ? formatPercent(exprimes / inscrits, 2) : formatPercent(0, 2);
+      row['Abstentions']          = inscrits - lastVotants > 0 ? inscrits - lastVotants : 0;
+      row['Taux abstention (%)']  = inscrits > 0 ? formatPercent((inscrits - lastVotants) / inscrits, 2) : formatPercent(0, 2);
+      row['Exprimés']             = exprimes;
+      row['Taux exprimés (%)']    = inscrits > 0 ? formatPercent(exprimes / inscrits, 2) : formatPercent(0, 2);
 
       return row;
     });
@@ -985,6 +989,8 @@ const data = (auditData || [])
       <th>Rang</th>
       <th>Liste</th>
       <th>Voix</th>
+      <th>Abstentions</th>
+      <th>% Abstention</th>
       <th>% Exprimés</th>
       <th>% Inscrits</th>
     </tr>
@@ -1262,9 +1268,11 @@ const data = (auditData || [])
       const nuls       = getNumeric(p?.nuls    ?? p?.Nuls);
       const blancs     = getNumeric(p?.blancs  ?? p?.Blancs);
       const exprimes   = getNumeric(p?.exprimes ?? p?.Exprimes);
-      const tauxNuls   = inscrits > 0 ? (nuls     / inscrits) * 100 : 0;
-      const tauxBlancs = inscrits > 0 ? (blancs   / inscrits) * 100 : 0;
-      const tauxExp    = inscrits > 0 ? (exprimes / inscrits) * 100 : 0;
+      const abstentions  = inscrits - votants > 0 ? inscrits - votants : 0;
+      const tauxAbs    = inscrits > 0 ? (abstentions / inscrits) * 100 : 0;
+      const tauxNuls   = inscrits > 0 ? (nuls        / inscrits) * 100 : 0;
+      const tauxBlancs = inscrits > 0 ? (blancs      / inscrits) * 100 : 0;
+      const tauxExp    = inscrits > 0 ? (exprimes    / inscrits) * 100 : 0;
       return `
     <tr>
       <td>${p?.bureauId || ''}</td>
@@ -1275,6 +1283,8 @@ const data = (auditData || [])
       <td>${tauxNuls.toFixed(2)}%</td>
       <td>${formatNumber(blancs)}</td>
       <td>${tauxBlancs.toFixed(2)}%</td>
+      <td>${formatNumber(abstentions)}</td>
+      <td>${tauxAbs.toFixed(2)}%</td>
       <td>${formatNumber(exprimes)}</td>
       <td>${tauxExp.toFixed(2)}%</td>
     </tr>
@@ -1289,6 +1299,8 @@ const data = (auditData || [])
       <td>${totalInscrits > 0 ? ((totalNuls/totalInscrits)*100).toFixed(2) : '0.00'}%</td>
       <td>${formatNumber(totalBlancs)}</td>
       <td>${totalInscrits > 0 ? ((totalBlancs/totalInscrits)*100).toFixed(2) : '0.00'}%</td>
+      <td>${formatNumber(totalInscrits - totalVotants)}</td>
+      <td>${totalInscrits > 0 ? (((totalInscrits-totalVotants)/totalInscrits)*100).toFixed(2) : '0.00'}%</td>
       <td>${formatNumber(totalExprimes)}</td>
       <td>${totalInscrits > 0 ? ((totalExprimes/totalInscrits)*100).toFixed(2) : '0.00'}%</td>
     </tr>
@@ -1411,6 +1423,8 @@ const data = (auditData || [])
       <th>Rang</th>
       <th>Liste</th>
       <th>Voix</th>
+      <th>Abstentions</th>
+      <th>% Abstention</th>
       <th>% Exprimés</th>
       <th>% Inscrits</th>
     </tr>
