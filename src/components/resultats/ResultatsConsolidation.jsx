@@ -570,8 +570,8 @@ const ResultatsConsolidation = ({ electionState}) => {
             </div>
             {totaux.votants > 0 ? (
               <>
-                <div className="stats-card-value">{totalAbstentions.toLocaleString('fr-FR')}</div>
-                <div className="stats-card-meta">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+                <div className="stats-card-value">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+                <div className="stats-card-meta">{totalAbstentions.toLocaleString('fr-FR')}</div>
               </>
             ) : (
               <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
@@ -634,8 +634,8 @@ const ResultatsConsolidation = ({ electionState}) => {
             </div>
             {totaux.votants > 0 ? (
               <>
-                <div className="stats-card-value">{totalAbstentions.toLocaleString('fr-FR')}</div>
-                <div className="stats-card-meta">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+                <div className="stats-card-value">{clampPct(100 - tauxParticipation).toFixed(2)}%</div>
+                <div className="stats-card-meta">{totalAbstentions.toLocaleString('fr-FR')}</div>
               </>
             ) : (
               <div className="stats-card-meta" style={{ fontStyle: 'italic', color: '#94a3b8', marginTop: 8 }}>⏳ Disponible dès les premiers chiffres saisis</div>
@@ -743,12 +743,12 @@ const ResultatsConsolidation = ({ electionState}) => {
                 📋 Procurations
               </div>
               <div className="stats-card-value">
-                {resultats.reduce((sum, r) => sum + (Number(r.procurations) || 0), 0).toLocaleString('fr-FR')}
+                {totaux.votants > 0
+                  ? `${((resultats.reduce((s, r) => s + (Number(r.procurations) || 0), 0) / totaux.votants) * 100).toFixed(2)}%`
+                  : '—'}
               </div>
               <div className="stats-card-meta">
-                {totaux.votants > 0
-                  ? `${((resultats.reduce((s, r) => s + (Number(r.procurations) || 0), 0) / totaux.votants) * 100).toFixed(2)}% des votants`
-                  : '—'}
+                {resultats.reduce((sum, r) => sum + (Number(r.procurations) || 0), 0).toLocaleString('fr-FR')} des votants
               </div>
             </div>
 
@@ -761,12 +761,12 @@ const ResultatsConsolidation = ({ electionState}) => {
                 🗳️ Suffrages exprimés
               </div>
               <div className="stats-card-value">
-                {(Number(totaux.exprimes) || 0).toLocaleString('fr-FR')}
+                {totaux.inscrits > 0
+                  ? `${((totaux.exprimes / totaux.inscrits) * 100).toFixed(2)}%`
+                  : '—'}
               </div>
               <div className="stats-card-meta">
-                {totaux.inscrits > 0
-                  ? `${((totaux.exprimes / totaux.inscrits) * 100).toFixed(2)}% des inscrits`
-                  : '—'}
+                {(Number(totaux.exprimes) || 0).toLocaleString('fr-FR')} des inscrits
               </div>
             </div>
           </div>
