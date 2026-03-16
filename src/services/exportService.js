@@ -809,7 +809,9 @@ const data = (auditData || [])
       return Number.isFinite(n) ? n : 0;
     };
 
-    const cands = Array.isArray(candidats) ? candidats : [];
+    const cands = (Array.isArray(candidats) ? candidats : [])
+      .slice()
+      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)));
 
     // Détecter le format "par bureau" (avec voix objet) vs "flat"
     const isPerBureau = Array.isArray(resultats) && resultats.some(r => r && (typeof r.voix === 'object' || r.voixParCandidat || r.VoixParCandidat));
@@ -1054,9 +1056,10 @@ const data = (auditData || [])
       listeId: l.listeId,
       nomListe: l.nomListe,
       voix: l.voix,
+      ordre: Number(l?.ordre ?? l?.Ordre ?? 0),
       pctExprimes: totalExprimes > 0 ? (l.voix / totalExprimes) * 100 : 0,
       pctInscrits: totalInscrits > 0 ? (l.voix / totalInscrits) * 100 : 0
-    })).filter(l => l.voix > 0).sort((a, b) => b.voix - a.voix);
+    })).sort((a, b) => a.ordre - b.ordre);  // ← ordre officiel (numéro de liste)
 
     return {
       totalInscrits,
