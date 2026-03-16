@@ -326,11 +326,10 @@ default:
         'Taux procurations (%)': votants > 0 ? Number(((procurations / votants) * 100).toFixed(2)) : 0,
       };
 
-      // Ajouter les voix par candidat (seulement ceux avec voix > 0 au global)
-      candidats.forEach(c => {
-        const v = r.voix[c.listeId] || 0;
-        if (v > 0) row[c.nomListe] = v;
-      });
+      // Ajouter les voix par candidat dans l'ordre officiel
+      const cTries = (Array.isArray(candidats) ? candidats : [])
+        .slice().sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)));
+      cTries.forEach(c => { row[c.nomListe] = r.voix[c.listeId] || 0; });
 
       row['Saisi par'] = r.saisiPar;
       row['Validé par'] = r.validePar;
@@ -809,9 +808,7 @@ const data = (auditData || [])
       return Number.isFinite(n) ? n : 0;
     };
 
-    const cands = (Array.isArray(candidats) ? candidats : [])
-      .slice()
-      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)));
+    const cands = Array.isArray(candidats) ? candidats : [];
 
     // Détecter le format "par bureau" (avec voix objet) vs "flat"
     const isPerBureau = Array.isArray(resultats) && resultats.some(r => r && (typeof r.voix === 'object' || r.voixParCandidat || r.VoixParCandidat));
@@ -1032,8 +1029,13 @@ const data = (auditData || [])
     let totalExprimes = 0;
     let totalProcurations = 0;
 
+    // Trier candidats par ordre officiel EN ENTRÉE
+    const candidatsTries = (Array.isArray(candidats) ? candidats : [])
+      .slice()
+      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)));
+
     const voixParListe = {};
-    candidats.forEach(c => {
+    candidatsTries.forEach(c => {
       voixParListe[c.listeId] = { ...c, voix: 0 };
     });
 
@@ -1052,14 +1054,17 @@ const data = (auditData || [])
       }
     });
 
-    const resultatsParListe = Object.values(voixParListe).map(l => ({
-      listeId: l.listeId,
-      nomListe: l.nomListe,
-      voix: l.voix,
-      ordre: Number(l?.ordre ?? l?.Ordre ?? 0),
-      pctExprimes: totalExprimes > 0 ? (l.voix / totalExprimes) * 100 : 0,
-      pctInscrits: totalInscrits > 0 ? (l.voix / totalInscrits) * 100 : 0
-    })).sort((a, b) => a.ordre - b.ordre);  // ← ordre officiel (numéro de liste)
+    // Reconstruire dans l'ordre officiel (candidatsTries garantit l'ordre)
+    const resultatsParListe = candidatsTries.map(c => {
+      const l = voixParListe[c.listeId];
+      return {
+        listeId: l.listeId,
+        nomListe: l.nomListe,
+        voix: l.voix,
+        pctExprimes: totalExprimes > 0 ? (l.voix / totalExprimes) * 100 : 0,
+        pctInscrits: totalInscrits > 0 ? (l.voix / totalInscrits) * 100 : 0
+      };
+    });
 
     return {
       totalInscrits,
@@ -1976,6 +1981,7 @@ const data = (auditData || [])
     const cands = (Array.isArray(candidats) ? candidats : [])
       .filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false))
       .filter(c => (_voixTotales[c?.listeId ?? c?.id ?? ''] || 0) > 0)
+      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)))
       .slice(0, 6);
     const resByBureau = new Map();
     (Array.isArray(resultats) ? resultats : []).forEach(r => { const bid = String(r?.bureauId ?? r?.BureauID ?? r?.Bureau ?? '').trim(); if (bid) resByBureau.set(bid, r); });
@@ -2072,6 +2078,7 @@ All&#233;e des Tilleuls</t></is></c><c r="B18" s="8" t="n"><v>{{B18}}</v></c><c 
     const cands = (Array.isArray(candidats) ? candidats : [])
       .filter(c => c && (tour === 1 ? c.actifT1 !== false : c.actifT2 !== false))
       .filter(c => (_voixTotales[c?.listeId ?? c?.id ?? ''] || 0) > 0)
+      .sort((a, b) => (Number(a?.ordre ?? a?.Ordre ?? 0) - Number(b?.ordre ?? b?.Ordre ?? 0)))
       .slice(0, 6);
     const resByBureau = new Map();
     (Array.isArray(resultats) ? resultats : []).forEach(r => { const bid = String(r?.bureauId ?? r?.BureauID ?? r?.Bureau ?? '').trim(); if (bid) resByBureau.set(bid, r); });
