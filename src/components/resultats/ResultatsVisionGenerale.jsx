@@ -266,9 +266,9 @@ export default function ResultatsVisionGenerale({ tourActuel = 1 }) {
       { key: 'nuls',         label: 'Nuls',         field: 'nuls'     },
       { key: 'abstention',   label: 'Abstentions',  field: 'abstention', isComputed: true },
       { key: 'exprimes',          label: 'Exprimés',          field: 'exprimes' },
-      { key: 'cartesDisponibles', label: 'Mises à dispo',      field: 'cartesDisponibles', isCartes: true },
-      { key: 'cartesRecuperees',  label: 'Récupérées',          field: 'cartesRecuperees',  isCartes: true },
-      { key: 'cartesRestantes',   label: 'Restantes',           field: 'cartesRestantes',   isCartes: true, isComputed: true },
+      { key: 'cartesDisponibles', label: 'Cartes mises à dispo',      field: 'cartesDisponibles', isCartes: true },
+      { key: 'cartesRecuperees',  label: 'Cartes récupérées',          field: 'cartesRecuperees',  isCartes: true },
+      { key: 'cartesRestantes',   label: 'Cartes restantes',           field: 'cartesRestantes',   isCartes: true, isComputed: true },
       { key: '__ctrl1__',         label: '✓ Ctrl 1',            isCtrl: 'ctrl1'   },
     ];
     candidatsActifs.forEach(c => {
